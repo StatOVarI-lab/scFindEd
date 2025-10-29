@@ -1,0 +1,288 @@
+#' Process Barcodes
+#'
+#' This function reads in barcode reads data and first performs some basic QC
+#' filtering. It then extracts BC1 and BC2/BC3s from provided flanking
+#' sequences, before grouping cells by cell_barcode and counting reads.
+#'
+#' @param barcode_amplicon_info TXT file with barcode amplicon info.
+#' @param barcoded_barcodes_fastq FASTQ file with extracted read barcodes.
+#' @param barcoded_readnames_fastq FASTQ file with extracted readnames.
+#' @param min_reads QC threshold: minimum number of reads.
+#' @param quality_score_threshold QC threshold: minimum quality score.
+#' @param seq_before_barcode_1 BC1 flanking sequence.
+#' @param seq_before_barcode_2 BC2 flanking sequence.
+#' @param seq_after_barcode_3 BC3 flanking sequence.
+
+#' @return A table linking cells to extracted barcodes.
+
+#' @examples
+#' process_barcodes(
+#' barcode_amplicon_info = "data/barcode_amplicon_info.txt",
+#' barcoded_barcodes_fastq = "data/MB_barcoded_barcodes_fastq.txt",
+#' barcoded_readnames_fastq = "data/MB_barcoded_R2_001_readnames_fastq.txt",
+#' min_reads = 2,
+#' quality_score_threshold = 30,
+#' seq_before_barcode_1 = "GTACGAAGACTG",
+#' seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+#' seq_after_barcode_3 = "CTTGTCTCGCTCCGGG")
+
+#' @export
+process_barcodes <- function(
+  barcode_amplicon_info,
+  barcoded_barcodes_fastq,
+  barcoded_readnames_fastq,
+  min_reads,
+  quality_score_threshold,
+  seq_before_barcode_1,
+  seq_before_barcode_2,
+  seq_after_barcode_3
+) {
+  # -- Data Structuring --
+
+  message("Performing Data Structuring...")
+
+  # Import barcode amplicon data table and assign column names
+  barcode_amplicon_data <- read.table(barcode_amplicon_info,sep=" ")
+  colnames(barcode_amplicon_data) <- c(
+    "readname","amplicon_name","start","quality","cigar","sequence")
+
+  # Read cell barcodes from raw FASTQ file
+  cell_barcodes <- data.table::fread(barcoded_barcodes_fastq,header=FALSE)$V1
+  # Read readnames from raw FASTQ file
+  readnames <- data.table::fread(barcoded_readnames_fastq,header=FALSE)$V1
+
+  # Assign readnames as the names of the cell_barcodes vector
+  names(cell_barcodes) <- readnames
+  # Map cell barcodes to the amplicon data, using readname as the key
+  barcode_amplicon_data$cell_barcode <-
+    cell_barcodes[barcode_amplicon_data$readname]
+
+  message("Data Structuring Complete.")
+
+  # -- QC Filtering --
+
+  message("Performing QC Filtering...")
+
+  # Mark and filter for barcodes that appear more than @min_reads times
+  barcodes.keep <-
+    names(table(barcode_amplicon_data$cell_barcode))[table(barcode_amplicon_data$cell_barcode)>2]
+  barcode_amplicon_data <-
+    barcode_amplicon_data[barcode_amplicon_data$cell_barcode%in%barcodes.keep,]
+
+  # Filter the reads with a quality score < @quality_score_threshold
+  barcode_amplicon_data <- barcode_amplicon_data[barcode_amplicon_data$quality>=30,]
+
+  # Subset of forward reads with a start position between 40 and 43
+  barcode_amplicon_data_forward <- barcode_amplicon_data[barcode_amplicon_data$start%in%40:43,]
+  # Subset of reverse reads with a start position between 142 and 148
+  barcode_amplicon_data_reverse <- barcode_amplicon_data[barcode_amplicon_data$start%in%142:148,]
+
+  # Removing the two reads with unusual start position for forward read
+  # and are included for both forward and reverse read
+  barcode_amplicon_data_reverse <- barcode_amplicon_data_reverse %>%
+    dplyr::filter(!duplicated(readname))
+
+  message("QC Filtering Complete.")
+
+  # -- Extracting Barcodes 1, 2 and 3 --
+
+  message("Extracting Barcodes 1, 2 and 3...")
+
+  # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
+  barcode_amplicon_data_with_seq_before_BC_1_2 <-
+    barcode_amplicon_data_forward[grepl_seq1_2(
+      barcode_amplicon_data_forward$sequence,
+      seq_before_barcode_1,seq_before_barcode_2),]
+
+  # Filter REVERSE reads that contain the flanking sequence AFTER the barcode
+  barcode_amplicon_data_with_seq_after_barcode_3 <-
+    barcode_amplicon_data_reverse[sapply(
+      barcode_amplicon_data_reverse$sequence,
+      function(x) grepl(seq_after_barcode_3,x)),]
+
+  # Apply extract_BC1 to each sequence and store results in BC1 column
+  barcode_amplicon_data_with_seq_before_BC_1_2$BC1 <-
+    unlist(sapply(barcode_amplicon_data_with_seq_before_BC_1_2$sequence,
+                  function(x) extract_BC1(x, seq_before_barcode_1)))
+
+  # Apply extract_BC2 to each sequence and store results in BC2 column
+  barcode_amplicon_data_with_seq_before_BC_1_2$BC2 <-
+    unlist(sapply(barcode_amplicon_data_with_seq_before_BC_1_2$sequence,
+                  function(x) extract_BC2(x, seq_before_barcode_2)))
+
+  # Create a table with selected columns: readname, cell_barcode, BC1, and BC2
+  readname_cell_table <-
+    barcode_amplicon_data_with_seq_before_BC_1_2 %>%
+    dplyr::select(readname,cell_barcode,BC1,BC2)
+
+  # Apply extract_BC3 to each sequence and store results in BC3 column
+  barcode_amplicon_data_with_seq_after_barcode_3$BC3 <-
+    sapply(barcode_amplicon_data_with_seq_after_barcode_3$sequence,
+           function(x) extract_BC3(x, seq_after_barcode_3))
+
+  # Set rownames of above, using readname for easier lookup
+  rownames(barcode_amplicon_data_with_seq_after_barcode_3) <-
+    barcode_amplicon_data_with_seq_after_barcode_3$readname
+
+  # Remove duplicate readnames to ensure unique mapping
+  barcode_amplicon_data_with_seq_after_barcode_3 <-
+    barcode_amplicon_data_with_seq_after_barcode_3 %>%
+    dplyr::filter(!(duplicated(readname)))
+
+  # Map BC3 values to readname_cell_table using readname as the key
+  readname_cell_table$BC3 <- unlist(
+    barcode_amplicon_data_with_seq_after_barcode_3[readname_cell_table$readname,"BC3"])
+
+  # Remove rows with any missing (NA) values from the table
+  readname_cell_table <-
+    readname_cell_table[complete.cases(readname_cell_table),]
+
+  message("Finished Extracting Barcodes 1, 2 and 3.")
+
+  # -- Grouping --
+
+  message("Grouping Barcodes...")
+
+  # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
+  cell_BC1_BC2_BC3 <- readname_cell_table %>%
+    dplyr::select(cell_barcode,BC1,BC2,BC3) %>%
+    dplyr::group_by_all()%>%
+    dplyr::count()
+
+  # Remove rows with any missing values
+  cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3[complete.cases(cell_BC1_BC2_BC3),]
+
+  # Filter for only the rows where BC1 is 20 bases, and BC2 and BC3 are 30 bases
+  cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3 %>%
+    dplyr::filter(nchar(BC1) == 20,nchar(BC2) == 30, nchar(BC3) == 30)
+
+  message("Finished Grouping Barcodes...")
+
+  saveRDS(cell_BC1_BC2_BC3,file="data/cell_to_extracted_BCs.rds")
+
+  message("Grouped Barcodes Exported to \"data/cell_to_extracted_BCs.rds\".")
+}
+
+#' Identifying Closest Whitelisted Barcodes
+#'
+#' This function identifies the three shortest Hamming distances between barcode
+#' and whitelisted barcode, for each of BC1 and BC2/BC3.
+#'
+#' @param BC1_whitelist_file CSV file of whitelisted BC1 barcodes.
+#' @param BC2_BC3_whitelist_file CSV file of whitelisted BC2/BC3 barcode pairs.
+#' @param cell_to_extracted_BCs A table linking cells to extracted barcodes.
+
+#' @return A list of barcode matches for BC1 and a list of barcode matches for
+#' BC2/BC3.
+
+#' @examples
+#' process_barcodes(
+#' BC1_whitelist_file = "whitelisted_barcodes/75K_barcode.csv",
+#' BC2_BC3_whitelist_file = "whitelisted_barcodes/Wong_barcode_pairs.csv",
+#' cell_to_extracted_BCs = "data/cell_to_extracted_BCs.rds"
+#' )
+
+#' @export
+identify_whitelisted_barcodes <- function(
+    BC1_whitelist_file,
+    BC2_BC3_whitelist_file,
+    cell_to_extracted_BCs
+) {
+  # -- Load Whitelisted Barcodes --
+
+  message("Loading Whitelisted Barcodes...")
+
+  # Load BC1 whitelist from CSV and assign each a unique name
+  BC1_whitelist <- read.table(BC1_whitelist_file,sep=",")$V1
+  names(BC1_whitelist) <- paste0("BC1_",1:length(BC1_whitelist))
+
+  # Load barcode pair whitelist and extract unique BC2/BC3 sequences
+  Wong_dual <- read.table(BC2_BC3_whitelist_file,sep=",",header=TRUE)
+  BC2_BC3_whitelist <- unique(Wong_dual[,1]) # the same 127 strings for BC2 and BC3
+  names(BC2_BC3_whitelist) <- paste0("BC2_3_",1:length(BC2_BC3_whitelist))
+
+  message("Loaded Whitelisted Barcodes.")
+
+  # -- Identify the Three BC1s with the Shortest Hamming Distance
+
+  # Get unique BC1 sequences from the dataset
+  cell_BC1_BC2_BC3 <- readRDS(cell_to_extracted_BCs)
+  unique_BC_1 <- unique(cell_BC1_BC2_BC3$BC1)
+
+  # Loop through each unique BC1 sequence and find the 3 closest whitelist
+  # barcodes to the current BC1 using Hamming distance
+  cli_progress_bar("Identifying BC1s", total = length(unique_BC_1))
+  list_BC1 <- list()
+  for (j in 1:length(unique_BC_1)){
+    list_BC1[[j]] <- identify_barcode_ID(unique_BC_1[j],BC1_whitelist)
+    cli_progress_update() # Update progress
+  }
+  cli_progress_done() # Close the progress bar
+
+  # Assign BC1 sequences as names to the list entries
+  names(list_BC1) <- unique_BC_1
+
+  # Save the list of BC1 matches to an RDS file
+  saveRDS(list_BC1,file="data/list_BC1.rds")
+
+  message("Identified BC1s Exported to \"data/list_BC1.rds\".")
+
+  # -- Identify the Three BC2/BC3s with the Shortest Hamming Distance
+
+  # Get unique BC2 and BC3 sequences from the dataset
+  unique_BC_2_3 <- unique(c(cell_BC1_BC2_BC3$BC2,cell_BC1_BC2_BC3$BC3))
+
+  # Loop through each unique BC2/BC3 sequence and find the 3 closest whitelist
+  # barcodes to the current BC2/BC3 using Hamming distance
+  cli_progress_bar("Identifying BC2/BC3s", total = length(unique_BC_2_3))
+  list_BC2_3 <- list()
+  for (j in 1:length(unique_BC_2_3)){
+    list_BC2_3[[j]] <- identify_barcode_ID(unique_BC_2_3[j],BC2_BC3_whitelist)
+    cli_progress_update() # Update progress
+  }
+  cli_progress_done() # Close the progress bar
+
+  # Assign BC2/BC3 sequences as names to the list entries
+  names(list_BC2_3) <- unique_BC_2_3
+
+  # Save the list of BC2/BC3 matches to an RDS file
+  saveRDS(list_BC2_3,file="data/list_BC2_3.rds")
+
+  message("Identified BC2/BC3s Exported to \"data/list_BC2_3.rds\".")
+}
+
+
+#' @keywords internal
+# Checks if both seq1 and seq2 are present in each element of vector v
+grepl_seq1_2 <- function(v,seq1,seq2){
+  temp_1 <- sapply(v,function(x) grepl(seq1,x)) # Check for presence of seq1
+  temp_2 <- sapply(v,function(x) grepl(seq2,x)) # Check for presence of seq2
+  return(temp_1 & temp_2) # Return TRUE when both temp_1 and temp_2 are TRUE
+}
+
+# Extracts 20 bases following seq_before_barcode_1
+extract_BC1 <- function(x,seq_before_barcode_1){
+  temp <- strsplit(x,seq_before_barcode_1)[[1]][2]
+  return(substr(temp,1,20))
+}
+
+# Extracts 30 bases following seq_before_barcode_2
+extract_BC2 <- function(x,seq_before_barcode_2){
+  temp <- strsplit(x,seq_before_barcode_2)[[1]][2]
+  return(substr(temp,1,30))
+}
+
+# Extracts 30 bases preceding seq_after_barcode_3
+extract_BC3 <- function(x,seq_after_barcode_3){
+  temp <- strsplit(x,seq_after_barcode_3)[[1]][1]
+  nc <- nchar(temp)
+  return(substr(temp,nc-29,nc))
+}
+
+# Function to compute Hamming distances between a barcode and a whitelist,
+# returning the 3 smallest distances
+identify_barcode_ID <- function(BC,BC_vec){
+  temp <- sapply(BC_vec,function(x) stringdist(x,BC,method="hamming"))
+  return(sort(temp)[1:3])
+}
+
