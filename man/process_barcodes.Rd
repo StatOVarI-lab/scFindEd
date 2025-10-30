@@ -5,9 +5,9 @@
 \title{Process Barcodes}
 \usage{
 process_barcodes(
-  barcode_amplicon_info,
-  barcoded_barcodes_fastq,
-  barcoded_readnames_fastq,
+  barcode_amplicon_data,
+  cell_barcodes,
+  readnames,
   min_reads,
   quality_score_threshold,
   seq_before_barcode_1,
@@ -16,11 +16,11 @@ process_barcodes(
 )
 }
 \arguments{
-\item{barcode_amplicon_info}{TXT file with barcode amplicon info.}
+\item{barcode_amplicon_data}{Data frame with barcode amplicon info.}
 
-\item{barcoded_barcodes_fastq}{FASTQ file with extracted read barcodes.}
+\item{cell_barcodes}{Vector with extracted read barcodes.}
 
-\item{barcoded_readnames_fastq}{FASTQ file with extracted readnames.}
+\item{readnames}{Vector with extracted readnames.}
 
 \item{min_reads}{QC threshold: minimum number of reads.}
 
@@ -36,15 +36,15 @@ process_barcodes(
 A table linking cells to extracted barcodes.
 }
 \description{
-This function reads in barcode reads data and first performs some basic QC
+This function takes barcode reads data and first performs some basic QC
 filtering. It then extracts BC1 and BC2/BC3s from provided flanking
 sequences, before grouping cells by cell_barcode and counting reads.
 }
 \examples{
 process_barcodes(
-barcode_amplicon_info = "data/barcode_amplicon_info.txt",
-barcoded_barcodes_fastq = "data/MB_barcoded_barcodes_fastq.txt",
-barcoded_readnames_fastq = "data/MB_barcoded_R2_001_readnames_fastq.txt",
+barcode_amplicon_data = barcode_amplicon_data,
+cell_barcodes = cell_barcodes,
+readnames = readnames,
 min_reads = 2,
 quality_score_threshold = 30,
 seq_before_barcode_1 = "GTACGAAGACTG",

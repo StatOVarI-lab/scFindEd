@@ -1,0 +1,77 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# process_BCs.R
+
+## process_barcodes()
+
+We have moved the code for reading in the `barcode_amplicon_data`, `cell_barcodes` and `readnames` datasets outside of the `process_barcodes()` function. It is displayed below to show how the inputs for the example `process_barcodes()` parameters were generated.
+
+```{r}
+# -- Data Structuring --
+
+# Import barcode amplicon data table and assign column names
+barcode_amplicon_data <- read.table("data/barcode_amplicon_info.txt",sep=" ")
+colnames(barcode_amplicon_data) <- c(
+  "readname","amplicon_name","start","quality","cigar","sequence")
+
+# Read cell barcodes from raw FASTQ file
+cell_barcodes <- data.table::fread("data/MB_barcoded_barcodes_fastq.txt",header=FALSE)$V1
+# Read readnames from raw FASTQ file
+readnames <- data.table::fread("data/MB_barcoded_R2_001_readnames_fastq.txt",header=FALSE)$V1
+
+# Assign readnames as the names of the cell_barcodes vector
+names(cell_barcodes) <- readnames
+# Map cell barcodes to the amplicon data, using readname as the key
+barcode_amplicon_data$cell_barcode <-
+  cell_barcodes[barcode_amplicon_data$readname]
+```
+
+## identify_whitelisted_barcodes()
+
+We have moved the code for reading in the whitelisted barcode files (`75K_barcode.csv`, `Wong_barcode_pairs.csv`) and the `cell_to_extracted_BCs.rds` outside of the `identify_whitelisted_barcodes()` function. It is displayed below for posterity.
+
+```{r}
+# Load BC1 whitelist from CSV and assign each a unique name
+  BC1_whitelist <- read.table("whitelisted_barcodes/75K_barcode.csv",sep=",")$V1
+  names(BC1_whitelist) <- paste0("BC1_",1:length(BC1_whitelist))
+
+  # Load barcode pair whitelist and extract unique BC2/BC3 sequences
+  Wong_dual <- read.table("whitelisted_barcodes/Wong_barcode_pairs.csv",sep=",",header=TRUE)
+  BC2_BC3_whitelist <- unique(Wong_dual[,1]) # the same 127 strings for BC2 and BC3
+  names(BC2_BC3_whitelist) <- paste0("BC2_3_",1:length(BC2_BC3_whitelist))
+  
+  cell_to_extracted_BCs <- readRDS("data/cell_to_extracted_BCs.rds")
+```
+
+Performing `identify_whitelisted_barcodes()` on the original data is exceptionally slow. A subsetted version of our data is produced below, and is used in the example provided for this function.
+
+```{r}
+# Subset 200 of the 75987 whitelist barcodes
+BC1_whitelist_subset <- sample(BC1_whitelist, 200)
+
+# Subset 1000 rows of the cell_to_extracted_BCs data frame (originally 60677 obs.)
+cell_to_extracted_BCs_subset <- cell_to_extracted_BCs[sample(nrow(cell_to_extracted_BCs), 1000), ]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

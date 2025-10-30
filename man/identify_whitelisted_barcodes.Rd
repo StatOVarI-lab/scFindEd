@@ -5,17 +5,17 @@
 \title{Identifying Closest Whitelisted Barcodes}
 \usage{
 identify_whitelisted_barcodes(
-  BC1_whitelist_file,
-  BC2_BC3_whitelist_file,
+  BC1_whitelist,
+  BC2_BC3_whitelist,
   cell_to_extracted_BCs
 )
 }
 \arguments{
-\item{BC1_whitelist_file}{CSV file of whitelisted BC1 barcodes.}
+\item{BC1_whitelist}{Character vector of whitelisted BC1 barcodes.}
 
-\item{BC2_BC3_whitelist_file}{CSV file of whitelisted BC2/BC3 barcode pairs.}
+\item{BC2_BC3_whitelist}{Character vector of whitelisted BC2/BC3 barcode pairs.}
 
-\item{cell_to_extracted_BCs}{A table linking cells to extracted barcodes.}
+\item{cell_to_extracted_BCs}{A data frame linking cells to extracted barcodes.}
 }
 \value{
 A list of barcode matches for BC1 and a list of barcode matches for
@@ -26,9 +26,9 @@ This function identifies the three shortest Hamming distances between barcode
 and whitelisted barcode, for each of BC1 and BC2/BC3.
 }
 \examples{
-process_barcodes(
-BC1_whitelist_file = "whitelisted_barcodes/75K_barcode.csv",
-BC2_BC3_whitelist_file = "whitelisted_barcodes/Wong_barcode_pairs.csv",
-cell_to_extracted_BCs = "data/cell_to_extracted_BCs.rds"
+identify_whitelisted_barcodes(
+BC1_whitelist = BC1_whitelist_subset,
+BC2_BC3_whitelist = BC2_BC3_whitelist,
+cell_to_extracted_BCs = cell_to_extracted_BCs_subset
 )
 }

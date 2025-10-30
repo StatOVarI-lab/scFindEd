@@ -1,12 +1,12 @@
 #' Process Barcodes
 #'
-#' This function reads in barcode reads data and first performs some basic QC
+#' This function takes barcode reads data and first performs some basic QC
 #' filtering. It then extracts BC1 and BC2/BC3s from provided flanking
 #' sequences, before grouping cells by cell_barcode and counting reads.
 #'
-#' @param barcode_amplicon_info TXT file with barcode amplicon info.
-#' @param barcoded_barcodes_fastq FASTQ file with extracted read barcodes.
-#' @param barcoded_readnames_fastq FASTQ file with extracted readnames.
+#' @param barcode_amplicon_data Data frame with barcode amplicon info.
+#' @param cell_barcodes Vector with extracted read barcodes.
+#' @param readnames Vector with extracted readnames.
 #' @param min_reads QC threshold: minimum number of reads.
 #' @param quality_score_threshold QC threshold: minimum quality score.
 #' @param seq_before_barcode_1 BC1 flanking sequence.
@@ -17,9 +17,9 @@
 
 #' @examples
 #' process_barcodes(
-#' barcode_amplicon_info = "data/barcode_amplicon_info.txt",
-#' barcoded_barcodes_fastq = "data/MB_barcoded_barcodes_fastq.txt",
-#' barcoded_readnames_fastq = "data/MB_barcoded_R2_001_readnames_fastq.txt",
+#' barcode_amplicon_data = barcode_amplicon_data,
+#' cell_barcodes = cell_barcodes,
+#' readnames = readnames,
 #' min_reads = 2,
 #' quality_score_threshold = 30,
 #' seq_before_barcode_1 = "GTACGAAGACTG",
@@ -28,37 +28,15 @@
 
 #' @export
 process_barcodes <- function(
-  barcode_amplicon_info,
-  barcoded_barcodes_fastq,
-  barcoded_readnames_fastq,
+  barcode_amplicon_data,
+  cell_barcodes,
+  readnames,
   min_reads,
   quality_score_threshold,
   seq_before_barcode_1,
   seq_before_barcode_2,
   seq_after_barcode_3
 ) {
-  # -- Data Structuring --
-
-  message("Performing Data Structuring...")
-
-  # Import barcode amplicon data table and assign column names
-  barcode_amplicon_data <- read.table(barcode_amplicon_info,sep=" ")
-  colnames(barcode_amplicon_data) <- c(
-    "readname","amplicon_name","start","quality","cigar","sequence")
-
-  # Read cell barcodes from raw FASTQ file
-  cell_barcodes <- data.table::fread(barcoded_barcodes_fastq,header=FALSE)$V1
-  # Read readnames from raw FASTQ file
-  readnames <- data.table::fread(barcoded_readnames_fastq,header=FALSE)$V1
-
-  # Assign readnames as the names of the cell_barcodes vector
-  names(cell_barcodes) <- readnames
-  # Map cell barcodes to the amplicon data, using readname as the key
-  barcode_amplicon_data$cell_barcode <-
-    cell_barcodes[barcode_amplicon_data$readname]
-
-  message("Data Structuring Complete.")
-
   # -- QC Filtering --
 
   message("Performing QC Filtering...")
@@ -168,46 +146,32 @@ process_barcodes <- function(
 #' This function identifies the three shortest Hamming distances between barcode
 #' and whitelisted barcode, for each of BC1 and BC2/BC3.
 #'
-#' @param BC1_whitelist_file CSV file of whitelisted BC1 barcodes.
-#' @param BC2_BC3_whitelist_file CSV file of whitelisted BC2/BC3 barcode pairs.
-#' @param cell_to_extracted_BCs A table linking cells to extracted barcodes.
+#' @param BC1_whitelist Character vector of whitelisted BC1 barcodes.
+#' @param BC2_BC3_whitelist Character vector of whitelisted BC2/BC3 barcode pairs.
+#' @param cell_to_extracted_BCs A data frame linking cells to extracted barcodes.
 
 #' @return A list of barcode matches for BC1 and a list of barcode matches for
 #' BC2/BC3.
 
 #' @examples
-#' process_barcodes(
-#' BC1_whitelist_file = "whitelisted_barcodes/75K_barcode.csv",
-#' BC2_BC3_whitelist_file = "whitelisted_barcodes/Wong_barcode_pairs.csv",
-#' cell_to_extracted_BCs = "data/cell_to_extracted_BCs.rds"
+#' identify_whitelisted_barcodes(
+#' BC1_whitelist = BC1_whitelist_subset,
+#' BC2_BC3_whitelist = BC2_BC3_whitelist,
+#' cell_to_extracted_BCs = cell_to_extracted_BCs_subset
 #' )
 
 #' @export
 identify_whitelisted_barcodes <- function(
-    BC1_whitelist_file,
-    BC2_BC3_whitelist_file,
+    BC1_whitelist,
+    BC2_BC3_whitelist,
     cell_to_extracted_BCs
 ) {
-  # -- Load Whitelisted Barcodes --
-
-  message("Loading Whitelisted Barcodes...")
-
-  # Load BC1 whitelist from CSV and assign each a unique name
-  BC1_whitelist <- read.table(BC1_whitelist_file,sep=",")$V1
-  names(BC1_whitelist) <- paste0("BC1_",1:length(BC1_whitelist))
-
-  # Load barcode pair whitelist and extract unique BC2/BC3 sequences
-  Wong_dual <- read.table(BC2_BC3_whitelist_file,sep=",",header=TRUE)
-  BC2_BC3_whitelist <- unique(Wong_dual[,1]) # the same 127 strings for BC2 and BC3
-  names(BC2_BC3_whitelist) <- paste0("BC2_3_",1:length(BC2_BC3_whitelist))
-
-  message("Loaded Whitelisted Barcodes.")
-
   # -- Identify the Three BC1s with the Shortest Hamming Distance
 
   # Get unique BC1 sequences from the dataset
-  cell_BC1_BC2_BC3 <- readRDS(cell_to_extracted_BCs)
+  cell_BC1_BC2_BC3 <- cell_to_extracted_BCs
   unique_BC_1 <- unique(cell_BC1_BC2_BC3$BC1)
+  message(glue::glue("Number of Unique BC1s: {length(unique_BC_1)}"))
 
   # Loop through each unique BC1 sequence and find the 3 closest whitelist
   # barcodes to the current BC1 using Hamming distance
@@ -231,6 +195,7 @@ identify_whitelisted_barcodes <- function(
 
   # Get unique BC2 and BC3 sequences from the dataset
   unique_BC_2_3 <- unique(c(cell_BC1_BC2_BC3$BC2,cell_BC1_BC2_BC3$BC3))
+  message(glue::glue("Number of Unique BC2_3s: {length(unique_BC_2_3)}"))
 
   # Loop through each unique BC2/BC3 sequence and find the 3 closest whitelist
   # barcodes to the current BC2/BC3 using Hamming distance

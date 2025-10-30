@@ -16,5 +16,9 @@ Imports:
     cli,
     data.table,
     dplyr,
+    glue,
     stringdist,
     tidyr
+Depends: 
+    R (>= 3.5)
+LazyData: true
