@@ -3,3 +3,6 @@
 export(identify_whitelisted_barcodes)
 export(process_barcodes)
 export(say_hello)
+importFrom(cli,cli_progress_bar)
+importFrom(cli,cli_progress_done)
+importFrom(cli,cli_progress_update)
