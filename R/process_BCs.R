@@ -17,9 +17,9 @@
 
 #' @examples
 #' process_barcodes(
-#' barcode_amplicon_data = barcode_amplicon_data,
-#' cell_barcodes = cell_barcodes,
-#' readnames = readnames,
+#' barcode_amplicon_data = barcode_amplicon_data_subset,
+#' cell_barcodes = cell_barcodes_subset,
+#' readnames = readnames_subset,
 #' min_reads = 2,
 #' quality_score_threshold = 30,
 #' seq_before_barcode_1 = "GTACGAAGACTG",
@@ -41,14 +41,20 @@ process_barcodes <- function(
 
   message("Performing QC Filtering...")
 
+  # Assign readnames as the names of the cell_barcodes vector
+  names(cell_barcodes) <- readnames
+  # Map cell barcodes to the amplicon data, using readname as the key
+  barcode_amplicon_data$cell_barcode <-
+    cell_barcodes[barcode_amplicon_data$readname]
+
   # Mark and filter for barcodes that appear more than @min_reads times
   barcodes.keep <-
-    names(table(barcode_amplicon_data$cell_barcode))[table(barcode_amplicon_data$cell_barcode)>2]
+    names(table(barcode_amplicon_data$cell_barcode))[table(barcode_amplicon_data$cell_barcode)>min_reads]
   barcode_amplicon_data <-
     barcode_amplicon_data[barcode_amplicon_data$cell_barcode%in%barcodes.keep,]
 
   # Filter the reads with a quality score < @quality_score_threshold
-  barcode_amplicon_data <- barcode_amplicon_data[barcode_amplicon_data$quality>=30,]
+  barcode_amplicon_data <- barcode_amplicon_data[barcode_amplicon_data$quality>=quality_score_threshold,]
 
   # Subset of forward reads with a start position between 40 and 43
   barcode_amplicon_data_forward <- barcode_amplicon_data[barcode_amplicon_data$start%in%40:43,]
@@ -134,7 +140,7 @@ process_barcodes <- function(
   cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3 %>%
     dplyr::filter(nchar(BC1) == 20,nchar(BC2) == 30, nchar(BC3) == 30)
 
-  message("Finished Grouping Barcodes...")
+  message("Finished Grouping Barcodes.")
 
   saveRDS(cell_BC1_BC2_BC3,file="data/cell_to_extracted_BCs.rds")
 

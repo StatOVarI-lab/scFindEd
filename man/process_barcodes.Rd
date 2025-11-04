@@ -42,9 +42,9 @@ sequences, before grouping cells by cell_barcode and counting reads.
 }
 \examples{
 process_barcodes(
-barcode_amplicon_data = barcode_amplicon_data,
-cell_barcodes = cell_barcodes,
-readnames = readnames,
+barcode_amplicon_data = barcode_amplicon_data_subset,
+cell_barcodes = cell_barcodes_subset,
+readnames = readnames_subset,
 min_reads = 2,
 quality_score_threshold = 30,
 seq_before_barcode_1 = "GTACGAAGACTG",
