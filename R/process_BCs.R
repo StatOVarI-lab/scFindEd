@@ -166,6 +166,7 @@ process_barcodes <- function(
 #' cell_to_extracted_BCs = cell_to_extracted_BCs_subset
 #' )
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
+#' @importFrom stringdist stringdist
 
 #' @export
 identify_whitelisted_barcodes <- function(
