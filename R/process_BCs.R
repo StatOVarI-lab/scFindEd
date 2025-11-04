@@ -25,6 +25,7 @@
 #' seq_before_barcode_1 = "GTACGAAGACTG",
 #' seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
 #' seq_after_barcode_3 = "CTTGTCTCGCTCCGGG")
+#' @importFrom dplyr %>%
 
 #' @export
 process_barcodes <- function(
@@ -35,7 +36,8 @@ process_barcodes <- function(
   quality_score_threshold,
   seq_before_barcode_1,
   seq_before_barcode_2,
-  seq_after_barcode_3
+  seq_after_barcode_3,
+  output_dir = NULL
 ) {
   # -- QC Filtering --
 
@@ -142,9 +144,15 @@ process_barcodes <- function(
 
   message("Finished Grouping Barcodes.")
 
-  saveRDS(cell_BC1_BC2_BC3,file="data/cell_to_extracted_BCs.rds")
+  # -- Optional file saving (only if output_dir is provided) --
+  if (!is.null(output_dir)) {
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+    saveRDS(cell_BC1_BC2_BC3, file = file.path(output_dir, "cell_to_extracted_BCs.rds"))
+    message(glue::glue("Grouped Barcodes exported to: {normalizePath(output_dir)}"))
+  }
 
-  message("Grouped Barcodes Exported to \"data/cell_to_extracted_BCs.rds\".")
+  # Return the grouped data invisibly
+  invisible(cell_BC1_BC2_BC3)
 }
 
 #' Identifying Closest Whitelisted Barcodes
@@ -172,7 +180,8 @@ process_barcodes <- function(
 identify_whitelisted_barcodes <- function(
     BC1_whitelist,
     BC2_BC3_whitelist,
-    cell_to_extracted_BCs
+    cell_to_extracted_BCs,
+    output_dir = NULL
 ) {
   # -- Identify the Three BC1s with the Shortest Hamming Distance
 
@@ -194,11 +203,6 @@ identify_whitelisted_barcodes <- function(
   # Assign BC1 sequences as names to the list entries
   names(list_BC1) <- unique_BC_1
 
-  # Save the list of BC1 matches to an RDS file
-  saveRDS(list_BC1,file="data/list_BC1.rds")
-
-  message("Identified BC1s Exported to \"data/list_BC1.rds\".")
-
   # -- Identify the Three BC2/BC3s with the Shortest Hamming Distance
 
   # Get unique BC2 and BC3 sequences from the dataset
@@ -218,10 +222,16 @@ identify_whitelisted_barcodes <- function(
   # Assign BC2/BC3 sequences as names to the list entries
   names(list_BC2_3) <- unique_BC_2_3
 
-  # Save the list of BC2/BC3 matches to an RDS file
-  saveRDS(list_BC2_3,file="data/list_BC2_3.rds")
 
-  message("Identified BC2/BC3s Exported to \"data/list_BC2_3.rds\".")
+  # -- Optional file saving (only if output_dir is specified) --
+  if (!is.null(output_dir)) {
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+    saveRDS(list_BC1, file = file.path(output_dir, "list_BC1.rds"))
+    saveRDS(list_BC2_3, file = file.path(output_dir, "list_BC2_3.rds"))
+    message(glue::glue("Results saved to: {normalizePath(output_dir)}"))
+  }
+
+  invisible(list(BC1_matches = list_BC1, BC2_BC3_matches = list_BC2_3))
 }
 
 

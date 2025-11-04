@@ -12,7 +12,8 @@ process_barcodes(
   quality_score_threshold,
   seq_before_barcode_1,
   seq_before_barcode_2,
-  seq_after_barcode_3
+  seq_after_barcode_3,
+  output_dir = NULL
 )
 }
 \arguments{

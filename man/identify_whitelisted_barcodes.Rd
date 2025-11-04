@@ -7,7 +7,8 @@
 identify_whitelisted_barcodes(
   BC1_whitelist,
   BC2_BC3_whitelist,
-  cell_to_extracted_BCs
+  cell_to_extracted_BCs,
+  output_dir = NULL
 )
 }
 \arguments{
