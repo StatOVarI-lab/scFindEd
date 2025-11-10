@@ -25,7 +25,9 @@
 #' seq_before_barcode_1 = "GTACGAAGACTG",
 #' seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
 #' seq_after_barcode_3 = "CTTGTCTCGCTCCGGG")
-#' @importFrom dplyr %>%
+
+#' @importFrom dplyr %>% filter select group_by_all count
+#' @importFrom glue glue
 
 #' @export
 process_barcodes <- function(
@@ -39,16 +41,50 @@ process_barcodes <- function(
   seq_after_barcode_3,
   output_dir = NULL
 ) {
-  # -- QC Filtering --
-
-  message("Performing QC Filtering...")
-
   # Assign readnames as the names of the cell_barcodes vector
   names(cell_barcodes) <- readnames
   # Map cell barcodes to the amplicon data, using readname as the key
   barcode_amplicon_data$cell_barcode <-
     cell_barcodes[barcode_amplicon_data$readname]
 
+  # Filter amplicon data according to QC thresholds
+  filtered_amplicon_data <- filter_amplicon_data(
+    barcode_amplicon_data,
+    min_reads,
+    quality_score_threshold
+  )
+  barcode_amplicon_data_forward <- filtered_amplicon_data[[1]]
+  barcode_amplicon_data_reverse <- filtered_amplicon_data[[2]]
+
+  # Extract barcodes using known flanking sequences
+  readname_cell_table <- extract_barcodes(
+    barcode_amplicon_data_forward,
+    barcode_amplicon_data_reverse,
+    seq_before_barcode_1,
+    seq_before_barcode_2,
+    seq_after_barcode_3
+  )
+
+  cell_BC1_BC2_BC3 <- group_barcodes(readname_cell_table)
+
+  # -- Optional file saving (only if output_dir is provided) --
+  if (!is.null(output_dir)) {
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+    saveRDS(cell_BC1_BC2_BC3, file = file.path(output_dir, "cell_to_extracted_BCs.rds"))
+    message(glue::glue("Grouped Barcodes exported to: {normalizePath(output_dir)}"))
+  }
+
+  # Return the grouped data invisibly
+  invisible(cell_BC1_BC2_BC3)
+}
+
+
+#' @keywords internal
+filter_amplicon_data <- function(
+  barcode_amplicon_data,
+  min_reads,
+  quality_score_threshold
+) {
   # Mark and filter for barcodes that appear more than @min_reads times
   barcodes.keep <-
     names(table(barcode_amplicon_data$cell_barcode))[table(barcode_amplicon_data$cell_barcode)>min_reads]
@@ -68,12 +104,20 @@ process_barcodes <- function(
   barcode_amplicon_data_reverse <- barcode_amplicon_data_reverse %>%
     dplyr::filter(!duplicated(readname))
 
-  message("QC Filtering Complete.")
+  message("Filtered Amplicon Data.")
 
-  # -- Extracting Barcodes 1, 2 and 3 --
+  return(list(barcode_amplicon_data_forward, barcode_amplicon_data_reverse))
+}
 
-  message("Extracting Barcodes 1, 2 and 3...")
 
+#' @keywords internal
+extract_barcodes <- function(
+  barcode_amplicon_data_forward,
+  barcode_amplicon_data_reverse,
+  seq_before_barcode_1,
+  seq_before_barcode_2,
+  seq_after_barcode_3
+) {
   # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
   barcode_amplicon_data_with_seq_before_BC_1_2 <-
     barcode_amplicon_data_forward[grepl_seq1_2(
@@ -123,12 +167,16 @@ process_barcodes <- function(
   readname_cell_table <-
     readname_cell_table[complete.cases(readname_cell_table),]
 
-  message("Finished Extracting Barcodes 1, 2 and 3.")
+  message("Extracted Barcodes.")
 
-  # -- Grouping --
+  return(readname_cell_table)
+}
 
-  message("Grouping Barcodes...")
 
+#' @keywords internal
+group_barcodes <- function(
+  readname_cell_table
+) {
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
   cell_BC1_BC2_BC3 <- readname_cell_table %>%
     dplyr::select(cell_barcode,BC1,BC2,BC3) %>%
@@ -142,18 +190,11 @@ process_barcodes <- function(
   cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3 %>%
     dplyr::filter(nchar(BC1) == 20,nchar(BC2) == 30, nchar(BC3) == 30)
 
-  message("Finished Grouping Barcodes.")
+  message("Grouped Barcodes.")
 
-  # -- Optional file saving (only if output_dir is provided) --
-  if (!is.null(output_dir)) {
-    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    saveRDS(cell_BC1_BC2_BC3, file = file.path(output_dir, "cell_to_extracted_BCs.rds"))
-    message(glue::glue("Grouped Barcodes exported to: {normalizePath(output_dir)}"))
-  }
-
-  # Return the grouped data invisibly
-  invisible(cell_BC1_BC2_BC3)
+  return(cell_BC1_BC2_BC3)
 }
+
 
 #' Identifying Closest Whitelisted Barcodes
 #'
