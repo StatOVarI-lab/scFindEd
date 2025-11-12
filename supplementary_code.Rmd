@@ -1,0 +1,26 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# process_reads.R
+
+## process_reads()
+
+```{r}
+process_reads(
+  source_dir = "data",
+  sample_name = "HDR_barcoded",
+  amplicon_gRNA_number = "12345",
+  amplicon_data_file_path = "data/amplicons_barcoded_data.txt",
+  output_dir = "data"  
+)
+```
+
+```{r}
+amplicon_data <- read.table(amplicon_data_file_path, header = TRUE)
+```
