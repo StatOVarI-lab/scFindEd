@@ -1,0 +1,29 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# merge_HDR_amplicon_sequences.R
+
+## merge_HDR_amplicon_sequences()
+
+```{r}
+HDR_barcoded_file_path <- "data/HDR_file_barcoded.csv"
+design_summary_file_path = "data/6915_design_summary_extended_information.csv"
+
+HDR_df <- read_csv(HDR_barcoded_file_path, show_col_types = FALSE)
+design_df <- read_csv(design_summary_file_path, show_col_types = FALSE)
+```
+
+```{r}
+merged_amplicons_df <- merge_HDR_amplicon_sequences(
+  HDR_barcoded_file_path = HDR_barcoded_file_path,
+  design_summary_file_path = design_summary_file_path,
+  output_dir = "data"
+)
+```
+
