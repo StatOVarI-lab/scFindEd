@@ -13,7 +13,7 @@ distances.}
 \item{list_BC2_3}{A list of closest barcode matches for BC2/3, with Hamming
 distances.}
 
-\item{output_location}{A string detailing the path to the directory the plots
+\item{output_dir}{A string detailing the path to the directory the plots
 should be exported to.}
 }
 \value{

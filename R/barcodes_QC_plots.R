@@ -8,7 +8,7 @@
 #' distances.
 #' @param list_BC2_3 A list of closest barcode matches for BC2/3, with Hamming
 #' distances.
-#' @param output_location A string detailing the path to the directory the plots
+#' @param output_dir A string detailing the path to the directory the plots
 #' should be exported to.
 
 #' @return Two sanity-check histograms that compare the Hamming distance of the
@@ -22,7 +22,8 @@
 #' output_dir = "plots"
 #' )
 
-#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_classic ggsave
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_classic
+#' scale_fill_brewer theme element_text element_line ggsave
 #' @importFrom glue glue
 
 #' @export
