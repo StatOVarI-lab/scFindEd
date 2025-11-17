@@ -1,0 +1,25 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# barcodes_QC_plots.R
+
+## barcodes_QC_plots()
+
+```{r}
+list_BC1 <- readRDS("data/list_BC1.rds")
+list_BC2_3 <- readRDS("data/list_BC2_3.rds")
+```
+
+```{r}
+barcodes_QC_plots(
+  list_BC1,
+  list_BC2_3,
+  output_dir = "plots"
+)
+```
