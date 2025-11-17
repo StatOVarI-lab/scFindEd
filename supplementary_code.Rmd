@@ -29,18 +29,6 @@ process_reads(
   QC_thresholds = QC_thresholds,
   output_dir = "data"  
 )
-
-
-process_reads_single_amplicon(
-  source_dir = "data",
-  sample_name = "MB_barcoded",
-  amplicon_gRNA_number = 3,
-  amplicon_data_file_name = "amplicons_barcoded_data.txt",
-  HDR_barcoded_file_name = "HDR_file_barcoded_with_amplicon_sequences_Sho.csv",
-  cell_to_UTR_BCs_file_name = "cell_to_UTR_barcode_system.csv",
-  QC_thresholds = QC_thresholds,
-  output_dir = "data"  
-)
 ```
 
 ```{r}
