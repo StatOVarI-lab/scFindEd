@@ -1,0 +1,26 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# join_amplicon_summaries.R
+
+## join_amplicon_summaries()
+
+```{r}
+join_amplicon_summaries(
+  source_dir = "data",
+  file_name = "reads_classified_MB_barcoded_HDR_",
+  n_amplicons = 9,
+  minimum_count_thresholds = c(2, 5, 10, 20),
+  HOM_cutoff = 70,
+  HET_low_cutoff = 30, 
+  HET_high_cutoff = 70,
+  output_dir = "data"
+)
+```
+
