@@ -51,8 +51,6 @@ You can add a short note here explaining the expected input data structure e.g. 
 
 - The licence is pending and will be added soon. 
 
-- Local testing uses the path/to/directories directories, which are not tracked on GitHub. 
-
 - When adding new code: 
 
       - run `devtools::document()` to update documentation and NAMESPACE. 
