@@ -1,0 +1,36 @@
+---
+title: "Getting Started with scFindEd"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+scFindEd provides a reproducible workflow for extracting, cleaning and matching DNA barcodes. This vignette demonstrates the basic steps using example data.
+
+## Loading and installing the package (for developers)
+
+```{r setup}
+# library(scFindEd)
+```
+
+## Example datasets
+
+## Basic workflow
+
+### Processing barcodes
+
+### Whitelist matching
+
+## Understanding the outputs
+
+
