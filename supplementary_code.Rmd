@@ -34,7 +34,7 @@ whitelist_example <- c(
 ```
 
 
-# process_BCs.R
+# process_barcodes.R
 
 ## process_barcodes()
 
