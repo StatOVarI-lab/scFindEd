@@ -19,7 +19,7 @@ library(scFindEd)
 
 ## Functionalitites 
 
-`process_BC.R` 
+`process_barcodes.R` 
 
 Overview: Briefly describe what this function does (e.g. processes barcode FASTQ files and extracts relevant sequences).
 
