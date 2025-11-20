@@ -1,0 +1,21 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# combine_amplicons.R
+
+## combine_amplicons()
+
+```{r}
+combine_amplicons(
+  source_dir = "data",
+  combined_summaries_file_name = "",
+  output_dir
+)
+```
+
