@@ -22,15 +22,32 @@ extract_BC1 <- function(x,seq_before_barcode_1){
 
 # Extracts 30 bases following seq_before_barcode_2
 extract_BC2 <- function(x,seq_before_barcode_2){
-  temp <- strsplit(x,seq_before_barcode_2)[[1]][2]
-  return(substr(temp,1,30))
+  parts <- strsplit(x, seq_before_barcode_2)[[1]]
+
+  # If no split occurred, flank missing
+  if (length(parts) < 2) {
+    stop("extract_BC2(): flanking sequence not found.
+         This likely indicates an upstream filtering issue.")
+  }
+
+  temp <- parts[2]
+  substr(temp, 1, 30)
 }
 
 # Extracts 30 bases preceding seq_after_barcode_3
 extract_BC3 <- function(x,seq_after_barcode_3){
-  temp <- strsplit(x,seq_after_barcode_3)[[1]][1]
+  parts <- strsplit(x, seq_after_barcode_3)[[1]]
+
+  # If no split occurred, flank missing
+  if (length(parts) < 2) {
+    stop("extract_BC3(): flanking sequence not found.
+         This likely indicates an upstream filtering issue.")
+  }
+
+  temp <- parts[1]
   nc <- nchar(temp)
-  return(substr(temp,nc-29,nc))
+
+  substr(temp, nc - 29, nc)
 }
 
 # Function to compute Hamming distances between a barcode and a whitelist,
