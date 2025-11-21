@@ -2,11 +2,3 @@
 
 export(join_amplicon_summaries)
 export(say_hello)
-importFrom(dplyr,"%>%")
-importFrom(dplyr,filter)
-importFrom(dplyr,group_by)
-importFrom(dplyr,mutate)
-importFrom(dplyr,summarise)
-importFrom(glue,glue)
-importFrom(utils,read.csv)
-importFrom(utils,write.csv)

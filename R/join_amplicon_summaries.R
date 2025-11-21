@@ -21,6 +21,7 @@
 #' of both WT and the amplicon in order to be classified heterozygous.
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
+#' @param verbose Boolean deciding whether detailed outputs should be printed.
 
 #' @return Writes a CSV file containing the final joined summary for all
 #' amplicons at the provided genotype thresholds, with one CSV file exported for
@@ -35,12 +36,9 @@
 #' HOM_cutoff = 70,
 #' HET_low_cutoff = 30,
 #' HET_high_cutoff = 70,
-#' output_dir = "data"
+#' output_dir = "data",
+#' verbose = TRUE
 #' )
-
-#' @importFrom glue glue
-#' @importFrom utils read.csv write.csv
-#' @importFrom dplyr %>% group_by summarise mutate filter
 
 #' @export
 join_amplicon_summaries <- function(
@@ -51,22 +49,28 @@ join_amplicon_summaries <- function(
   HOM_cutoff,
   HET_low_cutoff,
   HET_high_cutoff,
-  output_dir
+  output_dir,
+  verbose = TRUE
 ) {
   # -- Load Datasets --
-
-  message("Importing Amplicon Summary Files...")
 
   amplicon_summary_dfs <- import_amplicon_summaries(
     source_dir,
     file_name,
-    n_amplicons
+    n_amplicons,
+    verbose
   )
 
+  if (verbose) {
+    cat("\n")
+    cli::cli_inform("Calculating summaries across Minimum Count Thresholds...")
+  }
+
   for (count_threshold in minimum_count_thresholds){
-    message(glue::glue(
-      "Calculating Summaries for Minimum Count Threshold: {count_threshold}:"
-    ))
+    if (verbose & count_threshold != minimum_count_thresholds[1]) cat("\n")
+    if (verbose) cli::cli_alert_info(
+      "Calculating summaries for Minimum Count Threshold: {count_threshold}..."
+    )
 
     # Initialise list to store results for each amplicon
     all_summaries <- list()
@@ -86,7 +90,7 @@ join_amplicon_summaries <- function(
     }
 
     # Combine all amplicons into a single dataframe
-    combined_summaries <- bind_rows(all_summaries)
+    combined_summaries <- dplyr::bind_rows(all_summaries)
 
     # -- Optional file saving (only if output_dir is specified) --
     if (!is.null(output_dir)) {
@@ -101,9 +105,11 @@ join_amplicon_summaries <- function(
                            "all_amplicons.csv"
                            ))
 
-      write.csv(combined_summaries, file_save_name, row.names = FALSE)
+      readr::write_csv(combined_summaries, file_save_name)
 
-      message(glue::glue("Results saved to: {normalizePath(output_dir)}"))
+      cli::cli_alert_success(glue::glue(
+        "Results for Minimum Count Threshold: {count_threshold} ",
+        "saved to: {normalizePath(output_dir)}."))
     }
   }
 }
@@ -113,14 +119,22 @@ join_amplicon_summaries <- function(
 import_amplicon_summaries <- function(
   source_dir,
   file_name,
-  n_amplicons
+  n_amplicons,
+  verbose
 ) {
+  if (verbose) cli::cli_inform("Importing amplicon summary files...")
+
   amplicon_summary_dfs <- list()
 
   for (amplicon_number in 1:n_amplicons) {
     # Import dataset
-    df <- read.csv(file.path(source_dir, paste0(file_name, amplicon_number, ".csv")),
-                   header = TRUE, stringsAsFactors = FALSE)
+    file_path <- file.path(source_dir, paste0(file_name, amplicon_number, ".csv"))
+    tryCatch(
+      df <- as.data.frame(readr::read_csv(file_path, show_col_types = FALSE)),
+      error = function(e) {
+        cli::cli_abort("Failed to import data from {.file {file_path}}.")
+      }
+    )
 
     # Standardise column names
     colnames(df) <- c("barcode", "HDR", "n", "pct")
@@ -129,7 +143,13 @@ import_amplicon_summaries <- function(
     df$HDR <- ifelse(df$HDR == paste0("HDR_", amplicon_number), "HDR", df$HDR)
 
     amplicon_summary_dfs[[amplicon_number]] <- df
+
+    if (verbose) cli::cli_alert_success(
+      "Successfully imported amplicon {amplicon_number} summary file.")
   }
+
+  if (verbose) cat("\n")
+  cli::cli_alert_success("Successfully imported all amplicon summary files.")
 
   return(amplicon_summary_dfs)
 }
@@ -157,7 +177,7 @@ summarise_genotypes <- function(
   # Assign genotypes
   df_pct_genotype <- df_pct %>%
     dplyr::mutate(
-      genotype = case_when(
+      genotype = dplyr::case_when(
         WT_pct >= HOM_cutoff ~ "WT",
         HDR_pct >= HOM_cutoff ~ "HOM",
         WT_pct > HET_low_cutoff & WT_pct < HET_high_cutoff &

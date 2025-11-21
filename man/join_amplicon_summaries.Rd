@@ -12,7 +12,8 @@ join_amplicon_summaries(
   HOM_cutoff,
   HET_low_cutoff,
   HET_high_cutoff,
-  output_dir
+  output_dir,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ of both WT and the amplicon in order to be classified heterozygous.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 Writes a CSV file containing the final joined summary for all
@@ -60,6 +63,7 @@ minimum_count_thresholds = c(2, 5, 10, 20),
 HOM_cutoff = 70,
 HET_low_cutoff = 30,
 HET_high_cutoff = 70,
-output_dir = "data"
+output_dir = "data",
+verbose = TRUE
 )
 }

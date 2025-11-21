@@ -20,7 +20,8 @@ join_amplicon_summaries(
   HOM_cutoff = 70,
   HET_low_cutoff = 30, 
   HET_high_cutoff = 70,
-  output_dir = "data"
+  output_dir = "data",
+  verbose = TRUE
 )
 ```
 
