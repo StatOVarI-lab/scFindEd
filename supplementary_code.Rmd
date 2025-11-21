@@ -12,10 +12,12 @@ output:
 ## combine_amplicons()
 
 ```{r}
-combine_amplicons(
+cell_genotypes <- combine_amplicons(
   source_dir = "data",
-  combined_summaries_file_name = "",
-  output_dir
+  combined_summaries_file_name = "final_summary_minimum_2counts_70_30_70_all_amplicons.csv",
+  barcode_system_file_name = "cell_to_UTR_barcode_system.csv",
+  output_dir = "data",
+  verbose = FALSE
 )
 ```
 
