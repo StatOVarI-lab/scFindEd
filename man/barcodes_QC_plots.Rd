@@ -4,17 +4,28 @@
 \alias{barcodes_QC_plots}
 \title{Barcoding QC Plots}
 \usage{
-barcodes_QC_plots(list_BC1, list_BC2_3, output_dir = NULL)
+barcodes_QC_plots(
+  source_dir,
+  list_BC1_file_name,
+  list_BC2_3_file_name,
+  output_dir = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{list_BC1}{A list of closest barcode matches for BC1, with Hamming
-distances.}
+\item{source_dir}{String containing the relative path to the directory that
+source data should be imported from.}
 
-\item{list_BC2_3}{A list of closest barcode matches for BC2/3, with Hamming
-distances.}
+\item{list_BC1_file_name}{String containing the file name structure for the
+list of closest barcode matches for BC1, with Hamming distances.}
 
-\item{output_dir}{A string detailing the path to the directory the plots
-should be exported to.}
+\item{list_BC2_3_file_name}{String containing the file name structure for the
+list of closest barcode matches for BC2/3, with Hamming distances.}
+
+\item{output_dir}{String containing the relative path to the directory that
+the plots should be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 Two sanity-check histograms that compare the Hamming distance of the
@@ -28,8 +39,10 @@ BC1 and BC2/3.
 }
 \examples{
 barcodes_QC_plots(
-list_BC1 = list_BC1,
-list_BC2_3 = list_BC2_3,
-output_dir = "plots"
+source_dir = "data",
+list_BC1_file_name = "list_BC1.rds",
+list_BC2_3_file_name = "list_BC2_3.rds",
+output_dir = "plots",
+verbose = TRUE
 )
 }
