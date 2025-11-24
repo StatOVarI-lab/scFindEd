@@ -49,15 +49,13 @@ identify_whitelisted_barcodes <- function(
 
   # -- Import cell to extracted BCs --
 
-  tryCatch(
-    cell_to_extracted_BCs <- readRDS(
-      file.path(source_dir, cell_to_extracted_BCs_file_name)),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import cell to extract BCs data table from {.file {file_path}}."
-      )
-    }
+  cell_to_extracted_BCs <- import_cell_to_extracted_BCs(
+    source_dir,
+    cell_to_extracted_BCs_file_name,
+    verbose
   )
+
+  cli::cli_alert_success("Successfully imported datasets.")
 
   # -- Identify the Three BC1s with the Shortest Hamming Distance
 
@@ -132,6 +130,31 @@ import_whitelisted_barcodes <- function(
 
   return(list(BC1_whitelist = BC1_whitelist,
               BC2_BC3_whitelist = BC2_BC3_whitelist))
+}
+
+
+#' @keywords internal
+import_cell_to_extracted_BCs <- function(
+  source_dir,
+  cell_to_extracted_BCs_file_name,
+  verbose
+) {
+  if (verbose) cli::cli_inform("Importing cell to extracted barcodes table...")
+
+  tryCatch(
+    cell_to_extracted_BCs <- readRDS(
+      file.path(source_dir, cell_to_extracted_BCs_file_name)),
+    error = function(e) {
+      cli::cli_abort(
+        "Failed to import cell to extract BCs data table from {.file {file_path}}."
+      )
+    }
+  )
+
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported BC1 whitelist.")
+
+  return(cell_to_extracted_BCs)
 }
 
 
