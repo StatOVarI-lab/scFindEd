@@ -19,8 +19,7 @@ Imports:
     data.table,
     dplyr,
     glue,
-    stringdist,
-    tidyr
+    stats
 Depends: 
     R (>= 3.5)
 LazyData: true

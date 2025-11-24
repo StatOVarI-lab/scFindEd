@@ -5,23 +5,31 @@
 \title{Process Barcodes}
 \usage{
 process_barcodes(
-  barcode_amplicon_data,
-  cell_barcodes,
-  readnames,
+  source_dir,
+  barcode_amplicon_file_name,
+  cell_barcodes_file_name,
+  readnames_file_name,
   min_reads,
   quality_score_threshold,
   seq_before_barcode_1,
   seq_before_barcode_2,
   seq_after_barcode_3,
-  output_dir = NULL
+  output_dir = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
-\item{barcode_amplicon_data}{Data frame with barcode amplicon info.}
+\item{source_dir}{String containing the relative path to the directory that
+source data should be imported from.}
 
-\item{cell_barcodes}{Vector with extracted read barcodes.}
+\item{barcode_amplicon_file_name}{String containing the file name structure
+for the barcode amplicon information file.}
 
-\item{readnames}{Vector with extracted readnames.}
+\item{cell_barcodes_file_name}{String containing the file name structure for
+the extracted read barcodes.}
+
+\item{readnames_file_name}{String containing the file name structure for the
+extracted readnames.}
 
 \item{min_reads}{QC threshold: minimum number of reads.}
 
@@ -32,6 +40,11 @@ process_barcodes(
 \item{seq_before_barcode_2}{BC2 flanking sequence.}
 
 \item{seq_after_barcode_3}{BC3 flanking sequence.}
+
+\item{output_dir}{String containing the relative path to the directory that
+the output data should be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 A table linking cells to extracted barcodes.
@@ -43,12 +56,15 @@ sequences, before grouping cells by cell_barcode and counting reads.
 }
 \examples{
 process_barcodes(
-barcode_amplicon_data = barcode_amplicon_data_subset,
-cell_barcodes = cell_barcodes_subset,
-readnames = readnames_subset,
+source_dir = "data",
+barcode_amplicon_file_name = "barcode_amplicon_info.txt",
+cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
+readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
 min_reads = 2,
 quality_score_threshold = 30,
 seq_before_barcode_1 = "GTACGAAGACTG",
 seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-seq_after_barcode_3 = "CTTGTCTCGCTCCGGG")
+seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+output_dir = "data",
+verbose = TRUE)
 }

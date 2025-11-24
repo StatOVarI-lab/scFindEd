@@ -38,20 +38,20 @@ whitelist_example <- c(
 
 ## process_barcodes()
 
-We have moved the code for reading in the `barcode_amplicon_data`, `cell_barcodes` and `readnames` datasets outside of the `process_barcodes()` function. It is displayed below to show how the inputs for the example `process_barcodes()` parameters were generated.
-
 ```{r}
-# -- Data Structuring --
-
-# Import barcode amplicon data table and assign column names
-barcode_amplicon_data <- read.table("data/barcode_amplicon_info.txt",sep=" ")
-colnames(barcode_amplicon_data) <- c(
-  "readname","amplicon_name","start","quality","cigar","sequence")
-
-# Read cell barcodes from raw FASTQ file
-cell_barcodes <- data.table::fread("data/MB_barcoded_barcodes_fastq.txt",header=FALSE)$V1
-# Read readnames from raw FASTQ file
-readnames <- data.table::fread("data/MB_barcoded_R2_001_readnames_fastq.txt",header=FALSE)$V1
+process_barcodes(
+  source_dir = "data",
+  barcode_amplicon_file_name = "barcode_amplicon_info.txt",
+  cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
+  readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
+  min_reads = 2,
+  quality_score_threshold = 30,
+  seq_before_barcode_1 = "GTACGAAGACTG",
+  seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+  seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+  output_dir = "data",
+  verbose = TRUE
+)
 ```
 
 Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
@@ -92,8 +92,6 @@ barcode_amplicon_data$cell_barcode <-
 barcode_amplicon_data_subset <- barcode_amplicon_data %>% 
   dplyr::filter(cell_barcode %in% barcodes_to_keep)
 ```
-
-
 
 
 
