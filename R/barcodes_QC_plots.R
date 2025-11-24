@@ -37,7 +37,7 @@ barcodes_QC_plots <- function(
 ) {
   # -- Import Datasets --
 
-  imported_data <- import_barcodes_QC_plots_data(
+  imported_data <- import_barcode_distance_lists(
     source_dir,
     list_BC1_file_name,
     list_BC2_3_file_name,
@@ -96,52 +96,4 @@ barcodes_QC_plots <- function(
 }
 
 
-#' @keywords internal
-import_barcodes_QC_plots_data <- function(
-  source_dir,
-  list_BC1_file_name,
-  list_BC2_3_file_name,
-  verbose
-) {
-  # -- Importing BC1 list --
-  if (verbose) cli::cli_inform("Importing list of BC1 distances...")
-
-  # Import list of BC1 distances
-  file_path <- file.path(source_dir, list_BC1_file_name)
-  tryCatch(
-    list_BC1 <- readRDS(file_path),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import list of BC1 distances from {.file {file_path}}."
-      )
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported list of BC1 distances.")
-
-  # -- Importing BC2/3 list --
-  if (verbose) cli::cli_inform("Importing list of BC2/3 distances...")
-
-  # Import list of BC2/3 distances
-  file_path <- file.path(source_dir, list_BC2_3_file_name)
-  tryCatch(
-    list_BC2_3 <- readRDS(file_path),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import list of BC2/3 distances from {.file {file_path}}."
-      )
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported list of BC2/3 distances.\n")
-
-  cli::cli_alert_success("Successfully imported datasets.")
-
-  return(list(
-    list_BC1 = list_BC1,
-    list_BC2_3 = list_BC2_3
-  ))
-}
 
