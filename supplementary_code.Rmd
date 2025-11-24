@@ -94,34 +94,6 @@ barcode_amplicon_data_subset <- barcode_amplicon_data %>%
 ```
 
 
-## identify_whitelisted_barcodes()
-
-We have moved the code for reading in the whitelisted barcode files (`75K_barcode.csv`, `Wong_barcode_pairs.csv`) and the `cell_to_extracted_BCs.rds` outside of the `identify_whitelisted_barcodes()` function. It is displayed below for posterity.
-
-```{r}
-# Load BC1 whitelist from CSV and assign each a unique name
-  BC1_whitelist <- read.table("whitelisted_barcodes/75K_barcode.csv",sep=",")$V1
-  names(BC1_whitelist) <- paste0("BC1_",1:length(BC1_whitelist))
-
-  # Load barcode pair whitelist and extract unique BC2/BC3 sequences
-  Wong_dual <- read.table("whitelisted_barcodes/Wong_barcode_pairs.csv",sep=",",header=TRUE)
-  BC2_BC3_whitelist <- unique(Wong_dual[,1]) # the same 127 strings for BC2 and BC3
-  names(BC2_BC3_whitelist) <- paste0("BC2_3_",1:length(BC2_BC3_whitelist))
-  
-  cell_to_extracted_BCs <- readRDS("data/cell_to_extracted_BCs.rds")
-```
-
-Performing `identify_whitelisted_barcodes()` on the original data is exceptionally slow. A subsetted version of our data is produced below, and is used in the example provided for this function.
-
-```{r}
-# Subset 200 of the 75987 whitelist barcodes
-BC1_whitelist_subset <- sample(BC1_whitelist, 200)
-
-# Subset 1000 rows of the cell_to_extracted_BCs data frame (originally 60677 obs.)
-cell_to_extracted_BCs_subset <- cell_to_extracted_BCs[sample(nrow(cell_to_extracted_BCs), 1000), ]
-```
-
-
 
 
 

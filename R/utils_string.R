@@ -49,11 +49,3 @@ extract_BC3 <- function(x,seq_after_barcode_3){
 
   substr(temp, nc - 29, nc)
 }
-
-# Function to compute Hamming distances between a barcode and a whitelist,
-# returning the 3 smallest distances
-identify_barcode_ID <- function(BC,BC_vec){
-  temp <- sapply(BC_vec,function(x) stringdist(x,BC,method="hamming"))
-  return(sort(temp)[1:3])
-}
-

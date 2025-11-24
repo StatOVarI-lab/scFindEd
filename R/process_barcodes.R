@@ -31,15 +31,15 @@
 
 #' @export
 process_barcodes <- function(
-  barcode_amplicon_data,
-  cell_barcodes,
-  readnames,
-  min_reads,
-  quality_score_threshold,
-  seq_before_barcode_1,
-  seq_before_barcode_2,
-  seq_after_barcode_3,
-  output_dir = NULL
+    barcode_amplicon_data,
+    cell_barcodes,
+    readnames,
+    min_reads,
+    quality_score_threshold,
+    seq_before_barcode_1,
+    seq_before_barcode_2,
+    seq_after_barcode_3,
+    output_dir = NULL
 ) {
   # Assign readnames as the names of the cell_barcodes vector
   names(cell_barcodes) <- readnames
@@ -81,9 +81,9 @@ process_barcodes <- function(
 
 #' @keywords internal
 filter_amplicon_data <- function(
-  barcode_amplicon_data,
-  min_reads,
-  quality_score_threshold
+    barcode_amplicon_data,
+    min_reads,
+    quality_score_threshold
 ) {
   # Mark and filter for barcodes that appear more than @min_reads times
   barcodes.keep <-
@@ -112,11 +112,11 @@ filter_amplicon_data <- function(
 
 #' @keywords internal
 extract_barcodes <- function(
-  barcode_amplicon_data_forward,
-  barcode_amplicon_data_reverse,
-  seq_before_barcode_1,
-  seq_before_barcode_2,
-  seq_after_barcode_3
+    barcode_amplicon_data_forward,
+    barcode_amplicon_data_reverse,
+    seq_before_barcode_1,
+    seq_before_barcode_2,
+    seq_after_barcode_3
 ) {
   # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
   barcode_amplicon_data_with_seq_before_BC_1_2 <-
@@ -175,7 +175,7 @@ extract_barcodes <- function(
 
 #' @keywords internal
 group_barcodes <- function(
-  readname_cell_table
+    readname_cell_table
 ) {
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
   cell_BC1_BC2_BC3 <- readname_cell_table %>%
@@ -194,87 +194,6 @@ group_barcodes <- function(
 
   return(cell_BC1_BC2_BC3)
 }
-
-
-#' Identifying Closest Whitelisted Barcodes
-#'
-#' This function identifies the three shortest Hamming distances between barcode
-#' and whitelisted barcode, for each of BC1 and BC2/BC3.
-#'
-#' @param BC1_whitelist Character vector of whitelisted BC1 barcodes.
-#' @param BC2_BC3_whitelist Character vector of whitelisted BC2/BC3 barcode pairs.
-#' @param cell_to_extracted_BCs A data frame linking cells to extracted barcodes.
-
-#' @return A list of barcode matches for BC1 and a list of barcode matches for
-#' BC2/BC3.
-
-#' @examples
-#' identify_whitelisted_barcodes(
-#' BC1_whitelist = BC1_whitelist_subset,
-#' BC2_BC3_whitelist = BC2_BC3_whitelist,
-#' cell_to_extracted_BCs = cell_to_extracted_BCs_subset
-#' )
-#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
-#' @importFrom stringdist stringdist
-
-#' @export
-identify_whitelisted_barcodes <- function(
-    BC1_whitelist,
-    BC2_BC3_whitelist,
-    cell_to_extracted_BCs,
-    output_dir = NULL
-) {
-  # -- Identify the Three BC1s with the Shortest Hamming Distance
-
-  # Get unique BC1 sequences from the dataset
-  cell_BC1_BC2_BC3 <- cell_to_extracted_BCs
-  unique_BC_1 <- unique(cell_BC1_BC2_BC3$BC1)
-  message(glue::glue("Number of Unique BC1s: {length(unique_BC_1)}"))
-
-  # Loop through each unique BC1 sequence and find the 3 closest whitelist
-  # barcodes to the current BC1 using Hamming distance
-  cli_progress_bar("Identifying BC1s", total = length(unique_BC_1))
-  list_BC1 <- list()
-  for (j in 1:length(unique_BC_1)){
-    list_BC1[[j]] <- identify_barcode_ID(unique_BC_1[j],BC1_whitelist)
-    cli_progress_update() # Update progress
-  }
-  cli_progress_done() # Close the progress bar
-
-  # Assign BC1 sequences as names to the list entries
-  names(list_BC1) <- unique_BC_1
-
-  # -- Identify the Three BC2/BC3s with the Shortest Hamming Distance
-
-  # Get unique BC2 and BC3 sequences from the dataset
-  unique_BC_2_3 <- unique(c(cell_BC1_BC2_BC3$BC2,cell_BC1_BC2_BC3$BC3))
-  message(glue::glue("Number of Unique BC2_3s: {length(unique_BC_2_3)}"))
-
-  # Loop through each unique BC2/BC3 sequence and find the 3 closest whitelist
-  # barcodes to the current BC2/BC3 using Hamming distance
-  cli_progress_bar("Identifying BC2/BC3s", total = length(unique_BC_2_3))
-  list_BC2_3 <- list()
-  for (j in 1:length(unique_BC_2_3)){
-    list_BC2_3[[j]] <- identify_barcode_ID(unique_BC_2_3[j],BC2_BC3_whitelist)
-    cli_progress_update() # Update progress
-  }
-  cli_progress_done() # Close the progress bar
-
-  # Assign BC2/BC3 sequences as names to the list entries
-  names(list_BC2_3) <- unique_BC_2_3
-
-
-  # -- Optional file saving (only if output_dir is specified) --
-  if (!is.null(output_dir)) {
-    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    saveRDS(list_BC1, file = file.path(output_dir, "list_BC1.rds"))
-    saveRDS(list_BC2_3, file = file.path(output_dir, "list_BC2_3.rds"))
-    message(glue::glue("Results saved to: {normalizePath(output_dir)}"))
-  }
-
-  invisible(list(BC1_matches = list_BC1, BC2_BC3_matches = list_BC2_3))
-}
-
 
 
 
