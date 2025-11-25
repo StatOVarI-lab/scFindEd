@@ -39,8 +39,6 @@ import_barcode_distance_lists <- function(
   if (verbose) cli::cli_alert_success(
     "Successfully imported list of BC2/3 distances.\n")
 
-  cli::cli_alert_success("Successfully imported datasets.")
-
   return(list(
     list_BC1 = list_BC1,
     list_BC2_3 = list_BC2_3
