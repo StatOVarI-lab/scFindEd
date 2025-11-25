@@ -1,3 +1,6 @@
+#' @keywords internal
+#' Imports data from a file
+#' Expected file name: "barcode_amplicon_info.txt"
 import_barcode_amplicon_info <- function(
   source_dir,
   file_name,
