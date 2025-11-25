@@ -46,6 +46,8 @@ barcodes_QC_plots <- function(
 
   invisible(list2env(imported_data, envir = environment()))
 
+  cli::cli_alert_success("Successfully imported datasets.")
+
   # -- BC1 QC Plot --
 
   if (verbose) cli::cli_inform("Constructing QC plots for BC1...")
