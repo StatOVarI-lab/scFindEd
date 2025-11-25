@@ -27,7 +27,7 @@ import_cell_to_extracted_BCs <- function(
   )
 
   if (verbose) cli::cli_alert_success(
-    "Successfully imported BC1 whitelist.")
+    "Successfully imported cell to extracted barcodes table.")
 
   return(cell_to_extracted_BCs)
 }
