@@ -98,35 +98,23 @@ import_whitelisted_barcodes <- function(
   BC2_BC3_whitelist_file_name,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Importing barcode whitelist files...")
-
-  # Load BC1 whitelist from CSV and assign each a unique name
-  file_path <- file.path(source_dir, BC1_whitelist_file_name)
-  tryCatch(
-    BC1_whitelist <- utils::read.table(file_path,sep = ",")$V1,
-    error = function(e) {
-      cli::cli_abort("Failed to import BC1 whitelist from {.file {file_path}}.")
-    }
+  BC1_whitelist <- import_BC1_whitelist(
+    source_dir,
+    BC1_whitelist_file_name,
+    verbose
   )
+
   names(BC1_whitelist) <- paste0("BC1_", 1:length(BC1_whitelist))
 
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported BC1 whitelist.")
-
-  # Load barcode pair whitelist and extract unique BC2/BC3 sequences
-  file_path <- file.path(source_dir, BC2_BC3_whitelist_file_name)
-  tryCatch(
-    BC2_BC3_whitelist_raw <- utils::read.table(file_path, sep = ",", header = TRUE),
-    error = function(e) {
-      cli::cli_abort("Failed to import BC2/3 whitelist from {.file {file_path}}.")
-    }
+  BC2_BC3_whitelist_raw <- import_BC2_BC3_whitelist(
+    source_dir,
+    BC2_BC3_whitelist_file_name,
+    verbose
   )
+
   # Extract the same strings for BC2 and BC3
   BC2_BC3_whitelist <- unique(BC2_BC3_whitelist_raw[, 1])
   names(BC2_BC3_whitelist) <- paste0("BC2_3_", 1:length(BC2_BC3_whitelist))
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported BC2/3 whitelist.")
 
   return(list(BC1_whitelist = BC1_whitelist,
               BC2_BC3_whitelist = BC2_BC3_whitelist))
@@ -150,7 +138,7 @@ identify_BC1_closest_barcodes <- function(
   # Loop through each unique BC1 sequence and find the 3 closest whitelist
   # barcodes to the current BC1 using Hamming distance
   cli::cli_progress_bar("BC1: Identifying closest barcodes",
-                   total = length(unique_BC_1))
+                        total = length(unique_BC_1))
   list_BC1 <- list()
   for (j in 1:length(unique_BC_1)){
     list_BC1[[j]] <- identify_barcode_ID(unique_BC_1[j], BC1_whitelist)
@@ -186,7 +174,7 @@ identify_BC2_3_closest_barcodes <- function(
   # Loop through each unique BC2/BC3 sequence and find the 3 closest whitelist
   # barcodes to the current BC2/BC3 using Hamming distance
   cli::cli_progress_bar("BC2/3: Identifying closest barcodes",
-                   total = length(unique_BC_2_3))
+                        total = length(unique_BC_2_3))
   list_BC2_3 <- list()
   for (j in 1:length(unique_BC_2_3)){
     list_BC2_3[[j]] <- identify_barcode_ID(unique_BC_2_3[j], BC2_BC3_whitelist)

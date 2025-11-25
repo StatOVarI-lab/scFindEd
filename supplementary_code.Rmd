@@ -47,7 +47,7 @@ identify_whitelisted_barcodes(
   BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
   cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs_subset.rds",
   output_dir = "data",
-  verbose = TRUE
+  verbose = FALSE
 )
 ```
 
