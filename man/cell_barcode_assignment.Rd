@@ -5,29 +5,39 @@
 \title{Cell-Barcode Assignment}
 \usage{
 cell_barcode_assignment(
-  cell_to_extracted_BCs,
-  list_BC1,
-  list_BC2_3,
+  source_dir,
+  cell_to_extracted_BCs_file_name,
+  list_BC1_file_name,
+  list_BC2_3_file_name,
   BC_thresholds,
   reads_thresholds,
-  output_dir
+  output_dir,
+  verbose
 )
 }
 \arguments{
-\item{cell_to_extracted_BCs}{Data frame linking cells to extracted barcodes.}
+\item{source_dir}{String containing the relative path to the directory that
+source data should be imported from.}
 
-\item{list_BC1}{Named list of nearest BC1 barcode candidates.}
+\item{cell_to_extracted_BCs_file_name}{String containing the file name
+structure for the data frame linking cells to extracted barcodes.}
 
-\item{list_BC2_3}{Named list of nearest BC2/BC3 barcode candidates.}
+\item{list_BC1_file_name}{String containing the file name structure for the
+named list of nearest BC1 barcode candidates.}
 
-\item{BC_thresholds}{List containing the following barcode thresholds:
+\item{list_BC2_3_file_name}{String containing the file name structure for the
+named list of nearest BC2/BC3 barcode candidates.}
+
+\item{BC_thresholds}{Named ist containing the following barcode thresholds:
 \code{BC1_threshold}, \code{BC2_3_threshold}.}
 
-\item{reads_thresholds}{List containing the following barcode correction
-thresholds: \code{min_reads}, \code{min_reads_proportion}.}
+\item{reads_thresholds}{Named list containing the following barcode
+correction thresholds: \code{min_reads}, \code{min_reads_proportion}.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 A filtered data frame of barcode assignments that meet the read count
@@ -42,12 +52,14 @@ they constitute more than \code{min_reads_proportion} of the barcode reads in th
 cell.
 }
 \examples{
-correct_barcodes(
-cell_to_extracted_BCs = cell_to_extracted_BCs,
-list_BC1 = list_BC1,
-list_BC2_3 = list_BC2_3,
+cell_barcode_assignment(
+source_dir = "data",
+cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+list_BC1_file_name = "list_BC1.rds",
+list_BC2_3_file_name = "list_BC2_3.rds",
 BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
 reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
-output_dir = "data"
+output_dir = "data",
+verbose = TRUE
 )
 }
