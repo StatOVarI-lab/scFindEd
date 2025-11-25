@@ -7,19 +7,21 @@
 #'
 #' @param source_dir String containing the relative path to the directory that
 #' source data should be imported from.
-#' @param sample_name String containing the name for the experiment sample.
+#' @param sample_name String containing the file name structure for the
+#' experiment sample.
 #' @param amplicon_gRNA_number Integer representing the HDR to be processed.
-#' @param amplicon_data_file_name String containing the amplicon barcoded data
-#' file name.
-#' @param HDR_barcoded_file_name String containing the HDR outcomes data file
-#' name.
-#' @param cell_to_UTR_BCs_file_name String containing the cell to UTR barcode
-#' system file name.
+#' @param amplicon_data_file_name String containing the file name structure for
+#' the amplicon barcoded data file name.
+#' @param HDR_barcoded_file_name String containing the file name structure for
+#' the HDR outcomes data file name.
+#' @param cell_to_UTR_BCs_file_name String containing the file name structure
+#' for the cell to UTR barcode system file name.
 #' @param QC_thresholds List containing the following QC parameters:
 #' `min_barcode_reads`, `min_read_quality`, `min_start_positions_reads`,
 #' `paired_readnames`.
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
+#' @param verbose Boolean deciding whether detailed outputs should be printed.
 
 #' @return A data frame containing paired and classified (HDR/WT) read counts
 #' and percentages for the provided amplicon_gRNA_number, or HDR.
@@ -38,14 +40,10 @@
 #'   min_start_position_reads = 500,
 #'   paired_readnames = TRUE
 #'   ),
-#' output_dir = "data"
+#' output_dir = "data",
+#' verbose
 #' )
 
-#' @importFrom glue glue
-#' @importFrom dplyr %>% mutate filter rename group_by_all tally ungroup select
-#' group_by summarise
-#' @importFrom data.table fread
-#' @importFrom utils read.csv read.table write.table
 #' @export
 process_reads <- function(
   source_dir = "",
@@ -55,11 +53,12 @@ process_reads <- function(
   HDR_barcoded_file_name,
   cell_to_UTR_BCs_file_name,
   QC_thresholds,
-  output_dir = NULL
+  output_dir = NULL,
+  verbose
 ) {
-  message(glue::glue(
-    "-- Processing amplicon_{amplicon_gRNA_number} from {sample_name} file --"
-  ))
+  cli::cli_alert_info(
+    "-- Processing amplicon_{amplicon_gRNA_number} from sample: {sample_name} --"
+  )
 
   # -- Import Data Files --
 
@@ -70,10 +69,13 @@ process_reads <- function(
     amplicon_gRNA_number,
     amplicon_data_file_name,
     HDR_barcoded_file_name,
-    cell_to_UTR_BCs_file_name
+    cell_to_UTR_BCs_file_name,
+    verbose
   )
 
   invisible(list2env(imported_data, envir = environment()))
+
+  cli::cli_alert_success("Successfully imported datasets.")
 
   # -- Filter for Selected Amplicon --
 
@@ -81,37 +83,40 @@ process_reads <- function(
     mapped_reads_df,
     HDR_barcoded_outcomes,
     amplicon_gRNA_number,
-    df_BC_system
+    df_BC_system,
+    verbose
   )
 
   # -- Mapped Reads Quality Control --
 
   mapped_reads_df_amplicon <- process_reads_QC(
     mapped_reads_df_amplicon,
-    QC_thresholds
+    QC_thresholds,
+    verbose
   )
 
   # -- Pair Reads --
 
   mapped_reads_df_amplicon_paired_count <- pair_reads(
-    mapped_reads_df_amplicon
+    mapped_reads_df_amplicon,
+    verbose
   )
 
   # -- Merge R1 and R2
-  message("Merging R1 and R2")
-
   mapped_reads_df_amplicon_paired_count <-
     cbind(mapped_reads_df_amplicon_paired_count,
           merge_r1_r2(mapped_reads_df_amplicon_paired_count$sequence_R1,
                       mapped_reads_df_amplicon_paired_count$sequence_R2,
-                      min_overlap = 2))
+                      min_overlap = 2,
+                      verbose))
 
   # -- Classify Reads --
 
   mapped_reads_df_amplicon_paired_count <- classify_processed_reads(
     mapped_reads_df_amplicon_paired_count,
     HDR_barcoded_outcomes,
-    amplicon_gRNA_number
+    amplicon_gRNA_number,
+    verbose
   )
 
   # -- Validate and Save Results --
@@ -134,55 +139,71 @@ import_process_reads_data <- function(
   amplicon_gRNA_number = "n",
   amplicon_data_file_name,
   HDR_barcoded_file_name,
-  cell_to_UTR_BCs_file_name
+  cell_to_UTR_BCs_file_name,
+  verbose
 ) {
-  # Read in the amplicon data
-  message(glue::glue("Importing {file.path(source_dir, amplicon_data_file_name)}..."))
-  amplicon_data <- read.table(file.path(source_dir, amplicon_data_file_name),
-                              header = TRUE)
+  # -- Read in the amplicon data --
+
+  amplicon_data <- import_amplicons_barcoded_data(
+    source_dir,
+    amplicon_data_file_name,
+    verbose
+  )
+
   amplicon_data <- amplicon_data %>%
     dplyr::mutate(amplicon_gRNA = paste0(AMPLICON_NAME, "_", sgRNA_SEQUENCE)) %>%
     dplyr::filter(!is.na(sgRNA_SEQUENCE))
 
-  # Read in the HDR outcome file
-  message(glue::glue("Importing {file.path(source_dir, HDR_barcoded_file_name)}..."))
-  HDR_barcoded_outcomes <- read.csv(file.path(source_dir, HDR_barcoded_file_name),
-                                    header = TRUE, stringsAsFactors = FALSE)
+  # -- Read in the HDR outcome file --
 
-  # Load mapped reads
-  message(glue::glue(
-    "Importing {file.path(source_dir, paste0(sample_name, '_info.csv'))}..."
-  ))
-  mapped_reads_df <- fread(file.path(source_dir, paste0(sample_name, "_info.csv")))
-  setnames(mapped_reads_df, c("readname", "amplicon_name", "start",
-                              "quality", "cigar", "sequence"))
+  HDR_barcoded_outcomes <- import_HDR_barcoded_data(
+    source_dir,
+    HDR_barcoded_file_name,
+    verbose
+  )
 
-  # Load barcodes and readnames
-  message(glue::glue(
-    "Importing ",
-    "{file.path(source_dir, paste0(sample_name, '_barcodes_fastq.txt'))}..."
-  ))
-  barcodes <- fread(
-    file.path(source_dir, paste0(sample_name, "_barcodes_fastq.txt")),
-    header = FALSE)$V1
+  # -- Load mapped reads --
 
-  message(glue::glue(
-    "Importing ",
-    "{file.path(source_dir, paste0(sample_name, '_R2_001_readnames_fastq.txt'))}..."
-  ))
-  readnames <- fread(
-    file.path(source_dir, paste0(sample_name, "_R2_001_readnames_fastq.txt")),
-    header = FALSE)$V1
+  mapped_reads_file_name <- paste0(sample_name, "_info.csv")
+  mapped_reads_df <- import_sample_info_data(
+    source_dir,
+    mapped_reads_file_name,
+    verbose
+  )
+
+  # -- Load barcodes --
+
+  barcodes_file_name <- paste0(sample_name, "_barcodes_fastq.txt")
+  barcodes <- import_barcode_reads_data(
+    source_dir,
+    barcodes_file_name,
+    verbose
+  )
+
+  # -- Load readnames --
+
+  readnames_file_name <- paste0(sample_name, "_R2_001_readnames_fastq.txt")
+  readnames <- import_readnames_data(
+    source_dir,
+    readnames_file_name,
+    verbose
+  )
+
+  # Map barcodes to readnames
   names(barcodes) <- readnames
 
-  #Import list of barcodes from UTR_BC counts
-  message(glue::glue("Importing {file.path(source_dir, cell_to_UTR_BCs_file_name)}..."))
-  df_BC_system <- read.csv(file.path(source_dir, cell_to_UTR_BCs_file_name))
+  # Map mapped_reads_df to barcodes
+  mapped_reads_df$barcode <- barcodes[mapped_reads_df$readname]
+
+  # -- Import list of barcodes from UTR_BC counts --
+
+  df_BC_system <- import_cell_to_UTR_barcode_system(
+    source_dir,
+    cell_to_UTR_BCs_file_name,
+    verbose
+  )
   df_BC_system <- df_BC_system %>%
     dplyr::rename(barcode = cell_barcode)
-
-  # Map barcodes to reads
-  mapped_reads_df$barcode <- barcodes[mapped_reads_df$readname]
 
   # Return as list to be unpacked into the global function environment
   return(list(
@@ -201,9 +222,11 @@ filter_for_selected_amplicon <- function(
   mapped_reads_df,
   HDR_barcoded_outcomes,
   amplicon_gRNA_number,
-  df_BC_system
+  df_BC_system,
+  verbose
 ) {
-  message(glue::glue("Filtering for Amplicon {amplicon_gRNA_number}..."))
+  if (verbose) cli::cli_inform("Filtering for Amplicon {amplicon_gRNA_number}...")
+
   # Filter for selected amplicon
   mapped_reads_df_amplicon <- mapped_reads_df[
     mapped_reads_df$amplicon_name == HDR_barcoded_outcomes$AMPLICON_NAME[amplicon_gRNA_number], ]
@@ -213,6 +236,9 @@ filter_for_selected_amplicon <- function(
   mapped_reads_df_amplicon <- mapped_reads_df_amplicon[
     mapped_reads_df_amplicon$barcode %in% df_BC_system$barcode, ]
 
+  if (verbose) cli::cli_alert_success(
+    "Successfully filtered for Amplicon {amplicon_gRNA_number}.")
+
   return(mapped_reads_df_amplicon)
 }
 
@@ -220,9 +246,10 @@ filter_for_selected_amplicon <- function(
 #' @keywords internal
 process_reads_QC <- function(
   mapped_reads_df_amplicon,
-  QC_thresholds
+  QC_thresholds,
+  verbose
 ) {
-  message("Performing Quality Control...")
+  if (verbose) cli::cli_inform("Performing quality control...")
 
   # Keep barcodes with reads >= QC_thresholds$min_barcode_reads
   barcode_counts <- table(mapped_reads_df_amplicon$barcode)
@@ -254,27 +281,34 @@ process_reads_QC <- function(
   mapped_reads_df_amplicon <-
     mapped_reads_df_amplicon[order(mapped_reads_df_amplicon$readname), ]
 
+  if (verbose) cli::cli_alert_success("Successfully performed quality control.")
+
   return(mapped_reads_df_amplicon)
 }
 
 
 #' @keywords internal
 pair_reads <- function(
-  mapped_reads_df_amplicon
+  mapped_reads_df_amplicon,
+  verbose
 ) {
-  message("Pairing Reads...")
+  if (verbose) cli::cli_inform("Pairing reads...")
 
   # Pair reads (R1 and R2)
   paired_idx <- seq(1, nrow(mapped_reads_df_amplicon) - 1, by = 2)
   mapped_reads_df_amplicon_paired <- cbind(
-    mapped_reads_df_amplicon[paired_idx, c("readname", "amplicon_name", "barcode",
-                                           "start", "cigar", "sequence")],
-    mapped_reads_df_amplicon[paired_idx + 1, c("readname", "amplicon_name", "barcode",
-                                               "start", "cigar", "sequence")]
+    mapped_reads_df_amplicon[paired_idx,     c("readname", "amplicon_name",
+                                               "barcode",  "start",
+                                               "cigar",    "sequence")],
+    mapped_reads_df_amplicon[paired_idx + 1, c("readname", "amplicon_name",
+                                               "barcode", "start",
+                                               "cigar",   "sequence")]
   )
   colnames(mapped_reads_df_amplicon_paired) <- c(
-    "readname_R1", "amplicon_name", "barcode", "start_R1", "cigar_R1", "sequence_R1",
-    "readname_R2", "amplicon_name2", "barcode2", "start_R2", "cigar_R2", "sequence_R2"
+    "readname_R1", "amplicon_name",  "barcode",
+    "start_R1",    "cigar_R1",       "sequence_R1",
+    "readname_R2", "amplicon_name2", "barcode2",
+    "start_R2",    "cigar_R2",       "sequence_R2"
   )
 
   # Keep only pairs where readnames match
@@ -284,9 +318,9 @@ pair_reads <- function(
 
   # Remove duplicate columns
   mapped_reads_df_amplicon_paired <-
-    mapped_reads_df_amplicon_paired[, c("amplicon_name", "barcode", "start_R1",
-                                        "cigar_R1", "start_R2", "cigar_R2",
-                                        "sequence_R1", "sequence_R2")]
+    mapped_reads_df_amplicon_paired[, c("amplicon_name", "barcode",  "start_R1",
+                                        "cigar_R1",      "start_R2", "cigar_R2",
+                                        "sequence_R1",   "sequence_R2")]
 
   # Ensure R1 is always the lower start
   swap_idx <- mapped_reads_df_amplicon_paired$start_R1 >
@@ -318,6 +352,8 @@ pair_reads <- function(
   rownames(mapped_reads_df_amplicon_paired_count) <-
     seq_len(nrow(mapped_reads_df_amplicon_paired_count))
 
+  if (verbose) cli::cli_alert_success("Successfully paired reads.")
+
   return(mapped_reads_df_amplicon_paired_count)
 }
 
@@ -326,33 +362,40 @@ pair_reads <- function(
 classify_processed_reads <- function(
   mapped_reads_df_amplicon_paired_count,
   HDR_barcoded_outcomes,
-  amplicon_gRNA_number
+  amplicon_gRNA_number,
+  verbose
 ) {
-  message("Classifying Processed Reads...")
+  if (verbose) cli::cli_inform("Classifying processed reads...")
 
   # Classify WT
   mapped_reads_df_amplicon_paired_count$is_WT <-
-    check_sequences_contain_string(mapped_reads_df_amplicon_paired_count,
-                                   HDR_barcoded_outcomes$amplicon_seq_in_window[amplicon_gRNA_number],
-                                   column_name = "merged_sequence",
-                                   batch_size = 10000,
-                                   return_indices = FALSE,
-                                   strict_dna = TRUE)
+    check_sequences_contain_string(
+      mapped_reads_df_amplicon_paired_count,
+      HDR_barcoded_outcomes$amplicon_seq_in_window[amplicon_gRNA_number],
+      column_name = "merged_sequence",
+      batch_size = 10000,
+      return_indices = FALSE,
+      strict_dna = TRUE
+    )
 
   mapped_reads_df_amplicon_paired_count$HDR <- "NA"
   mapped_reads_df_amplicon_paired_count$HDR[mapped_reads_df_amplicon_paired_count$is_WT] <- "WT"
 
   # Classify HDR
   mapped_reads_df_amplicon_paired_count$is_HDR <-
-    check_sequences_contain_string(mapped_reads_df_amplicon_paired_count,
-                                   HDR_barcoded_outcomes$HDR_seq_in_window[amplicon_gRNA_number],
-                                   column_name = "merged_sequence",
-                                   batch_size = 10000,
-                                   return_indices = FALSE,
-                                   strict_dna = TRUE)
+    check_sequences_contain_string(
+      mapped_reads_df_amplicon_paired_count,
+      HDR_barcoded_outcomes$HDR_seq_in_window[amplicon_gRNA_number],
+      column_name = "merged_sequence",
+      batch_size = 10000,
+      return_indices = FALSE,
+      strict_dna = TRUE
+    )
 
   HDR_name <- paste0("HDR_", amplicon_gRNA_number)
   mapped_reads_df_amplicon_paired_count$HDR[mapped_reads_df_amplicon_paired_count$is_HDR] <- HDR_name
+
+  if (verbose) cli::cli_alert_success("Successfully Classified processed reads.")
 
   return(mapped_reads_df_amplicon_paired_count)
 }
@@ -365,7 +408,7 @@ export_process_reads <- function(
   sample_name,
   output_dir
 ) {
-  message("Processing Export of Results File...")
+  if (verbose) cli::cli_inform("Exporting results...")
 
   # Modify results table to select columns to export
   df_to_save <- mapped_reads_df_amplicon_paired_count[,-1]
@@ -376,7 +419,7 @@ export_process_reads <- function(
   # Calculate n (total) and pct (percentage that match classification)
   df_to_save_count <- df_to_save %>%
     dplyr::group_by(barcode, HDR) %>%
-    dplyr::summarise(n = n(), .groups = "drop_last") %>%
+    dplyr::summarise(n = dplyr::n(), .groups = "drop_last") %>%
     dplyr::mutate(pct = 100 * n / sum(n)) %>%
     dplyr::ungroup()
 
@@ -399,10 +442,9 @@ export_process_reads <- function(
       paste0("reads_classified_", sample_name, "_HDR_", amplicon_gRNA_number, ".csv")
     )
 
-    write.table(df_to_save_count, file_save_name, sep = ",",
-                col.names = TRUE, row.names = FALSE, quote = FALSE)
+    readr::write_csv(df_to_save_count, file_save_name)
 
-    message(glue::glue("Results saved to: {normalizePath(output_dir)}"))
+    cli::cli_alert_success("Results saved to: {normalizePath(output_dir)}.")
   }
 
   return(df_to_save_count)

@@ -27,7 +27,8 @@ process_reads(
   HDR_barcoded_file_name = "HDR_file_barcoded_with_amplicon_sequences.csv",
   cell_to_UTR_BCs_file_name = "cell_to_UTR_barcode_system.csv",
   QC_thresholds = QC_thresholds,
-  output_dir = "data"  
+  output_dir = "data",
+  verbose = TRUE
 )
 ```
 

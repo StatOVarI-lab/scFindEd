@@ -12,25 +12,27 @@ process_reads(
   HDR_barcoded_file_name,
   cell_to_UTR_BCs_file_name,
   QC_thresholds,
-  output_dir = NULL
+  output_dir = NULL,
+  verbose
 )
 }
 \arguments{
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{sample_name}{String containing the name for the experiment sample.}
+\item{sample_name}{String containing the file name structure for the
+experiment sample.}
 
 \item{amplicon_gRNA_number}{Integer representing the HDR to be processed.}
 
-\item{amplicon_data_file_name}{String containing the amplicon barcoded data
-file name.}
+\item{amplicon_data_file_name}{String containing the file name structure for
+the amplicon barcoded data file name.}
 
-\item{HDR_barcoded_file_name}{String containing the HDR outcomes data file
-name.}
+\item{HDR_barcoded_file_name}{String containing the file name structure for
+the HDR outcomes data file name.}
 
-\item{cell_to_UTR_BCs_file_name}{String containing the cell to UTR barcode
-system file name.}
+\item{cell_to_UTR_BCs_file_name}{String containing the file name structure
+for the cell to UTR barcode system file name.}
 
 \item{QC_thresholds}{List containing the following QC parameters:
 \code{min_barcode_reads}, \code{min_read_quality}, \code{min_start_positions_reads},
@@ -38,6 +40,8 @@ system file name.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 A data frame containing paired and classified (HDR/WT) read counts
@@ -63,6 +67,7 @@ QC_thresholds = list(
   min_start_position_reads = 500,
   paired_readnames = TRUE
   ),
-output_dir = "data"
+output_dir = "data",
+verbose
 )
 }
