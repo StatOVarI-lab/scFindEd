@@ -1,3 +1,85 @@
+import_barcode_amplicon_info <- function(
+  source_dir,
+  file_name,
+  verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_inform("Importing {file_path}...")
+
+  # Import barcode amplicon data table
+  tryCatch(
+    data <- readr::read_table(file_path, col_names = FALSE,
+                              show_col_types = FALSE),
+    error = function(e) {
+      cli::cli_abort(
+        "Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  # Assign column names
+  names(data) <- c("readname", "amplicon_name", "start",
+                   "quality",  "cigar",         "sequence")
+
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported {file_name} from {source_dir}.")
+
+  return(data)
+}
+
+
+#' @keywords internal
+#' Imports data from a file
+#' Expected file name: "sample_name_barcodes_fastq.txt"
+import_barcode_reads_data <- function(
+    source_dir,
+    file_name,
+    verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_inform("Importing {file_path}...")
+
+  tryCatch(
+    data <- readLines(file_path),
+    error = function(e) {
+      cli::cli_abort(
+        "Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported {file_name} from {source_dir}.")
+
+  return(data)
+}
+
+
+#' @keywords internal
+#' Imports data from a file
+#' Expected file name: "sample_name_R2_001_readnames_fastq.txt"
+import_readnames_data <- function(
+    source_dir,
+    file_name,
+    verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_inform("Importing {file_path}...")
+
+  tryCatch(
+    data <- data.table::fread(
+      file_path, header = FALSE, showProgress = verbose)$V1,
+    error = function(e) {
+      cli::cli_abort(
+        "Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported {file_name} from {source_dir}.")
+
+  return(data)
+}
+
+
 #' @keywords internal
 # Checks if both seq1 and seq2 are present in each element of vector v
 grepl_seq1_2 <- function(v,seq1,seq2){

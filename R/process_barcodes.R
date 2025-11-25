@@ -110,63 +110,33 @@ import_process_barcodes_data <- function(
   readnames_file_name,
   verbose
 ) {
-  # -- Importing barcode amplicon information --
-  if (verbose) cli::cli_inform("Importing barcode amplicon information...")
+  # -- Import barcode amplicon information --
 
-  # Import barcode amplicon data table
-  file_path <- file.path(source_dir, barcode_amplicon_file_name)
-  tryCatch(
-    barcode_amplicon_data <- utils::read.table(file_path, sep = " "),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import barcode amplicon information from {.file {file_path}}."
-      )
-    }
+  barcode_amplicon_data <- import_barcode_amplicon_info(
+    source_dir,
+    barcode_amplicon_file_name,
+    verbose
   )
 
-  # Assign column names
-  colnames(barcode_amplicon_data) <- c(
-    "readname", "amplicon_name", "start", "quality", "cigar", "sequence")
+  # -- Import extracted read barcodes --
 
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported barcode amplicon information.")
-
-  # -- Importing extracted read barcodes --
-  if (verbose) cli::cli_inform("Importing extracted read barcodes...")
-
-  # Read cell barcodes from raw FASTQ file
-  file_path <- file.path(source_dir, cell_barcodes_file_name)
-  tryCatch(
-    cell_barcodes <- data.table::fread(file_path, header = FALSE)$V1,
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import extracted read barcodes from {.file {file_path}}."
-      )
-    }
+  cell_barcodes <- import_barcode_reads_data(
+    source_dir,
+    cell_barcodes_file_name,
+    verbose
   )
 
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported extracted read barcodes.")
+  # -- Import extracted readnames --
 
-  # -- Importing extracted readnames --
-  if (verbose) cli::cli_inform("Importing extracted readnames...")
-
-  # Read cell barcodes from raw FASTQ file
-  file_path <- file.path(source_dir, readnames_file_name)
-  tryCatch(
-    readnames <- data.table::fread(file_path, header = FALSE)$V1,
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import extracted readnames... from {.file {file_path}}."
-      )
-    }
+  readnames <- import_readnames_data(
+    source_dir,
+    readnames_file_name,
+    verbose
   )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported extracted read barcodes.")
 
   # Assign readnames as the names of the cell_barcodes vector
   names(cell_barcodes) <- readnames
+
   # Map cell barcodes to the amplicon data, using readname as the key
   barcode_amplicon_data$cell_barcode <-
     cell_barcodes[barcode_amplicon_data$readname]
@@ -257,18 +227,17 @@ extract_barcodes <- function(
     sapply(barcode_amplicon_data_with_seq_after_barcode_3$sequence,
            function(x) extract_BC3(x, seq_after_barcode_3))
 
-  # Set rownames of above, using readname for easier lookup
-  rownames(barcode_amplicon_data_with_seq_after_barcode_3) <-
-    barcode_amplicon_data_with_seq_after_barcode_3$readname
-
   # Remove duplicate readnames to ensure unique mapping
   barcode_amplicon_data_with_seq_after_barcode_3 <-
     barcode_amplicon_data_with_seq_after_barcode_3 %>%
     dplyr::filter(!(duplicated(readname)))
 
-  # Map BC3 values to readname_cell_table using readname as the key
-  readname_cell_table$BC3 <- unlist(
-    barcode_amplicon_data_with_seq_after_barcode_3[readname_cell_table$readname, "BC3"])
+  readname_cell_table <- readname_cell_table %>%
+    dplyr::left_join(
+      barcode_amplicon_data_with_seq_after_barcode_3 %>%
+        dplyr::select(readname, BC3),
+      by = "readname"
+    )
 
   # Remove rows with any missing (NA) values from the table
   readname_cell_table <-
