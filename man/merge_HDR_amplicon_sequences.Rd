@@ -44,5 +44,6 @@ design_summary_file_name = "6915_design_summary_extended_information.csv",
 output_dir = "data",
 verbose = TRUE
 )
-importFrom("base", "sequence")
+importFrom base sequence
+importFrom dplyr \%>\%
 }

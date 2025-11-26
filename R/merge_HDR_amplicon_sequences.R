@@ -26,7 +26,8 @@
 #' verbose = TRUE
 #' )
 
-#' importFrom("base", "sequence")
+#' importFrom base sequence
+#' importFrom dplyr %>%
 
 #' @export
 merge_HDR_amplicon_sequences <- function(
