@@ -24,6 +24,36 @@ import_cell_to_extracted_BCs <- function(
 
 
 #' @keywords internal
+#' Imports data from files
+#' Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"
+import_barcode_distance_lists <- function(
+    source_dir,
+    list_BC1_file_name,
+    list_BC2_3_file_name,
+    verbose
+) {
+  # -- Importing BC1 list --
+  list_BC1 <- import_barcode_distance_list(
+    source_dir,
+    list_BC1_file_name,
+    verbose
+  )
+
+  # -- Importing BC2/3 list --
+  list_BC2_3 <- import_barcode_distance_list(
+    source_dir,
+    list_BC2_3_file_name,
+    verbose
+  )
+
+  return(list(
+    list_BC1 = list_BC1,
+    list_BC2_3 = list_BC2_3
+  ))
+}
+
+
+#' @keywords internal
 #' Imports data from a file
 #' Expected file name: "list_BCX.rds"
 import_barcode_distance_list <- function(
