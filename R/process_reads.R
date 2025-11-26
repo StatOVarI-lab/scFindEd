@@ -44,6 +44,8 @@
 #' verbose
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 process_reads <- function(
   source_dir = "",
