@@ -37,6 +37,8 @@
 #' output_dir = "data",
 #' verbose = TRUE)
 
+#' @importFrom dplyr %>%
+
 #' @export
 process_barcodes <- function(
   source_dir,
