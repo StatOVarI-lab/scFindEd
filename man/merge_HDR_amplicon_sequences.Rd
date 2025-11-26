@@ -5,20 +5,27 @@
 \title{Merge HDR Barcodes with Design Summary File}
 \usage{
 merge_HDR_amplicon_sequences(
-  HDR_barcoded_file_path,
-  design_summary_file_path,
-  output_dir = NULL
+  source_dir,
+  HDR_barcoded_file_name,
+  design_summary_file_name,
+  output_dir = NULL,
+  verbose
 )
 }
 \arguments{
-\item{HDR_barcoded_file_path}{String containing the relative path to the HDR
-barcoded file.}
+\item{source_dir}{String containing the relative path to the directory that
+source data should be imported from.}
 
-\item{design_summary_file_path}{String containing the relative path to the
-design summary file.}
+\item{HDR_barcoded_file_name}{String containing the file name structure for
+the HDR barcoded file.}
+
+\item{design_summary_file_name}{String containing the file name structure for
+the design summary file.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the merged data file will be exported to.}
+
+\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
 A data frame containing the merged amplicon summary data. Also
@@ -31,8 +38,11 @@ amplicons.
 }
 \examples{
 merge_HDR_amplicon_sequences(
-HDR_barcoded_file_path = "data/HDR_file_barcoded.csv",
-design_summary_file_path = "data/6915_design_summary_extended_information.csv",
-output_dir = "data"
+source_dir = "data",
+HDR_barcoded_file_name = "HDR_file_barcoded.csv",
+design_summary_file_name = "6915_design_summary_extended_information.csv",
+output_dir = "data",
+verbose = TRUE
 )
+importFrom("base", "sequence")
 }
