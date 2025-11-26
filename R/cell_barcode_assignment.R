@@ -37,6 +37,8 @@
 #' verbose = TRUE
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 cell_barcode_assignment <- function(
   source_dir,

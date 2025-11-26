@@ -2,3 +2,4 @@
 
 export(cell_barcode_assignment)
 export(say_hello)
+importFrom(dplyr,"%>%")
