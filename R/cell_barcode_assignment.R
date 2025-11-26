@@ -104,6 +104,36 @@ cell_barcode_assignment <- function(
 }
 
 
+## Need to move these to utils_string.R as two utility functions.
+
+#' @keywords internal
+import_barcode_distance_lists <- function(
+    source_dir,
+    list_BC1_file_name,
+    list_BC2_3_file_name,
+    verbose
+) {
+  # -- Importing BC1 list --
+  list_BC1 <- import_barcode_distance_list(
+    source_dir,
+    list_BC1_file_name,
+    verbose
+  )
+
+  # -- Importing BC2/3 list --
+  list_BC2_3 <- import_barcode_distance_list(
+    source_dir,
+    list_BC2_3_file_name,
+    verbose
+  )
+
+  return(list(
+    list_BC1 = list_BC1,
+    list_BC2_3 = list_BC2_3
+  ))
+}
+
+
 #' @keywords internal
 #' This function corrects barcode assignments by applying Hamming distance-based
 #' threshold correction.
