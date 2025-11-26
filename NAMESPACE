@@ -2,3 +2,4 @@
 
 export(identify_whitelisted_barcodes)
 export(say_hello)
+importFrom(dplyr,"%>%")

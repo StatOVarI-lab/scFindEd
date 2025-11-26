@@ -27,6 +27,8 @@
 #' verbose = TRUE
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 identify_whitelisted_barcodes <- function(
   source_dir,
