@@ -2,3 +2,4 @@
 
 export(join_amplicon_summaries)
 export(say_hello)
+importFrom(dplyr,"%>%")

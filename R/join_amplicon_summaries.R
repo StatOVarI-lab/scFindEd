@@ -7,8 +7,8 @@
 #'
 #' @param source_dir String containing the relative path to the directory that
 #' source data should be imported from.
-#' @param file_name String containing the file name structure for each amplicon's
-#' summary file.
+#' @param sample_name String containing the file name structure for the
+#' experiment sample.
 #' @param n_amplicons Integer denoting the number of amplicon summaries to be
 #' joined.
 #' @param minimum_count_thresholds Vector containing a list of mininum count
@@ -30,7 +30,7 @@
 #' @examples
 #' join_amplicon_summaries(
 #' source_dir = "data",
-#' file_name = "reads_classified_MB_barcoded_HDR_",
+#' sample_name = "MB_barcoded",
 #' n_amplicons = 9,
 #' minimum_count_thresholds = c(2, 5, 10, 20),
 #' HOM_cutoff = 70,
@@ -40,10 +40,12 @@
 #' verbose = TRUE
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 join_amplicon_summaries <- function(
   source_dir,
-  file_name,
+  sample_name,
   n_amplicons,
   minimum_count_thresholds,
   HOM_cutoff,
@@ -56,19 +58,22 @@ join_amplicon_summaries <- function(
 
   amplicon_summary_dfs <- import_amplicon_summaries(
     source_dir,
-    file_name,
+    sample_name,
     n_amplicons,
     verbose
   )
 
+  # -- Calculate summaries across each minimum count threshold --
+
   if (verbose) {
-    cat("\n")
-    cli::cli_inform("Calculating summaries across Minimum Count Thresholds...")
+    cli::cli_h2("Calculating summaries across Minimum Count Thresholds")
   }
 
   for (count_threshold in minimum_count_thresholds){
-    if (verbose & count_threshold != minimum_count_thresholds[1]) cat("\n")
-    if (verbose) cli::cli_alert_info(
+    if (verbose & count_threshold != minimum_count_thresholds[1]) {
+      cli::cli_text("\n")
+    }
+    if (verbose) cli::cli_inform(
       "Calculating summaries for Minimum Count Threshold: {count_threshold}..."
     )
 
@@ -118,23 +123,19 @@ join_amplicon_summaries <- function(
 #' @keywords internal
 import_amplicon_summaries <- function(
   source_dir,
-  file_name,
+  sample_name,
   n_amplicons,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Importing amplicon summary files...")
+  if (verbose == FALSE) cli::cli_inform("Importing amplicon summary files...")
 
   amplicon_summary_dfs <- list()
 
   for (amplicon_number in 1:n_amplicons) {
-    # Import dataset
-    file_path <- file.path(source_dir, paste0(file_name, amplicon_number, ".csv"))
-    tryCatch(
-      df <- as.data.frame(readr::read_csv(file_path, show_col_types = FALSE)),
-      error = function(e) {
-        cli::cli_abort("Failed to import data from {.file {file_path}}.")
-      }
-    )
+    file_name <-
+      paste0("reads_classified_", sample_name, "_HDR_", amplicon_number, ".csv")
+
+    df <- import_amplicon_summary_file(source_dir, file_name, verbose)
 
     # Standardise column names
     colnames(df) <- c("barcode", "HDR", "n", "pct")
@@ -145,10 +146,10 @@ import_amplicon_summaries <- function(
     amplicon_summary_dfs[[amplicon_number]] <- df
 
     if (verbose) cli::cli_alert_success(
-      "Successfully imported amplicon {amplicon_number} summary file.")
+      "Successfully imported {file_name} from {source_dir}.")
   }
 
-  if (verbose) cat("\n")
+  if (verbose) cli::cli_text("\n")
   cli::cli_alert_success("Successfully imported all amplicon summary files.")
 
   return(amplicon_summary_dfs)

@@ -6,7 +6,7 @@
 \usage{
 join_amplicon_summaries(
   source_dir,
-  file_name,
+  sample_name,
   n_amplicons,
   minimum_count_thresholds,
   HOM_cutoff,
@@ -20,8 +20,8 @@ join_amplicon_summaries(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{file_name}{String containing the file name structure for each amplicon's
-summary file.}
+\item{sample_name}{String containing the file name structure for the
+experiment sample.}
 
 \item{n_amplicons}{Integer denoting the number of amplicon summaries to be
 joined.}
@@ -57,7 +57,7 @@ homozygous HDR/homozygous WT/heterozygous/other.
 \examples{
 join_amplicon_summaries(
 source_dir = "data",
-file_name = "reads_classified_MB_barcoded_HDR_",
+sample_name = "MB_barcoded",
 n_amplicons = 9,
 minimum_count_thresholds = c(2, 5, 10, 20),
 HOM_cutoff = 70,
