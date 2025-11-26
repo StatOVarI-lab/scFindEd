@@ -2,3 +2,4 @@
 
 export(barcodes_QC_plots)
 export(say_hello)
+importFrom(dplyr,"%>%")

@@ -27,6 +27,8 @@
 #' verbose = TRUE
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 barcodes_QC_plots <- function(
   source_dir,
