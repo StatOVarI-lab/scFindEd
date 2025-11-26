@@ -1,4 +1,60 @@
 #' @keywords internal
+#' Imports data from files
+#' Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"
+import_barcode_distance_lists <- function(
+  source_dir,
+  list_BC1_file_name,
+  list_BC2_3_file_name,
+  verbose
+) {
+  # -- Importing BC1 list --
+  list_BC1 <- import_barcode_distance_list(
+    source_dir,
+    list_BC1_file_name,
+    verbose
+  )
+
+  # -- Importing BC2/3 list --
+  list_BC2_3 <- import_barcode_distance_list(
+    source_dir,
+    list_BC2_3_file_name,
+    verbose
+  )
+
+  return(list(
+    list_BC1 = list_BC1,
+    list_BC2_3 = list_BC2_3
+  ))
+}
+
+
+#' @keywords internal
+#' Imports data from a file
+#' Expected file name: "list_BCX.rds"
+import_barcode_distance_list <- function(
+  source_dir,
+  file_name,
+  verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_inform("Importing {file_path}...")
+
+  # Import list of BC distances
+  tryCatch(
+    data <- readRDS(file_path),
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported {file_name} from {source_dir}.")
+
+  return(data)
+}
+
+
+#' @keywords internal
 import_barcode_distance_lists <- function(
     source_dir,
     list_BC1_file_name,
@@ -100,8 +156,8 @@ barcode_hamming_plot <- function(
       axis.title = ggplot2::element_text(face = "bold"),
       legend.position = "right",
       legend.title = ggplot2::element_text(face = "bold"),
-      panel.grid.major.y = ggplot2::element_line(color = "grey90", size = 0.3),
-      panel.grid.minor.y = ggplot2::element_line(color = "grey95", size = 0.2)
+      panel.grid.major.y = ggplot2::element_line(color = "grey90", linewidth = 0.3),
+      panel.grid.minor.y = ggplot2::element_line(color = "grey95", linewidth = 0.2)
     )
 
   return(plot)
