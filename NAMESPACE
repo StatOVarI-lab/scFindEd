@@ -2,3 +2,4 @@
 
 export(combine_amplicons)
 export(say_hello)
+importFrom(dplyr,"%>%")

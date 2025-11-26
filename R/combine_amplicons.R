@@ -26,6 +26,8 @@
 #' verbose = TRUE
 #' )
 
+#' @importFrom dplyr %>%
+
 #' @export
 combine_amplicons <- function(
   source_dir,
@@ -93,31 +95,30 @@ combine_amplicons_data_import <- function(
   barcode_system_file_name,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Importing datasets...")
+  if (verbose) {
+    cli::cli_h2("IMPORTING DATA")
+  } else {
+    cli::cli_inform("Importing datasets...")
+  }
 
-  # Import combined amplicon summaries data
-  file_path <- file.path(source_dir, combined_summaries_file_name)
-  tryCatch(
-    combined_summaries_df <- as.data.frame(read_csv(file_path)),
-    error = function(e) {
-      cli::cli_abort("Failed to import data from {.file {file_path}}.")
-    }
+  # -- Import combined amplicon summaries data --
+
+  combined_summaries_df <- import_combined_summaries_data(
+    source_dir,
+    combined_summaries_file_name,
+    verbose
   )
 
-  cli::cli_alert_success("Amplicon summaries data successfully imported.")
+  # -- Import cell to UTR barcode system
 
-  # Import cell to UTR barcode system data
-  file_path <- file.path(source_dir, barcode_system_file_name)
-  tryCatch(
-    barcodes_file_df <- as.data.frame(readr::read_csv(file_path)),
-    error = function(e) {
-      cli::cli_abort("Failed to import data from {.file {file_path}}.")
-    }
+  barcodes_file_df <- import_cell_to_UTR_barcode_system(
+    source_dir,
+    barcode_system_file_name,
+    verbose
   )
+
   barcodes_file_df <- barcodes_file_df %>%
     dplyr::rename(barcode = cell_barcode)
-
-  cli::cli_alert_success("Cell to UTR barcode system successfully imported.")
 
   # Select only the cell barcodes where UTR_BC_count >= 2
   barcodes_file_df <- barcodes_file_df %>%
@@ -128,6 +129,9 @@ combine_amplicons_data_import <- function(
     "Number of unique UTR_BCs in raw Cell to UTR barcode system: ",
     "{length(unique(barcodes_file_df$all_BCs))}."
   ))
+
+  if (verbose) cli::cli_text("\n")
+  cli::cli_alert_success("Successfully imported data.")
 
   return(list(combined_summaries_df = combined_summaries_df,
               barcodes_file_df = barcodes_file_df))
@@ -144,9 +148,12 @@ merge_amplicon_summaries_and_barcode_system <- function(
   verbose
 ) {
   if (verbose) {
-    cat("\n")
-    cli::cli_inform("Merging {.file combined_summaries_file_name} and
-                    {.file barcode_system_file_name} by {.val barcode}...")
+    cli::cli_h2("PERFORMING MERGE")
+
+    cli::cli_alert_info(glue::glue(
+      "Merging {combined_summaries_file_name} and ",
+      "{barcode_system_file_name} by `barcode`..."
+    ))
   }
 
   # Merge and keep only the overlapping barcodes
@@ -178,10 +185,7 @@ filter_inconsistent_genotypes <- function(
   merged_df,
   verbose
 ) {
-  if (verbose) {
-    cat("\n")
-    cli::cli_inform("Checking for consistent genotypes among different amplicons...")
-  }
+  if (verbose) cli::cli_h2("CHECKING FOR CONSISTENT GENOTYPES")
 
   # Check if there is consistent genotype among different amplicons
   amplicon_genotypes <- merged_df %>%
@@ -192,11 +196,11 @@ filter_inconsistent_genotypes <- function(
       n_HOM       = sum(genotype == "HOM"),
       n_others    = sum(genotype == "others"),
       # Number of rows - number of genotypes within the same amplicon (and all BCs)
-      n_genotypes = n(),
+      n_genotypes = dplyr::n(),
       .groups = "drop"
     ) %>%
     dplyr::mutate(
-      genotype = case_when(
+      genotype = dplyr::case_when(
         n_WT     == n_genotypes ~ "WT",
         n_HET    == n_genotypes ~ "HET",
         n_HOM    == n_genotypes ~ "HOM",
@@ -208,9 +212,9 @@ filter_inconsistent_genotypes <- function(
   # Remove the inconsistent amplicon genotypes within the same UTR_BCs
   amplicon_genotypes_filtered <- amplicon_genotypes[amplicon_genotypes$genotype!= "mixed",]
 
-  cli::cli_alert_success("Inconsistent amplicon genotypes removed.")
-
   if (verbose) {
+    cli::cli_alert_success("Inconsistent amplicon genotypes removed.")
+
     cli::cli_alert_info("Dimensions: {dim(amplicon_genotypes_filtered)}.")
     print(utils::head(amplicon_genotypes_filtered))
   }
@@ -224,10 +228,7 @@ summarise_cell_genotypes <- function(
   amplicon_genotypes_filtered,
   verbose
 ) {
-  if (verbose) {
-    cat("\n")
-    cli::cli_inform("Summarising cell genotypes...")
-  }
+  if (verbose) cli::cli_h2("SUMMARISING CELL GENOTYPES")
 
   # Check the genotype for each cell (UTR_BC)
   cell_genotypes <- amplicon_genotypes_filtered %>%
@@ -235,7 +236,7 @@ summarise_cell_genotypes <- function(
     dplyr::summarise(
       # Amplicon name for the non-WT genotype (if any)
       amplicon = paste(unique(amplicon[genotype != "WT"]), collapse = ","),
-      n_amplicons = n(),
+      n_amplicons = dplyr::n(),
       n_WT = sum(genotype == "WT"),
       n_HET = sum(genotype == "HET"),
       n_HOM = sum(genotype == "HOM"),
@@ -244,7 +245,7 @@ summarise_cell_genotypes <- function(
       .groups = "drop"
     ) %>%
     dplyr::mutate(
-      genotype = case_when(
+      genotype = dplyr::case_when(
         n_WT == n_amplicons ~ "WT",
         n_WT == n_amplicons - 1 & n_HET == 1 ~ "HET",
         n_WT == n_amplicons - 1 & n_HOM == 1 ~ "HOM",
@@ -252,13 +253,13 @@ summarise_cell_genotypes <- function(
         TRUE ~ "mixed"
       ),
       # Keep amplicon info only for non-WT genotypes
-      amplicon = if_else(
+      amplicon = dplyr::if_else(
         genotype %in% c("HET", "HOM", "others"), amplicon, NA_character_)
     )
 
-  cli::cli_alert_success("Cell genotypes summarised.")
-
   if (verbose) {
+    cli::cli_alert_success("Cell genotypes summarised.")
+
     cli::cli_alert_info("Dimensions: {dim(cell_genotypes)}.")
     cli::cli_alert_info(
       "Number of unique UTR barcodes: {length(unique(cell_genotypes$all_BCs))}."
@@ -273,8 +274,7 @@ return(cell_genotypes)
 report_summarised_genotypes <- function(
   cell_genotypes
 ) {
-  cat("\n")
-  cli::cli_inform("Reporting summary statistics...")
+  cli::cli_h2("SUMMARY STATISTICS")
 
   cli::cli_alert_info("Summary of genotype counts:")
   print(table(cell_genotypes$genotype))
@@ -282,13 +282,10 @@ report_summarised_genotypes <- function(
   cli::cli_alert_info("Summary of n_mutation counts:")
   print(table(cell_genotypes$n_mutations))
 
-  cli::cli_alert_info(glue::glue(
-    "Number of records with n_mutations == 0 or 1: ",
-    nrow(cell_genotypes[cell_genotypes$n_mutations == 0 |
-                          cell_genotypes$n_mutations == 1,])
-  ))
+  cli::cli_alert_info("Number of records with n_mutations == 0 or 1: ")
+  print(nrow(cell_genotypes[cell_genotypes$n_mutations == 0 |
+                              cell_genotypes$n_mutations == 1,]))
 
-  cat("\n")
   cli::cli_alert_info("Count of HOMOZYGOUS genotypes for each amplicon:")
   print(table(cell_genotypes[cell_genotypes$genotype =="HOM",]$amplicon))
 
