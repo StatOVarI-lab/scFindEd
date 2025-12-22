@@ -75,6 +75,8 @@ identify_whitelisted_barcodes <- function(
     verbose
   )
 
+  if (verbose) cli::cli_inform("Exporting lists of closest barcodes...")
+
   # -- Optional file saving (only if output_dir is specified) --
   if (!is.null(output_dir)) {
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
@@ -115,7 +117,7 @@ import_whitelisted_barcodes <- function(
   )
 
   # Extract the same strings for BC2 and BC3
-  BC2_BC3_whitelist <- unique(BC2_BC3_whitelist_raw[, 1])
+  BC2_BC3_whitelist <- as.character(unique(BC2_BC3_whitelist_raw[, 1])[[1]])
   names(BC2_BC3_whitelist) <- paste0("BC2_3_", 1:length(BC2_BC3_whitelist))
 
   return(list(BC1_whitelist = BC1_whitelist,
@@ -129,29 +131,42 @@ identify_BC1_closest_barcodes <- function(
   BC1_whitelist,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Processing BC1 whitelist...")
+  cli::cli_inform("Processing BC1 whitelist...")
 
   # Get unique BC1 sequences from the dataset
-  cell_BC1_BC2_BC3 <- cell_to_extracted_BCs
-  unique_BC_1 <- unique(cell_BC1_BC2_BC3$BC1)
+  unique_BC_1 <- unique(cell_to_extracted_BCs$BC1)
+
+  # Extract the complete list of barcode names
+  whitelist_names <- names(BC1_whitelist)
 
   if (verbose) cli::cli_alert_info("Number of Unique BC1s: {length(unique_BC_1)}")
 
-  # Loop through each unique BC1 sequence and find the 3 closest whitelist
-  # barcodes to the current BC1 using Hamming distance
-  cli::cli_progress_bar("BC1: Identifying closest barcodes",
-                        total = length(unique_BC_1))
-  list_BC1 <- list()
-  for (j in 1:length(unique_BC_1)){
-    list_BC1[[j]] <- identify_barcode_ID(unique_BC_1[j], BC1_whitelist)
-    cli::cli_progress_update() # Update progress
-  }
-  cli::cli_progress_done() # Close the progress bar
+  cli::cli_process_start("Computing distance matrix...",
+                         msg_done = "Matrix computed.")
+
+  # Calculate distance matrix between each extracted barcode and whitelist barcode
+  dist_matrix <- stringdist::stringdistmatrix(
+    unique_BC_1,
+    BC1_whitelist,
+    method = "hamming",
+    useBytes = TRUE
+  )
+
+  cli::cli_process_done()
+
+  cli::cli_process_start("Extracting three closest BC1s...",
+                         msg_done = "Successfully extracted three closest BC1s.")
+
+  # Use lapply to extract the top 3 from each row of the matrix
+  list_BC1 <- lapply(1:nrow(dist_matrix), extract_closest_barcodes,
+                     dist_matrix = dist_matrix,
+                     whitelist_names = whitelist_names,
+                     n_barcodes = 3)
 
   # Assign BC1 sequences as names to the list entries
   names(list_BC1) <- unique_BC_1
 
-  cli::cli_alert_success("Successfully identified closest BC1 barcodes.")
+  cli::cli_process_done()
 
   return(list_BC1)
 }
@@ -159,35 +174,49 @@ identify_BC1_closest_barcodes <- function(
 
 #' @keywords internal
 identify_BC2_3_closest_barcodes <- function(
-  cell_to_extracted_BCs,
-  BC2_BC3_whitelist,
-  verbose
+    cell_to_extracted_BCs,
+    BC2_BC3_whitelist,
+    verbose
 ) {
-  if (verbose) cli::cli_inform("Processing BC2/3 whitelist...")
+  cli::cli_inform("Processing BC2/3 whitelist...")
 
   # Get unique BC2 and BC3 sequences from the dataset
   cell_BC1_BC2_BC3 <- cell_to_extracted_BCs
   unique_BC_2_3 <- unique(c(cell_BC1_BC2_BC3$BC2, cell_BC1_BC2_BC3$BC3))
 
+  # Extract the complete list of barcode names
+  whitelist_names <- names(BC2_BC3_whitelist)
+
   if (verbose) {
     cli::cli_alert_info("Number of Unique BC2_3s: {length(unique_BC_2_3)}")
   }
 
-  # Loop through each unique BC2/BC3 sequence and find the 3 closest whitelist
-  # barcodes to the current BC2/BC3 using Hamming distance
-  cli::cli_progress_bar("BC2/3: Identifying closest barcodes",
-                        total = length(unique_BC_2_3))
-  list_BC2_3 <- list()
-  for (j in 1:length(unique_BC_2_3)){
-    list_BC2_3[[j]] <- identify_barcode_ID(unique_BC_2_3[j], BC2_BC3_whitelist)
-    cli::cli_progress_update() # Update progress
-  }
-  cli::cli_progress_done() # Close the progress bar
+  cli::cli_process_start("Computing distance matrix...",
+                         msg_done = "Matrix computed.")
 
-  # Assign BC2/BC3 sequences as names to the list entries
+  # Calculate distance matrix between each extracted barcode and whitelist barcode
+  dist_matrix <- stringdist::stringdistmatrix(
+    unique_BC_2_3,
+    BC2_BC3_whitelist,
+    method = "hamming",
+    useBytes = TRUE
+  )
+
+  cli::cli_process_done()
+
+  cli::cli_process_start("Extracting three closest BC2/3s...",
+                         msg_done = "Successfully extracted three closest BC2/3s.")
+
+  # Use lapply to extract the top 3 from each row of the matrix
+  list_BC2_3 <- lapply(1:nrow(dist_matrix), extract_closest_barcodes,
+                       dist_matrix = dist_matrix,
+                       whitelist_names = whitelist_names,
+                       n_barcodes = 3)
+
+  # Assign BC1 sequences as names to the list entries
   names(list_BC2_3) <- unique_BC_2_3
 
-  cli::cli_alert_success("Successfully identified closest BC2/3 barcodes.")
+  cli::cli_process_done()
 
   return(list_BC2_3)
 }

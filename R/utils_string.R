@@ -74,11 +74,19 @@ import_BC2_BC3_whitelist <- function(
   return(data)
 }
 
+#' @keywords internal
+#' Returns the n_barcodes whitelist barcodes with the smallest distance
+extract_closest_barcodes <- function(
+  i,
+  dist_matrix,
+  whitelist_names,
+  n_barcodes
+) {
+  distances <- dist_matrix[i, ]
 
-# Function to compute Hamming distances between a barcode and a whitelist,
-# returning the 3 smallest distances
-identify_barcode_ID <- function(BC, BC_vec){
-  temp <- sapply(BC_vec,
-                 function(x) stringdist::stringdist(x, BC, method = "hamming"))
-  return(sort(temp)[1:3])
+  # Attach the barcode names to the distances
+  names(distances) <- whitelist_names
+
+  # Return the lowest 3 distances
+  return(sort(distances)[1:3])
 }
