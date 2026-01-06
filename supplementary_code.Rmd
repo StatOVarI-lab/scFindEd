@@ -1,0 +1,105 @@
+---
+title: "Supplementary Code"
+author: "Miles Rowbottom"
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes  
+---
+
+# utils_string.R
+
+## data_documentation.R
+
+```{r}
+# Sample data that can be used for testing the relevant functions in utils_string.R
+barcode_example   <- "ATACGCATCA"
+barcode_example_2 <- "GGTACCTAGC"
+
+v_TRUE_example <- c(
+  "ATACGCATCAGGTACCTAGCGCTTAGGACCTGAT", "GGTACCTAGCATACGCATCAGCTTAGGACCTGAT",
+  "GCTTAGGACATACGCATCAGGTACCTAGCGCTTA", "ATACGCATCAGCTTAGGACGGTACCTAGCGCTTA",
+  "GGTACCTAGCATACGCATCAGCTTAGGACCTGAT")
+
+v_FALSE_example <- c(
+  "ATACGCATCAGCTTAGGACCTGATGCCATGCGTA", "GGTACCTAGCGCTTAGGACCTGATGCCATGCGTA", 
+  "GCTTAGGACCTGATGCCATGCGTACGGTACCTAG", "ATACGCATCAGCTTAGGACCTGATGCCATGCGTA", 
+  "GCTTAGGACCTGATGCCATGCGTACGGTACCTAG")
+
+x_example <- "GCTTAGGACCTGATGCCATGCGTACGGTACCTAGGCTTACATACGCATCAGGGTACCGTACGATGCTAGGCTTACGGTAGCTAGGGCTAA"
+
+whitelist_example <- c(
+  "GTTCGCATCG", "CTGCGTATGA", "TATAGGCTAA", "GCGTACGTAC", "AACCGGTTAA", 
+  "TTTTTTTTTT", "GTACGCATCG", "ATACGCATCC", "ATACGCATTT", "GTACGCATCA")
+```
+
+
+# process_barcodes.R
+
+## process_barcodes()
+
+```{r}
+process_barcodes(
+  source_dir = "data",
+  barcode_amplicon_file_name = "barcode_amplicon_info.txt",
+  cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
+  readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
+  min_reads = 2,
+  quality_score_threshold = 30,
+  seq_before_barcode_1 = "GTACGAAGACTG",
+  seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+  seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+  output_dir = "data",
+  verbose = TRUE
+)
+```
+
+Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
+
+```{r}
+# Read in downstream output file
+joint_HDR_output <- read_csv("data/joint_HDR_output.csv")
+```
+
+```{r}
+# Select nine barcodes from joint_HDR_output with a range of HDR outcomes
+barcodes_to_keep <- c("GTGCTAAGCAATGCAGCG-1", "CCGTAGTTGGGACTATTC-1",
+                      "TTAACGGAGGCGCTCTAT-1", "CGAGTAGCATAGATCTGT-1",
+                      "AACTGCGACTGCTCAGCG-1", "AACGCCTACGCCGTTGTT-1",
+                      "TCCGATAACATTAAGACC-1", "GGACACTGGCACTAGACT-1",
+                      "ACTTGATCTTATCTAGGT-1")
+
+# Extract indices of the cell_barcodes that are to_keep
+subset_indices <- which(cell_barcodes %in% barcodes_to_keep)
+
+# Subset cell_barcodes and readnames according to the above indices
+cell_barcodes_subset <- cell_barcodes[subset_indices]
+readnames_subset <- readnames[subset_indices]
+
+# Export as 'FASTQ' .txt files
+writeLines(cell_barcodes_subset, "subset_MB_barcoded_barcodes_fastq.txt")
+writeLines(readnames_subset, "subset_MB_barcoded_R2_001_readnames_fastq.txt")
+```
+
+```{r}
+# Assign readnames as the names of the cell_barcodes vector
+names(cell_barcodes) <- readnames
+# Map cell barcodes to the amplicon data, using readname as the key
+barcode_amplicon_data$cell_barcode <-
+  cell_barcodes[barcode_amplicon_data$readname]
+
+# Subset barcode_amplicon_data, keeping only rows with barcodes to_keep
+barcode_amplicon_data_subset <- barcode_amplicon_data %>% 
+  dplyr::filter(cell_barcode %in% barcodes_to_keep)
+```
+
+
+
+
+
+
+
+
+
+
+
