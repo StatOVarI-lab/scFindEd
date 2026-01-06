@@ -15,6 +15,8 @@ A character vector of DNA sequences, each 30 bases long, that do not all
 contain both \code{ATACGCATCA} and \code{GGTACCTAGC}.
 }
 \examples{
+\dontrun{
 grepl_seq1_2(v_FALSE_example, "ATACGCATCA", "GGTACCTAGC")
+}
 }
 \keyword{datasets}

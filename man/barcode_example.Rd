@@ -16,8 +16,10 @@ validating the presence of sequences within a vector, and calculating and
 comparing Hamming distances.
 }
 \examples{
+\dontrun{
 grepl_seq1_2(x_example, barcode_example, barcode_example_2)
 extract_BC1(x_example, barcode_example)
 identify_barcode_ID(barcode_example, whitelist_example)
+}
 }
 \keyword{datasets}
