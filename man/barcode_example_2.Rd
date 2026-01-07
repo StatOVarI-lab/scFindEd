@@ -15,6 +15,8 @@ A 10-base DNA barcode used for validating the presence of sequences within a
 vector.
 }
 \examples{
+\dontrun{
 grepl_seq1_2(x_example, barcode_example, barcode_example_2)
+}
 }
 \keyword{datasets}

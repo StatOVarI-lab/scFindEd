@@ -6,9 +6,11 @@
 #'
 #' @format A character string of length 10.
 #' @examples
+#' \dontrun{
 #' grepl_seq1_2(x_example, barcode_example, barcode_example_2)
 #' extract_BC1(x_example, barcode_example)
 #' identify_barcode_ID(barcode_example, whitelist_example)
+#' }
 "barcode_example"
 
 
@@ -19,9 +21,10 @@
 #'
 #' @format A character string of length 10.
 #' @examples
+#' \dontrun{
 #' grepl_seq1_2(x_example, barcode_example, barcode_example_2)
+#' }
 "barcode_example_2"
-
 
 #' Example vector with sequences containing both barcodes
 #'
@@ -30,7 +33,9 @@
 #'
 #' @format A character vector of length 5.
 #' @examples
+#' \dontrun{
 #' grepl_seq1_2(v_TRUE_example, "ATACGCATCA", "GGTACCTAGC")
+#' }
 "v_TRUE_example"
 
 
@@ -41,7 +46,9 @@
 #'
 #' @format A character vector of length 5.
 #' @examples
+#' \dontrun{
 #' grepl_seq1_2(v_FALSE_example, "ATACGCATCA", "GGTACCTAGC")
+#' }
 "v_FALSE_example"
 
 
@@ -52,7 +59,9 @@
 #'
 #' @format A character string of length 90.
 #' @examples
+#' \dontrun{
 #' extract_BC1(x_example, barcode_example)
+#' }
 "x_example"
 
 

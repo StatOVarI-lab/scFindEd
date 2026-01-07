@@ -15,6 +15,8 @@ A single DNA string of 90 bases used to demonstrate the extraction of a
 barcode's flanking sequences.
 }
 \examples{
+\dontrun{
 extract_BC1(x_example, barcode_example)
+}
 }
 \keyword{datasets}
