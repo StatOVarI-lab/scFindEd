@@ -16,7 +16,12 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     cli,
-    ggplot2
+    ggplot2,
+    data.table,
+    dplyr,
+    readr,
+    stats,
+    mockery
 Depends: 
     R (>= 3.5)
 LazyData: true
