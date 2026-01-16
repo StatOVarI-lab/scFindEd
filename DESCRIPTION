@@ -21,13 +21,10 @@ Imports:
     dplyr,
     readr,
     stats,
-    mockery
+    mockery,
+    stringdist
 Depends: 
     R (>= 3.5)
 LazyData: true
 VignetteBuilder: knitr
-Imports: 
-    cli,
-    dplyr,
-    readr,
-    stringdist
+    
