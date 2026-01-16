@@ -2,4 +2,8 @@
 
 export(cell_barcode_assignment)
 export(say_hello)
+export(identify_whitelisted_barcodes)
+export(say_hello)
+export(barcodes_QC_plots)
+export(process_barcodes)
 importFrom(dplyr,"%>%")

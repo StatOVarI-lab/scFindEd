@@ -18,7 +18,15 @@ Imports:
     cli,
     dplyr,
     readr
+    ggplot2,
+    data.table,
+    dplyr,
+    readr,
+    stats,
+    mockery,
+    stringdist
 Depends: 
     R (>= 3.5)
 LazyData: true
 VignetteBuilder: knitr
+    
