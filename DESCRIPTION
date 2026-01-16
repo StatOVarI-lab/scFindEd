@@ -14,6 +14,17 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports: 
+    cli,
+    ggplot2,
+    data.table,
+    dplyr,
+    readr,
+    stats,
+    mockery
+Depends: 
+    R (>= 3.5)
+LazyData: true
 VignetteBuilder: knitr
 Imports: 
     cli,
