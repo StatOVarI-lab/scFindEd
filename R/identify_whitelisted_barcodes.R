@@ -124,7 +124,6 @@ import_whitelisted_barcodes <- function(
               BC2_BC3_whitelist = BC2_BC3_whitelist))
 }
 
-
 #' @keywords internal
 identify_BC1_closest_barcodes <- function(
   cell_to_extracted_BCs,
