@@ -16,6 +16,8 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     cli,
+    dplyr,
+    readr,
     ggplot2,
     data.table,
     dplyr,
