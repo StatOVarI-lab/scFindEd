@@ -7,6 +7,44 @@ output:
     toc: yes  
 ---
 
+# identify_whitelisted_barcodes.R
+
+## identify_whitelisted_barcodes()
+
+We have moved the code for reading in the whitelisted barcode files (`75K_barcode.csv`, `Wong_barcode_pairs.csv`) and the `cell_to_extracted_BCs.rds` outside of the `identify_whitelisted_barcodes()` function. It is displayed below for posterity.
+
+```{r}
+identify_whitelisted_barcodes(
+  source_dir = "data",
+  BC1_whitelist_file_name = "75K_barcode.csv",
+  BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+  Performing `identify_whitelisted_barcodes()` on the original data is exceptionally slow. A subsetted version of our data is produced below, and is used in the example provided for this function.
+
+```{r}
+# Subset 200 of the 75987 whitelist barcodes
+BC1_whitelist <- read.table("data/75K_barcode.csv", sep = ",")$V1
+BC1_whitelist_subset <- sample(BC1_whitelist, 200)
+
+df <- data.frame(barcode = BC1_whitelist_subset)
+readr::write_csv(df, "data/75K_barcode_subset.csv", col_names = FALSE)
+
+# Subset 1000 rows of the cell_to_extracted_BCs data frame (originally 60677 obs.)
+cell_to_extracted_BCs <- readRDS("data/cell_to_extracted_BCs.rds")
+cell_to_extracted_BCs_subset <- cell_to_extracted_BCs[sample(nrow(cell_to_extracted_BCs), 1000), ]
+saveRDS(cell_to_extracted_BCs_subset, file = "data/cell_to_extracted_BCs_subset.rds")
+```
+
+```{r}
+identify_whitelisted_barcodes(
+  source_dir = "data",
+  BC1_whitelist_file_name = "75K_barcode_subset.csv",
+  BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs_subset.rds",
+  output_dir = "data",
+  verbose = FALSE
+  )
+```
 # process_barcodes.R
 
 ## process_barcodes()
@@ -26,6 +64,7 @@ process_barcodes(
   verbose = TRUE
 )
 ```
+
 
 Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
 
@@ -83,8 +122,7 @@ barcodes_QC_plots(
   list_BC2_3_file_name = "list_BC2_3.rds",
   output_dir = "plots",
   verbose = TRUE
-)
-```
+
 
 
 # utils_string.R
