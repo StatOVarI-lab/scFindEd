@@ -17,7 +17,7 @@ Config/testthat/edition: 3
 Imports: 
     cli,
     dplyr,
-    readr
+    readr,
     ggplot2,
     data.table,
     dplyr,
