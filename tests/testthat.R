@@ -8,5 +8,6 @@
 
 library(testthat)
 library(scFindEd)
+library(mockery)
 
 test_check("scFindEd")
