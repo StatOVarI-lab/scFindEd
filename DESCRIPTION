@@ -22,7 +22,6 @@ Imports:
     readr,
     tibble,
     utils,
-    glue,
     ggplot2,
     stats,
     mockery,

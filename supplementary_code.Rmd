@@ -7,6 +7,20 @@ output:
     toc: yes  
 ---
 
+# combine_amplicons.R
+
+## combine_amplicons()
+
+```{r}
+cell_genotypes <- combine_amplicons(
+  source_dir = "data",
+  combined_summaries_file_name = "final_summary_minimum_2counts_70_30_70_all_amplicons.csv",
+  barcode_system_file_name = "cell_to_UTR_barcode_system.csv",
+  output_dir = "data",
+  verbose = FALSE
+)
+```
+
 # join_amplicon_summaries.R
 
 ## join_amplicon_summaries()
