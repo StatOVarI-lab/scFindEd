@@ -18,5 +18,17 @@ Imports:
     cli,
     dplyr,
     glue,
-    readr
+    data.table,
+    readr,
+    tibble,
+    utils,
+    glue,
+    ggplot2,
+    stats,
+    mockery,
+    stringdist
+Depends: 
+    R (>= 3.5)
+LazyData: true
 VignetteBuilder: knitr
+    
