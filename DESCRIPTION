@@ -20,5 +20,15 @@ Imports:
     dplyr,
     readr,
     tibble,
-    utils
+    utils,
+    glue,
+    ggplot2,
+    data.table,
+    stats,
+    mockery,
+    stringdist
+Depends: 
+    R (>= 3.5)
+LazyData: true
 VignetteBuilder: knitr
+    
