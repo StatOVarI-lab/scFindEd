@@ -14,11 +14,20 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-VignetteBuilder: knitr
 Imports: 
     cli,
     dplyr,
     glue,
+    data.table,
     readr,
     tibble,
-    utils
+    utils,
+    ggplot2,
+    stats,
+    mockery,
+    stringdist
+Depends: 
+    R (>= 3.5)
+LazyData: true
+VignetteBuilder: knitr
+    

@@ -21,3 +21,340 @@ cell_genotypes <- combine_amplicons(
 )
 ```
 
+# join_amplicon_summaries.R
+
+## join_amplicon_summaries()
+
+```{r}
+join_amplicon_summaries(
+  source_dir = "data",
+  sample_name = "MB_barcoded",
+  n_amplicons = 9,
+  minimum_count_thresholds = c(2, 5, 10, 20),
+  HOM_cutoff = 70,
+  HET_low_cutoff = 30, 
+  HET_high_cutoff = 70,
+    output_dir = "data",
+  verbose = TRUE
+)
+```
+# process_reads.R
+
+## process_reads()
+
+```{r}
+QC_thresholds <- list(
+  min_barcode_reads = 5,
+  min_read_quality = 30,
+  min_start_position_reads = 500,
+  paired_readnames = TRUE
+)
+
+process_reads(
+  source_dir = "data",
+  sample_name = "MB_barcoded",
+  amplicon_gRNA_number = 1,
+  amplicon_data_file_name = "amplicons_barcoded_data.txt",
+  HDR_barcoded_file_name = "HDR_file_barcoded_with_amplicon_sequences.csv",
+  cell_to_UTR_BCs_file_name = "cell_to_UTR_barcode_system.csv",
+  QC_thresholds = QC_thresholds,
+    output_dir = "data",
+  verbose = TRUE
+)
+```
+# merge_HDR_amplicon_sequences.R
+
+## merge_HDR_amplicon_sequences()
+
+```{r}
+HDR_barcoded_file_path <- "data/HDR_file_barcoded.csv"
+design_summary_file_path = "data/6915_design_summary_extended_information.csv"
+
+HDR_df <- read_csv(HDR_barcoded_file_path, show_col_types = FALSE)
+design_df <- read_csv(design_summary_file_path, show_col_types = FALSE)
+```
+
+```{r}
+merged_amplicons_df <- merge_HDR_amplicon_sequences(
+  source_dir = "data",
+  HDR_barcoded_file_name = "HDR_file_barcoded.csv",
+  design_summary_file_name = "6915_design_summary_extended_information.csv",
+  output_dir = "data",
+  verbose = TRUE
+)
+```
+# cell_barcode_assignment.R
+
+## cell_barcode_assignment()
+
+```{r}
+cell_to_BCs_filtered <- cell_barcode_assignment(
+  source_dir = "data",
+  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+  list_BC1_file_name = "list_BC1.rds",
+  list_BC2_3_file_name = "list_BC2_3.rds",
+  BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
+  reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
+  output_dir = "data",
+  verbose = TRUE
+)
+```
+# identify_whitelisted_barcodes.R
+
+## identify_whitelisted_barcodes()
+
+We have moved the code for reading in the whitelisted barcode files (`75K_barcode.csv`, `Wong_barcode_pairs.csv`) and the `cell_to_extracted_BCs.rds` outside of the `identify_whitelisted_barcodes()` function. It is displayed below for posterity.
+
+```{r}
+identify_whitelisted_barcodes(
+  source_dir = "data",
+  BC1_whitelist_file_name = "75K_barcode.csv",
+  BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+  output_dir = "data",
+  verbose = TRUE
+)
+```
+  Performing `identify_whitelisted_barcodes()` on the original data is exceptionally slow. A subsetted version of our data is produced below, and is used in the example provided for this function.
+
+```{r}
+# Subset 200 of the 75987 whitelist barcodes
+BC1_whitelist <- read.table("data/75K_barcode.csv", sep = ",")$V1
+BC1_whitelist_subset <- sample(BC1_whitelist, 200)
+
+df <- data.frame(barcode = BC1_whitelist_subset)
+readr::write_csv(df, "data/75K_barcode_subset.csv", col_names = FALSE)
+
+# Subset 1000 rows of the cell_to_extracted_BCs data frame (originally 60677 obs.)
+cell_to_extracted_BCs <- readRDS("data/cell_to_extracted_BCs.rds")
+cell_to_extracted_BCs_subset <- cell_to_extracted_BCs[sample(nrow(cell_to_extracted_BCs), 1000), ]
+saveRDS(cell_to_extracted_BCs_subset, file = "data/cell_to_extracted_BCs_subset.rds")
+```
+
+```{r}
+identify_whitelisted_barcodes(
+  source_dir = "data",
+  BC1_whitelist_file_name = "75K_barcode_subset.csv",
+  BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs_subset.rds",
+  output_dir = "data",
+  verbose = FALSE
+  )
+```
+# process_barcodes.R
+
+## process_barcodes()
+
+```{r}
+process_barcodes(
+  source_dir = "data",
+  barcode_amplicon_file_name = "barcode_amplicon_info.txt",
+  cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
+  readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
+  min_reads = 2,
+  quality_score_threshold = 30,
+  seq_before_barcode_1 = "GTACGAAGACTG",
+  seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+  seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+  output_dir = "data",
+  verbose = TRUE
+)
+```
+
+```{r}
+amplicon_data <- read.table("data/amplicons_barcoded_data.txt", header = TRUE)
+
+HDR_barcoded_outcomes <- read.csv("data/HDR_file_barcoded_with_amplicon_sequences_Sho.csv", 
+                                  header = TRUE, stringsAsFactors = FALSE)
+```
+
+```{r}
+reads_classified_MB_barcoded_HDR_1 <- read.csv(
+  "data/reads_classified_MB_barcoded_HDR_1.csv")
+
+reads_classified_MB_barcoded_HDR_1$HDR_1 <- factor(
+  reads_classified_MB_barcoded_HDR_1$HDR_1, levels = c("WT", "HDR_1"))
+
+reads_classified_MB_barcoded_HDR_1_WT <- reads_classified_MB_barcoded_HDR_1 %>% 
+  dplyr::filter(HDR_1 == "WT")
+
+reads_classified_MB_barcoded_HDR_1_HDR <- reads_classified_MB_barcoded_HDR_1 %>% 
+  dplyr::filter(HDR_1 == "HDR_1")
+```
+
+
+```{r}
+table(reads_classified_MB_barcoded_HDR_1$HDR_1, useNA = "always")
+
+barplot <- ggplot(reads_classified_MB_barcoded_HDR_1, aes(x = HDR_1, fill = HDR_1)) +
+  geom_bar(width = 0.6, color = "black", alpha = 0.8) +
+  scale_fill_brewer(palette = "Set2", na.value = "grey80") +
+  labs(
+    title = "Read Classification Count for HDR1", 
+    x = "Classification", 
+    y = "Count",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "right",
+    legend.title = element_text(face = "bold"),
+    panel.grid.major.y = element_line(color = "grey90", size = 0.3),
+    panel.grid.minor.y = element_line(color = "grey95", size = 0.2)
+  )
+
+ggsave(file.path("plots/barplot.png"),
+       plot = barplot,
+       width = 5, height = 7, dpi = 300)
+```
+
+```{r}
+# Remove NAs
+reads_classified_MB_barcoded_HDR_1_NAremoved <- reads_classified_MB_barcoded_HDR_1 %>% 
+  dplyr::filter(HDR_1 != "NA")
+
+n1_hist <- ggplot(data = reads_classified_MB_barcoded_HDR_1_NAremoved, aes(x = n_1, fill = HDR_1)) + 
+  scale_fill_brewer(palette = "Set2") +
+  geom_histogram(binwidth = 1, position = "stack", color = "black", alpha = 0.8) +
+  labs(
+    title = "process_barcodes(): HDR1", 
+    subtitle = "Distribution of the Number of Reads for Each Barcode",
+    x = "Number of Reads", 
+    y = "Frequency",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "right",
+    panel.grid.major.y = element_line(color = "grey90", size = 0.3),
+    panel.grid.minor.y = element_line(color = "grey95", size = 0.2)
+  )
+
+ggsave(file.path("plots/n1_histogram.png"),
+       plot = n1_hist,
+       width = 8, height = 4, dpi = 300)
+```
+
+```{r}
+pct1_hist <- ggplot(data = reads_classified_MB_barcoded_HDR_1_NAremoved, aes(x = pct_1, fill = HDR_1)) + 
+  scale_fill_brewer(palette = "Set2") +
+  geom_histogram(binwidth = 2, position = "stack", color = "black", alpha = 0.8) +
+  labs(
+    title = "process_barcodes(): HDR1", 
+    subtitle = "Distribution of the Proportion of Barcodes that match each Classification",
+    x = "Percentage", 
+    y = "Frequency",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "right",
+    panel.grid.major.y = element_line(color = "grey90", size = 0.3),
+    panel.grid.minor.y = element_line(color = "grey95", size = 0.2)
+  )
+
+ggsave(file.path("plots/pct1_histogram.png"),
+       plot = pct1_hist,
+       width = 8, height = 4, dpi = 300)
+```     
+
+Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
+
+```{r}
+# Read in downstream output file
+joint_HDR_output <- read_csv("data/joint_HDR_output.csv")
+```
+
+```{r}
+# Select nine barcodes from joint_HDR_output with a range of HDR outcomes
+barcodes_to_keep <- c("GTGCTAAGCAATGCAGCG-1", "CCGTAGTTGGGACTATTC-1",
+                      "TTAACGGAGGCGCTCTAT-1", "CGAGTAGCATAGATCTGT-1",
+                      "AACTGCGACTGCTCAGCG-1", "AACGCCTACGCCGTTGTT-1",
+                      "TCCGATAACATTAAGACC-1", "GGACACTGGCACTAGACT-1",
+                      "ACTTGATCTTATCTAGGT-1")
+
+# Extract indices of the cell_barcodes that are to_keep
+subset_indices <- which(cell_barcodes %in% barcodes_to_keep)
+
+# Subset cell_barcodes and readnames according to the above indices
+cell_barcodes_subset <- cell_barcodes[subset_indices]
+readnames_subset <- readnames[subset_indices]
+
+# Export as 'FASTQ' .txt files
+writeLines(cell_barcodes_subset, "subset_MB_barcoded_barcodes_fastq.txt")
+writeLines(readnames_subset, "subset_MB_barcoded_R2_001_readnames_fastq.txt")
+```
+
+```{r}
+# Assign readnames as the names of the cell_barcodes vector
+names(cell_barcodes) <- readnames
+# Map cell barcodes to the amplicon data, using readname as the key
+barcode_amplicon_data$cell_barcode <-
+  cell_barcodes[barcode_amplicon_data$readname]
+
+# Subset barcode_amplicon_data, keeping only rows with barcodes to_keep
+barcode_amplicon_data_subset <- barcode_amplicon_data %>% 
+  dplyr::filter(cell_barcode %in% barcodes_to_keep)
+```
+
+
+# barcodes_QC_plots.R
+
+## barcodes_QC_plots()
+
+```{r}
+list_BC1 <- readRDS("data/list_BC1.rds")
+list_BC2_3 <- readRDS("data/list_BC2_3.rds")
+```
+
+```{r}
+barcodes_QC_plots(
+  source_dir = "data",
+  list_BC1_file_name = "list_BC1.rds",
+  list_BC2_3_file_name = "list_BC2_3.rds",
+  output_dir = "plots",
+  verbose = TRUE)
+```
+
+
+# utils_string.R
+
+## data_documentation.R
+
+```{r}
+# Sample data that can be used for testing the relevant functions in utils_string.R
+barcode_example   <- "ATACGCATCA"
+barcode_example_2 <- "GGTACCTAGC"
+
+v_TRUE_example <- c(
+  "ATACGCATCAGGTACCTAGCGCTTAGGACCTGAT", "GGTACCTAGCATACGCATCAGCTTAGGACCTGAT",
+  "GCTTAGGACATACGCATCAGGTACCTAGCGCTTA", "ATACGCATCAGCTTAGGACGGTACCTAGCGCTTA",
+  "GGTACCTAGCATACGCATCAGCTTAGGACCTGAT")
+
+v_FALSE_example <- c(
+  "ATACGCATCAGCTTAGGACCTGATGCCATGCGTA", "GGTACCTAGCGCTTAGGACCTGATGCCATGCGTA", 
+  "GCTTAGGACCTGATGCCATGCGTACGGTACCTAG", "ATACGCATCAGCTTAGGACCTGATGCCATGCGTA", 
+  "GCTTAGGACCTGATGCCATGCGTACGGTACCTAG")
+
+x_example <- "GCTTAGGACCTGATGCCATGCGTACGGTACCTAGGCTTACATACGCATCAGGGTACCGTACGATGCTAGGCTTACGGTAGCTAGGGCTAA"
+
+whitelist_example <- c(
+  "GTTCGCATCG", "CTGCGTATGA", "TATAGGCTAA", "GCGTACGTAC", "AACCGGTTAA", 
+  "TTTTTTTTTT", "GTACGCATCG", "ATACGCATCC", "ATACGCATTT", "GTACGCATCA")
+```
+
+
+
+
+
+
+
