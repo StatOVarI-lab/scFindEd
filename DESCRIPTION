@@ -16,9 +16,12 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     cli,
+    data.table,
     dplyr,
-    glue,
     readr,
+    tibble,
+    utils,
+    glue,
     ggplot2,
     data.table,
     stats,
