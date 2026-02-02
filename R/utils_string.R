@@ -20,6 +20,8 @@ import_cell_to_extracted_BCs <- function(
 
   return(data)
 }
+
+
 #' @keywords internal
 #' Imports data from a file
 #' Expected file name: "barcode_amplicon_info.txt"
@@ -200,6 +202,31 @@ import_barcode_distance_lists <- function(
 }
 
 
+#' @keywords internal
+#' Imports data from a file
+#' Expected file name: "list_BCX.rds"
+import_barcode_distance_list <- function(
+    source_dir,
+    file_name,
+    verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_inform("Importing {file_path}...")
+  
+  # Import list of BC distances
+  tryCatch(
+    data <- readRDS(file_path),
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+  
+  if (verbose) cli::cli_alert_success(
+    "Successfully imported {file_name} from {source_dir}.")
+  
+  return(data)
+}
+
 
 #' @keywords internal
 #' Imports data from a file
@@ -253,6 +280,7 @@ import_BC2_BC3_whitelist <- function(
   return(data)
 }
 
+
 #' @keywords internal
 #' Returns the n_barcodes whitelist barcodes with the smallest distance
 extract_closest_barcodes <- function(
@@ -268,23 +296,6 @@ extract_closest_barcodes <- function(
 
   # Return the lowest 3 distances
   return(sort(distances)[1:3])
-}
-#' @keywords internal
-#' Imports data from a file
-#' Expected file name: "list_BCX.rds"
-import_barcode_distance_list <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  # Import list of BC distances
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
 }
 
 
@@ -348,6 +359,7 @@ barcode_hamming_plot <- function(
 
   return(plot)
 }
+
 
 #' @keywords internal
 #' Imports data from a file
@@ -457,32 +469,6 @@ import_amplicons_barcoded_data <- function(
 
 #' @keywords internal
 #' Imports data from a file
-#' Expected file name: HDR_file_barcoded_with_amplicon_sequences.csv"
-import_HDR_barcoded_data <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- suppressMessages(readr::read_csv(file_path, show_col_types = FALSE)),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' @keywords internal
-#' Imports data from a file
 #' Expected file name: "sample_name_info.csv"
 import_sample_info_data <- function(
     source_dir,
@@ -511,59 +497,6 @@ import_sample_info_data <- function(
 
 #' @keywords internal
 #' Imports data from a file
-#' Expected file name: "sample_name_barcodes_fastq.txt"
-import_barcode_reads_data <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- readLines(file_path),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' @keywords internal
-#' Imports data from a file
-#' Expected file name: "sample_name_R2_001_readnames_fastq.txt"
-import_readnames_data <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- data.table::fread(
-      file_path, header = FALSE, showProgress = verbose)$V1,
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' @keywords internal
-#' Imports data from a file
 #' Expected file name: "cell_to_UTR_barcode_system.csv"
 import_cell_to_UTR_barcode_system <- function(
     source_dir,
@@ -574,7 +507,7 @@ import_cell_to_UTR_barcode_system <- function(
   if (verbose) cli::cli_inform("Importing {file_path}...")
 
   tryCatch(
-    data <- utils::read.csv(file_path, row.names = 1),
+    data <- utils::read.csv(file_path),
     error = function(e) {
       cli::cli_abort(
         "Failed to import {file_name} from {source_dir}.")
@@ -593,10 +526,10 @@ import_cell_to_UTR_barcode_system <- function(
 # Returns data.frame with merged_sequence (NA if no overlap) and overlap_length (0 if none).
 #' @keywords internal
 merge_r1_r2 <- function(
-    r1,
-    r2,
-    min_overlap = 4L,
-    verbose
+  r1,
+  r2,
+  min_overlap = 4L,
+  verbose
 ) {
   if (verbose) cli::cli_inform("Merging R1 and R2...")
 
@@ -759,6 +692,7 @@ check_sequences_contain_string <- function(
   }
 }
 
+
 #' @keywords internal
 #' Imports data from a file
 #' Expected file name: "reads_classified_{sample_name}HDR_{amplicon_gRNA_number}.csv"
@@ -781,6 +715,7 @@ import_amplicon_summary_file <- function(
   return(data)
 }
 
+
 #' @keywords internal
 #' Imports data from a file
 #' Expected file name: e.g. "final_summary_minimum_2counts_70_30_70_all_amplicons.csv"
@@ -797,113 +732,6 @@ import_combined_summaries_data <- function(
     error = function(e) {
       cli::cli_abort(
         "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' @keywords internal
-#' Imports data from a file
-#' Expected file name: "cell_to_UTR_barcode_system.csv"
-import_cell_to_UTR_barcode_system <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- utils::read.csv(file_path, row.names = 1),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-  data <- tibble::as_tibble(data, show_col_types = FALSE)
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-#' @keywords internal
-#' Imports data from a file
-#' Expected file name: "cell_to_extracted_BCs.rds"
-import_cell_to_extracted_BCs <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- readRDS(file_path),
-    error = function(e) {
-      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' @keywords internal
-#' Imports data from files
-#' Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"
-import_barcode_distance_lists <- function(
-    source_dir,
-    list_BC1_file_name,
-    list_BC2_3_file_name,
-    verbose
-) {
-  # -- Importing BC1 list --
-  list_BC1 <- import_barcode_distance_list(
-    source_dir,
-    list_BC1_file_name,
-    verbose
-  )
-
-  # -- Importing BC2/3 list --
-  list_BC2_3 <- import_barcode_distance_list(
-    source_dir,
-    list_BC2_3_file_name,
-    verbose
-  )
-
-  return(list(
-    list_BC1 = list_BC1,
-    list_BC2_3 = list_BC2_3
-  ))
-}
-
-
-#' @keywords internal
-#' Imports data from a file
-#' Expected file name: "list_BCX.rds"
-import_barcode_distance_list <- function(
-    source_dir,
-    file_name,
-    verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  # Import list of BC distances
-  tryCatch(
-    data <- readRDS(file_path),
-    error = function(e) {
-      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
     }
   )
 
