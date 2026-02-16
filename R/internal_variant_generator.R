@@ -10,8 +10,6 @@ generate_all_variants <- function(
   editing_window_extension = 0,
   verbose
 ) {
-  BASES <- c("A", "C", "G", "T")
-  
   if (verbose) cli::cli_process_start(msg = "Generating all variants...",
                                       msg_done = "All variants generated.")
   
@@ -134,8 +132,6 @@ generate_variants <- function(
   protected_pos,
   verbose
 ) {
-  BASES <- c("A", "C", "G", "T")
-  
   template_length <- nchar(template)
   
   # -- Create reference data frame --
@@ -220,8 +216,6 @@ map_genotypes <- function(
   n_cores = 1,
   verbose
 ) {
-  BASES <- c("A", "C", "G", "T")
-  
   if (verbose) cli::cli_progress_bar("Assigning genotypes to reads", total = 20)
   
   # Assign the number of threads
