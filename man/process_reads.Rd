@@ -5,13 +5,10 @@
 \title{Process Reads}
 \usage{
 process_reads(
-  source_dir = "",
-  sample_name = "sample",
-  amplicon_gRNA_number,
-  amplicon_data_file_name,
-  HDR_barcoded_file_name,
-  cell_to_UTR_BCs_file_name,
-  QC_thresholds,
+  source_dir,
+  flank_len = 8,
+  editing_window_extension = 0,
+  n_cores = 1,
   output_dir = NULL,
   verbose
 )
@@ -20,23 +17,14 @@ process_reads(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{sample_name}{String containing the file name structure for the
-experiment sample.}
+\item{flank_len}{Integer denoting the length of the flanks used to locate and
+identify the editing window within a read.}
 
-\item{amplicon_gRNA_number}{Integer representing the HDR to be processed.}
+\item{editing_window_extension}{Integer denoting the number of bases to extend
+each editing window by.}
 
-\item{amplicon_data_file_name}{String containing the file name structure for
-the amplicon barcoded data file name.}
-
-\item{HDR_barcoded_file_name}{String containing the file name structure for
-the HDR outcomes data file name.}
-
-\item{cell_to_UTR_BCs_file_name}{String containing the file name structure
-for the cell to UTR barcode system file name.}
-
-\item{QC_thresholds}{List containing the following QC parameters:
-\code{min_barcode_reads}, \code{min_read_quality}, \code{min_start_positions_reads},
-\code{paired_readnames}.}
+\item{n_cores}{Integer denoting the number of cores to be utilised by the
+internal variant generator.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
@@ -44,30 +32,17 @@ the output data should be exported to.}
 \item{verbose}{Boolean deciding whether detailed outputs should be printed.}
 }
 \value{
-A data frame containing paired and classified (HDR/WT) read counts
-and percentages for the provided amplicon_gRNA_number, or HDR.
+An exported summary CSV file for each amplicon, named
+"reads_classified_no_extension_Element_HDR_{HDR_number}.csv"
 }
 \description{
-This function takes various input files (amplicon barcoded data, HDR outcomes,
-cell to UTR barcode system, sample info, readnames FASTQ, barcodes FASTQ) and
-performs several key processing steps, inlcuding: quality control, read
-pairing/match/classification, and data validation.
+This function takes the mapped reads for each amplicon (.rds), and both the
+barcoded HDR outcomes and the cell-to-UTR barcode system, to perform the following:
+\itemize{
+\item Filters for only barcodes found in the cell-to-UTR barcode system.
+\item Pairs and merges reads (R1 & R2).
+\item Generates a complete list of possible SNP and indel variants.
+\item Uses this list to assign a genotype to each read pair.
+\item Collects and counts read-pair genotypes across cell barcodes.
 }
-\examples{
-process_reads(
-source_dir = "data",
-sample_name = "MB_barcoded",
-amplicon_gRNA_number = 1,
-amplicon_data_file_name = "amplicons_barcoded_data.txt",
-HDR_barcoded_file_name = "HDR_file_barcoded_with_amplicon_sequences.csv",
-cell_to_UTR_BCs_file_name = "cell_to_UTR_barcode_system.csv",
-QC_thresholds = list(
-  min_barcode_reads = 5,
-  min_read_quality = 30,
-  min_start_position_reads = 500,
-  paired_readnames = TRUE
-  ),
-output_dir = "data",
-verbose
-)
 }
