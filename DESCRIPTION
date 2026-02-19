@@ -25,9 +25,9 @@ Imports:
     ggplot2,
     stats,
     mockery,
-    stringdist
+    stringdist,
+    stringi
 Depends: 
     R (>= 3.5)
 LazyData: true
 VignetteBuilder: knitr
-    

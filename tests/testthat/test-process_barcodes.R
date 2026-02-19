@@ -1,111 +1,7 @@
-test_that("import_process_barcodes_data returns a list with correct names", {
-
-  # Mock the import functions so the test is isolated
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_amplicon_info",
-    data.frame(readname = character())
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_reads_data",
-    character()
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_readnames_data",
-    character()
-  )
-
-  result <- import_process_barcodes_data(
-    source_dir = "dummy",
-    barcode_amplicon_file_name = "a.txt",
-    cell_barcodes_file_name = "b.txt",
-    readnames_file_name = "c.txt",
-    verbose = FALSE
-  )
-
-  expect_type(result, "list")
-  expect_named(
-    result,
-    c("barcode_amplicon_data", "cell_barcodes", "readnames")
-  )
-})
-
-test_that("cell_barcodes is a named vector with names given by readnames", {
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_amplicon_info",
-    data.frame(readname = c("r1", "r2"))
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_reads_data",
-    c("BC01", "BC02")
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_readnames_data",
-    c("r1", "r2")
-  )
-
-  result <- import_process_barcodes_data(
-    source_dir = "dummy",
-    barcode_amplicon_file_name = "a",
-    cell_barcodes_file_name = "b",
-    readnames_file_name = "c",
-    verbose = FALSE
-  )
-
-  expect_type(result$cell_barcodes, "character")
-  expect_named(result$cell_barcodes, c("r1", "r2"))
-})
-
-test_that("barcode_amplicon_data has readname and cell_barcode", {
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_amplicon_info",
-    data.frame(readname = c("r1", "r2"))
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_barcode_reads_data",
-    c("BC01", "BC02")
-  )
-
-  mockery::stub(
-    import_process_barcodes_data,
-    "import_readnames_data",
-    c("r1", "r2")
-  )
-
-  result <- import_process_barcodes_data(
-    source_dir = "dummy",
-    barcode_amplicon_file_name = "a",
-    cell_barcodes_file_name = "b",
-    readnames_file_name = "c",
-    verbose = FALSE
-  )
-
-  expect_type(result$barcode_amplicon_data, "list")
-  expect_named(
-    result$barcode_amplicon_data,
-    c("readname", "cell_barcode")
-  )
-})
-
-
-test_that("filter_amplicon_data returns a list with the correct names", {
+test_that("filter_cell_barcode_reads returns a list with the correct names", {
 
   # Minimal input data frame with required columns
-  barcode_amplicon_data <- data.frame(
+  mapped_cell_barcode_reads <- data.frame(
     cell_barcode = c("BC01", "BC01"),
     quality      = c(30, 30),
     start        = c(40, 145),
@@ -113,23 +9,22 @@ test_that("filter_amplicon_data returns a list with the correct names", {
     stringsAsFactors = FALSE
   )
 
-  result <- filter_amplicon_data(
-    barcode_amplicon_data = barcode_amplicon_data,
+  result <- filter_cell_barcode_reads(
+    mapped_cell_barcode_reads = mapped_cell_barcode_reads,
     min_reads = 0,
-    quality_score_threshold = 0,
     verbose = FALSE
   )
 
   expect_type(result, "list")
   expect_named(
     result,
-    c("barcode_amplicon_data_forward", "barcode_amplicon_data_reverse")
+    c("filtered_cell_barcode_reads_forward", "filtered_cell_barcode_reads_reverse")
   )
 })
 
-test_that("filter_amplicon_data returns data frames for forward and reverse", {
+test_that("filter_cell_barcode_reads returns data frames for forward and reverse", {
 
-  barcode_amplicon_data <- data.frame(
+  mapped_cell_barcode_reads <- data.frame(
     cell_barcode = c("BC01", "BC01"),
     quality      = c(30, 30),
     start        = c(40, 145),
@@ -137,20 +32,19 @@ test_that("filter_amplicon_data returns data frames for forward and reverse", {
     stringsAsFactors = FALSE
   )
 
-  result <- filter_amplicon_data(
-    barcode_amplicon_data = barcode_amplicon_data,
+  result <- filter_cell_barcode_reads(
+    mapped_cell_barcode_reads = mapped_cell_barcode_reads,
     min_reads = 0,
-    quality_score_threshold = 0,
     verbose = FALSE
   )
 
   expect_s3_class(
-    result$barcode_amplicon_data_forward,
+    result$filtered_cell_barcode_reads_forward,
     "data.frame"
   )
 
   expect_s3_class(
-    result$barcode_amplicon_data_reverse,
+    result$filtered_cell_barcode_reads_reverse,
     "data.frame"
   )
 })
@@ -159,7 +53,7 @@ test_that("filter_amplicon_data returns data frames for forward and reverse", {
 test_that("extract_barcodes returns a data frame", {
 
   # Minimal forward data
-  barcode_amplicon_data_forward <- data.frame(
+  cell_barcode_reads_forward <- data.frame(
     readname = "r1",
     cell_barcode = "BC01",
     sequence = "AAA",
@@ -167,7 +61,7 @@ test_that("extract_barcodes returns a data frame", {
   )
 
   # Minimal reverse data
-  barcode_amplicon_data_reverse <- data.frame(
+  cell_barcode_reads_reverse <- data.frame(
     readname = "r1",
     sequence = "TTT",
     stringsAsFactors = FALSE
@@ -199,8 +93,8 @@ test_that("extract_barcodes returns a data frame", {
   )
 
   result <- extract_barcodes(
-    barcode_amplicon_data_forward = barcode_amplicon_data_forward,
-    barcode_amplicon_data_reverse = barcode_amplicon_data_reverse,
+    cell_barcode_reads_forward = cell_barcode_reads_forward,
+    cell_barcode_reads_reverse = cell_barcode_reads_reverse,
     seq_before_barcode_1 = "A",
     seq_before_barcode_2 = "A",
     seq_after_barcode_3 = "T",
@@ -212,14 +106,14 @@ test_that("extract_barcodes returns a data frame", {
 
 test_that("extract_barcodes returns required columns", {
 
-  barcode_amplicon_data_forward <- data.frame(
+  cell_barcode_reads_forward <- data.frame(
     readname = "r1",
     cell_barcode = "BC01",
     sequence = "AAA",
     stringsAsFactors = FALSE
   )
 
-  barcode_amplicon_data_reverse <- data.frame(
+  cell_barcode_reads_reverse <- data.frame(
     readname = "r1",
     sequence = "TTT",
     stringsAsFactors = FALSE
@@ -250,8 +144,8 @@ test_that("extract_barcodes returns required columns", {
   )
 
   result <- extract_barcodes(
-    barcode_amplicon_data_forward,
-    barcode_amplicon_data_reverse,
+    cell_barcode_reads_forward = cell_barcode_reads_forward,
+    cell_barcode_reads_reverse = cell_barcode_reads_reverse,
     seq_before_barcode_1 = "A",
     seq_before_barcode_2 = "A",
     seq_after_barcode_3 = "T",

@@ -7,24 +7,43 @@ output:
     toc: yes  
 ---
 
+# assign_barcodes.R
+
+## assign_cell_barcodes()
+
+```{r}
+assign_cell_barcodes(source_dir = "data", 
+                     sample_name = "MB_barcoded",
+                     min_quality_threshold = 30,
+                     output_dir = "data",
+                     verbose = TRUE)
+```
+
+# merge_HDR_amplicon_sequences.R
+
+## merge_HDR_amplicon_sequences()
+
+```{r}
+merge_HDR_amplicon_sequences(source_dir = "data",
+                             HDR_barcoded_file_name = "HDR_file_barcoded.csv",
+                             design_summary_file_name = "6915_design_summary_extended_information.csv",
+                             output_dir = "data",
+                             verbose = TRUE)
+```
+
 # process_barcodes.R
 
 ## process_barcodes()
 
 ```{r}
-process_barcodes(
-  source_dir = "data",
-  barcode_amplicon_file_name = "barcode_amplicon_info.txt",
-  cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
-  readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
-  min_reads = 2,
-  quality_score_threshold = 30,
-  seq_before_barcode_1 = "GTACGAAGACTG",
-  seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-  seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
-  output_dir = "data",
-  verbose = TRUE
-)
+process_barcodes(source_dir = "data",
+                 cell_AmpID = "AMPL902654",
+                 min_reads = 2,
+                 seq_before_barcode_1 = "GTACGAAGACTG",
+                 seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+                 seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+                 output_dir = "data",
+                 verbose = TRUE) 
 ```
 
 # identify_whitelisted_barcodes.R
@@ -32,14 +51,12 @@ process_barcodes(
 ## identify_whitelisted_barcodes()
 
 ```{r}
-identify_whitelisted_barcodes(
-  source_dir = "data",
-  BC1_whitelist_file_name = "75K_barcode.csv",
-  BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
-  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
-  output_dir = "data",
-  verbose = TRUE
-)
+identify_whitelisted_barcodes(source_dir = "data",
+                              BC1_whitelist_file_name = "75K_barcode.csv",
+                              BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+                              cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+                              output_dir = "data",
+                              verbose = TRUE)
 ```
 
 
@@ -48,52 +65,11 @@ identify_whitelisted_barcodes(
 ## barcodes_QC_plots()
 
 ```{r}
-barcodes_QC_plots(
-  source_dir = "data",
-  list_BC1_file_name = "list_BC1.rds",
-  list_BC2_3_file_name = "list_BC2_3.rds",
-  output_dir = "plots",
-  verbose = TRUE
-)
-```
-
-Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
-
-```{r}
-# Read in downstream output file
-joint_HDR_output <- read_csv("data/joint_HDR_output.csv")
-```
-
-```{r}
-# Select nine barcodes from joint_HDR_output with a range of HDR outcomes
-barcodes_to_keep <- c("GTGCTAAGCAATGCAGCG-1", "CCGTAGTTGGGACTATTC-1",
-                      "TTAACGGAGGCGCTCTAT-1", "CGAGTAGCATAGATCTGT-1",
-                      "AACTGCGACTGCTCAGCG-1", "AACGCCTACGCCGTTGTT-1",
-                      "TCCGATAACATTAAGACC-1", "GGACACTGGCACTAGACT-1",
-                      "ACTTGATCTTATCTAGGT-1")
-
-# Extract indices of the cell_barcodes that are to_keep
-subset_indices <- which(cell_barcodes %in% barcodes_to_keep)
-
-# Subset cell_barcodes and readnames according to the above indices
-cell_barcodes_subset <- cell_barcodes[subset_indices]
-readnames_subset <- readnames[subset_indices]
-
-# Export as 'FASTQ' .txt files
-writeLines(cell_barcodes_subset, "subset_MB_barcoded_barcodes_fastq.txt")
-writeLines(readnames_subset, "subset_MB_barcoded_R2_001_readnames_fastq.txt")
-```
-
-```{r}
-# Assign readnames as the names of the cell_barcodes vector
-names(cell_barcodes) <- readnames
-# Map cell barcodes to the amplicon data, using readname as the key
-barcode_amplicon_data$cell_barcode <-
-  cell_barcodes[barcode_amplicon_data$readname]
-
-# Subset barcode_amplicon_data, keeping only rows with barcodes to_keep
-barcode_amplicon_data_subset <- barcode_amplicon_data %>% 
-  dplyr::filter(cell_barcode %in% barcodes_to_keep)
+barcodes_QC_plots(source_dir = "data",
+                  list_BC1_file_name = "list_BC1.rds",
+                  list_BC2_3_file_name = "list_BC2_3.rds",
+                  output_dir = "plots",
+                  verbose = TRUE)
 ```
 
 # cell_barcode_assignment.R
@@ -101,30 +77,14 @@ barcode_amplicon_data_subset <- barcode_amplicon_data %>%
 ## cell_barcode_assignment()
 
 ```{r}
-cell_barcode_assignment(
-  source_dir = "data",
-  cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
-  list_BC1_file_name = "list_BC1.rds",
-  list_BC2_3_file_name = "list_BC2_3.rds",
-  BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
-  reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
-  output_dir = "data",
-  verbose = TRUE
-)
-```
-
-# merge_HDR_amplicon_sequences.R
-
-## merge_HDR_amplicon_sequences()
-
-```{r}
-merge_HDR_amplicon_sequences(
-  source_dir = "data",
-  HDR_barcoded_file_name = "HDR_file_barcoded.csv",
-  design_summary_file_name = "6915_design_summary_extended_information.csv",
-  output_dir = "data",
-  verbose = TRUE
-)
+cell_barcode_assignment(source_dir = "data",
+                        cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
+                        list_BC1_file_name = "list_BC1.rds",
+                        list_BC2_3_file_name = "list_BC2_3.rds",
+                        BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
+                        reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
+                        output_dir = "data",
+                        verbose = TRUE)
 ```
 
 # process_reads.R
@@ -132,24 +92,12 @@ merge_HDR_amplicon_sequences(
 ## process_reads()
 
 ```{r}
-QC_thresholds <- list(
-  min_barcode_reads = 5,
-  min_read_quality = 30,
-  min_start_position_reads = 500,
-  paired_readnames = TRUE
-)
-
-process_reads(
-  source_dir = "data",
-  sample_name = "MB_barcoded",
-  amplicon_gRNA_number = 1,
-  amplicon_data_file_name = "amplicons_barcoded_data.txt",
-  HDR_barcoded_file_name = "HDR_file_barcoded_with_amplicon_sequences.csv",
-  cell_to_UTR_BCs_file_name = "cell_to_UTR_barcode_system.csv",
-  QC_thresholds = QC_thresholds,
-    output_dir = "data",
-  verbose = TRUE
-)
+process_reads(source_dir = "data",
+              flank_len = 8,
+              editing_window_extension = 0,
+              n_cores = 4,
+              output_dir = "data",
+              verbose = TRUE)
 ```
 
 # combine_amplicons.R
@@ -311,7 +259,46 @@ whitelist_example <- c(
 
 
 
+## Redundant Subsetting Code
 
+Next we want to create subsetted versions of the `barcode_amplicon_data` table, as well as the `cell_barcodes` and `readnames` vectors, to be used as example data stored within the package.
+
+```{r}
+# Read in downstream output file
+joint_HDR_output <- read_csv("data/joint_HDR_output.csv")
+```
+
+```{r}
+# Select nine barcodes from joint_HDR_output with a range of HDR outcomes
+barcodes_to_keep <- c("GTGCTAAGCAATGCAGCG-1", "CCGTAGTTGGGACTATTC-1",
+                      "TTAACGGAGGCGCTCTAT-1", "CGAGTAGCATAGATCTGT-1",
+                      "AACTGCGACTGCTCAGCG-1", "AACGCCTACGCCGTTGTT-1",
+                      "TCCGATAACATTAAGACC-1", "GGACACTGGCACTAGACT-1",
+                      "ACTTGATCTTATCTAGGT-1")
+
+# Extract indices of the cell_barcodes that are to_keep
+subset_indices <- which(cell_barcodes %in% barcodes_to_keep)
+
+# Subset cell_barcodes and readnames according to the above indices
+cell_barcodes_subset <- cell_barcodes[subset_indices]
+readnames_subset <- readnames[subset_indices]
+
+# Export as 'FASTQ' .txt files
+writeLines(cell_barcodes_subset, "subset_MB_barcoded_barcodes_fastq.txt")
+writeLines(readnames_subset, "subset_MB_barcoded_R2_001_readnames_fastq.txt")
+```
+
+```{r}
+# Assign readnames as the names of the cell_barcodes vector
+names(cell_barcodes) <- readnames
+# Map cell barcodes to the amplicon data, using readname as the key
+barcode_amplicon_data$cell_barcode <-
+  cell_barcodes[barcode_amplicon_data$readname]
+
+# Subset barcode_amplicon_data, keeping only rows with barcodes to_keep
+barcode_amplicon_data_subset <- barcode_amplicon_data %>% 
+  dplyr::filter(cell_barcode %in% barcodes_to_keep)
+```
 
 
 

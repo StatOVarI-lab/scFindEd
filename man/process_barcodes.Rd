@@ -6,11 +6,8 @@
 \usage{
 process_barcodes(
   source_dir,
-  barcode_amplicon_file_name,
-  cell_barcodes_file_name,
-  readnames_file_name,
+  cell_AmpID,
   min_reads,
-  quality_score_threshold,
   seq_before_barcode_1,
   seq_before_barcode_2,
   seq_after_barcode_3,
@@ -22,18 +19,9 @@ process_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{barcode_amplicon_file_name}{String containing the file name structure
-for the barcode amplicon information file.}
-
-\item{cell_barcodes_file_name}{String containing the file name structure for
-the extracted read barcodes.}
-
-\item{readnames_file_name}{String containing the file name structure for the
-extracted readnames.}
+\item{cell_AmpID}{String containing the AmpID for the cell-barcode amplicon.}
 
 \item{min_reads}{QC threshold: minimum number of reads.}
-
-\item{quality_score_threshold}{QC threshold: minimum quality score.}
 
 \item{seq_before_barcode_1}{BC1 flanking sequence.}
 
@@ -57,11 +45,8 @@ sequences, before grouping cells by cell_barcode and counting reads.
 \examples{
 process_barcodes(
 source_dir = "data",
-barcode_amplicon_file_name = "barcode_amplicon_info.txt",
-cell_barcodes_file_name = "MB_barcoded_barcodes_fastq.txt",
-readnames_file_name = "MB_barcoded_R2_001_readnames_fastq.txt",
+cell_AmpID = "AMPL902654",
 min_reads = 2,
-quality_score_threshold = 30,
 seq_before_barcode_1 = "GTACGAAGACTG",
 seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
 seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
