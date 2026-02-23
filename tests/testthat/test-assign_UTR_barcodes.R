@@ -1,4 +1,4 @@
-test_that("correct_barcodes returns a data frame with expected columns", {
+test_that("correct_UTR_barcodes returns a data frame with expected columns", {
 
   # Minimal input: one cell with extracted BCs and a count
   cell_to_extracted_BCs <- data.frame(
@@ -25,12 +25,12 @@ test_that("correct_barcodes returns a data frame with expected columns", {
 
   # Stub correct_BC so that it always returns a non-empty ID
   mockery::stub(
-    correct_barcodes,
+    correct_UTR_barcodes,
     "correct_BC",
     function(x, thresh) "CORRECTED"
   )
 
-  result <- correct_barcodes(
+  result <- correct_UTR_barcodes(
     cell_to_extracted_BCs = cell_to_extracted_BCs,
     list_BC1              = list_BC1,
     list_BC2_3            = list_BC2_3,
@@ -46,7 +46,7 @@ test_that("correct_barcodes returns a data frame with expected columns", {
   expect_true(all(expected_cols %in% names(result)))
 })
 
-test_that("correct_barcodes maps corrected IDs back to each row via match()", {
+test_that("correct_UTR_barcodes maps corrected IDs back to each row via match()", {
 
   # Two cells with distinct extracted BCs
   cell_to_extracted_BCs <- data.frame(
@@ -75,12 +75,12 @@ test_that("correct_barcodes maps corrected IDs back to each row via match()", {
   # Stub correct_BC so the "corrected ID" is a deterministic function of the value
   # correct_BC(x, thresh) -> paste0("CORR_", x)
   mockery::stub(
-    correct_barcodes,
+    correct_UTR_barcodes,
     "correct_BC",
     function(x, thresh) paste0("CORR_", x)
   )
 
-  result <- correct_barcodes(
+  result <- correct_UTR_barcodes(
     cell_to_extracted_BCs = cell_to_extracted_BCs,
     list_BC1              = list_BC1,
     list_BC2_3            = list_BC2_3,
@@ -117,7 +117,7 @@ test_that("correct_barcodes maps corrected IDs back to each row via match()", {
   )
 })
 
-test_that("correct_barcodes aggregates n_corrected as sum(n) per (cell_barcode, BC1, BC2, BC3)", {
+test_that("correct_UTR_barcodes aggregates n_corrected as sum(n) per (cell_barcode, BC1, BC2, BC3)", {
 
   # Two rows that should end up in the SAME corrected barcode combination
   cell_to_extracted_BCs <- data.frame(
@@ -143,12 +143,12 @@ test_that("correct_barcodes aggregates n_corrected as sum(n) per (cell_barcode, 
 
   # Stub correct_BC so corrected ID is based on the list value
   mockery::stub(
-    correct_barcodes,
+    correct_UTR_barcodes,
     "correct_BC",
     function(x, thresh) as.character(x)
   )
 
-  result <- correct_barcodes(
+  result <- correct_UTR_barcodes(
     cell_to_extracted_BCs = cell_to_extracted_BCs,
     list_BC1              = list_BC1,
     list_BC2_3            = list_BC2_3,
@@ -166,7 +166,7 @@ test_that("correct_barcodes aggregates n_corrected as sum(n) per (cell_barcode, 
   expect_equal(result$n_corrected, 12L)
 })
 
-test_that("assign_barcodes computes proportion_reads_in_cell correctly per cell", {
+test_that("assign_UTR_barcodes_to_cells computes proportion_reads_in_cell correctly per cell", {
 
   cell_to_BCs_corrected <- data.frame(
     cell_barcode = c("CELL1", "CELL1", "CELL2", "CELL2"),
@@ -177,7 +177,7 @@ test_that("assign_barcodes computes proportion_reads_in_cell correctly per cell"
     stringsAsFactors = FALSE
   )
 
-  result <- assign_barcodes(cell_to_BCs_corrected, verbose = FALSE)
+  result <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected, verbose = FALSE)
 
   # Column was added
   expect_true("proportion_reads_in_cell" %in% names(result))
@@ -191,7 +191,7 @@ test_that("assign_barcodes computes proportion_reads_in_cell correctly per cell"
   expect_equal(as.numeric(cell2$proportion_reads_in_cell), c(0.5, 0.5))
 })
 
-test_that("assign_barcodes proportions sum to 1 within each cell", {
+test_that("assign_UTR_barcodes_to_cells proportions sum to 1 within each cell", {
 
   cell_to_BCs_corrected <- data.frame(
     cell_barcode = c("CELL1", "CELL1", "CELL1", "CELL2", "CELL2"),
@@ -202,7 +202,7 @@ test_that("assign_barcodes proportions sum to 1 within each cell", {
     stringsAsFactors = FALSE
   )
 
-  result <- assign_barcodes(cell_to_BCs_corrected, verbose = FALSE)
+  result <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected, verbose = FALSE)
 
   sums <- tapply(
     as.numeric(result$proportion_reads_in_cell),
