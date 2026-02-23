@@ -31,19 +31,19 @@ merge_HDR_amplicon_sequences(source_dir = "data",
                              verbose = TRUE)
 ```
 
-# process_barcodes.R
+# process_UTR_barcodes.R
 
-## process_barcodes()
+## process_UTR_barcodes()
 
 ```{r}
-process_barcodes(source_dir = "data",
-                 cell_AmpID = "AMPL902654",
-                 min_reads = 2,
-                 seq_before_barcode_1 = "GTACGAAGACTG",
-                 seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-                 seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
-                 output_dir = "data",
-                 verbose = TRUE) 
+process_UTR_barcodes(source_dir = "data",
+                     cell_AmpID = "AMPL902654",
+                     min_reads = 2,
+                     seq_before_barcode_1 = "GTACGAAGACTG",
+                     seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
+                     seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
+                     output_dir = "data",
+                     verbose = TRUE) 
 ```
 
 # identify_whitelisted_barcodes.R

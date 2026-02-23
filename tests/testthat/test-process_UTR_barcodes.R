@@ -50,7 +50,7 @@ test_that("filter_cell_barcode_reads returns data frames for forward and reverse
 })
 
 
-test_that("extract_barcodes returns a data frame", {
+test_that("extract_UTR_barcodes returns a data frame", {
 
   # Minimal forward data
   cell_barcode_reads_forward <- data.frame(
@@ -69,30 +69,30 @@ test_that("extract_barcodes returns a data frame", {
 
   # Mock helper functions so logic is controlled
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "grepl_seq1_2",
     function(x, ...) TRUE
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC1",
     function(x, ...) "BC1"
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC2",
     function(x, ...) "BC2"
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC3",
     function(x, ...) "BC3"
   )
 
-  result <- extract_barcodes(
+  result <- extract_UTR_barcodes(
     cell_barcode_reads_forward = cell_barcode_reads_forward,
     cell_barcode_reads_reverse = cell_barcode_reads_reverse,
     seq_before_barcode_1 = "A",
@@ -104,7 +104,7 @@ test_that("extract_barcodes returns a data frame", {
   expect_s3_class(result, "data.frame")
 })
 
-test_that("extract_barcodes returns required columns", {
+test_that("extract_UTR_barcodes returns required columns", {
 
   cell_barcode_reads_forward <- data.frame(
     readname = "r1",
@@ -120,30 +120,30 @@ test_that("extract_barcodes returns required columns", {
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "grepl_seq1_2",
     function(x, ...) TRUE
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC1",
     function(x, ...) "BC1"
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC2",
     function(x, ...) "BC2"
   )
 
   mockery::stub(
-    extract_barcodes,
+    extract_UTR_barcodes,
     "extract_BC3",
     function(x, ...) "BC3"
   )
 
-  result <- extract_barcodes(
+  result <- extract_UTR_barcodes(
     cell_barcode_reads_forward = cell_barcode_reads_forward,
     cell_barcode_reads_reverse = cell_barcode_reads_reverse,
     seq_before_barcode_1 = "A",
@@ -157,7 +157,7 @@ test_that("extract_barcodes returns required columns", {
   )
 })
 
-test_that("group_barcodes returns a data frame with required columns", {
+test_that("group_UTR_barcodes returns a data frame with required columns", {
 
   readname_cell_table <- data.frame(
     cell_barcode = c("CELL1", "CELL1"),
@@ -167,7 +167,7 @@ test_that("group_barcodes returns a data frame with required columns", {
     stringsAsFactors = FALSE
   )
 
-  result <- group_barcodes(readname_cell_table, verbose = FALSE)
+  result <- group_UTR_barcodes(readname_cell_table, verbose = FALSE)
 
   expect_s3_class(result, "data.frame")
   expect_true(all(c("cell_barcode", "BC1", "BC2", "BC3", "n") %in% names(result)))

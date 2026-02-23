@@ -1,4 +1,4 @@
-#' Process Barcodes
+#' Process UTR Barcodes
 #'
 #' This function takes barcode reads data and first performs some basic QC
 #' filtering. It then extracts BC1 and BC2/BC3s from provided flanking
@@ -18,7 +18,7 @@
 #' @return A table linking cells to extracted barcodes.
 
 #' @examples
-#' process_barcodes(
+#' process_UTR_barcodes(
 #' source_dir = "data",
 #' cell_AmpID = "AMPL902654",
 #' min_reads = 2,
@@ -31,7 +31,7 @@
 #' @importFrom dplyr %>%
 
 #' @export
-process_barcodes <- function(
+process_UTR_barcodes <- function(
   source_dir,
   cell_AmpID,
   min_reads,
@@ -54,17 +54,15 @@ process_barcodes <- function(
 
   # -- Filter cell-barcode reads according at min_reads threshold --
 
-  filtered_cell_barcode_reads <- filter_cell_barcode_reads(
+  invisible(list2env(filter_cell_barcode_reads(
     mapped_cell_barcode_reads,
     min_reads,
     verbose
-  )
+  ), envir = environment()))
 
-  invisible(list2env(filtered_cell_barcode_reads, envir = environment()))
+  # -- Extract UTR barcodes using known flanking sequences --
 
-  # -- Extract barcodes using known flanking sequences --
-
-  readname_cell_table <- extract_barcodes(
+  readname_cell_table <- extract_UTR_barcodes(
     filtered_cell_barcode_reads_forward,
     filtered_cell_barcode_reads_reverse,
     seq_before_barcode_1,
@@ -73,9 +71,9 @@ process_barcodes <- function(
     verbose
   )
   
-  # -- Group barcodes --
+  # -- Group UTR barcodes --
 
-  cell_BC1_BC2_BC3 <- group_barcodes(readname_cell_table, verbose)
+  cell_BC1_BC2_BC3 <- group_UTR_barcodes(readname_cell_table, verbose)
 
   # -- Optional file saving (only if output_dir is provided) --
   if (!is.null(output_dir)) {
@@ -84,7 +82,7 @@ process_barcodes <- function(
             file = file.path(output_dir, "cell_to_extracted_BCs.rds"))
 
     cli::cli_alert_success(
-      "Grouped barcodes exported to: {normalizePath(output_dir)}")
+      "Grouped UTR barcodes exported to: {normalizePath(output_dir)}")
   }
 }
 
@@ -124,7 +122,7 @@ filter_cell_barcode_reads <- function(
 
 
 #' @keywords internal
-extract_barcodes <- function(
+extract_UTR_barcodes <- function(
   cell_barcode_reads_forward,
   cell_barcode_reads_reverse,
   seq_before_barcode_1,
@@ -132,7 +130,7 @@ extract_barcodes <- function(
   seq_after_barcode_3,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Extracting barcodes...")
+  if (verbose) cli::cli_inform("Extracting UTR barcodes...")
   
   # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
   cell_barcode_reads_with_seq_before_BC_1_2 <-
@@ -182,18 +180,18 @@ extract_barcodes <- function(
   readname_cell_table <-
     readname_cell_table[stats::complete.cases(readname_cell_table), ]
 
-  if (verbose) cli::cli_alert_success("Barcodes extracted.")
+  if (verbose) cli::cli_alert_success("UTR barcodes extracted.")
 
   return(readname_cell_table)
 }
 
 
 #' @keywords internal
-group_barcodes <- function(
+group_UTR_barcodes <- function(
   readname_cell_table,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Grouping barcodes...")
+  if (verbose) cli::cli_inform("Grouping UTR barcodes...")
   
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
   cell_BC1_BC2_BC3 <- readname_cell_table %>%
@@ -208,7 +206,7 @@ group_barcodes <- function(
   cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3 %>%
     dplyr::filter(nchar(BC1) == 20, nchar(BC2) == 30, nchar(BC3) == 30)
 
-  if (verbose) cli::cli_alert_success("Barcodes grouped.")
+  if (verbose) cli::cli_alert_success("UTR barcodes grouped.")
 
   return(cell_BC1_BC2_BC3)
 }
