@@ -1,19 +1,14 @@
-#' Cell-Barcode Assignment
+#' Assign UTR Barcodes
 #'
-#' This function begins by correcting barcode assignments by applying Hamming
-#' distance-based threshold correction. It then assigns cell-barcode combinations
-#' as follows: a barcode combination is assigned to a cell if and only if there
-#' are at least `min_reads` reads of that barcode combination in the cell, and
-#' they constitute more than `min_reads_proportion` of the barcode reads in the
-#' cell.
+#' This function begins by correcting UTR barcode combinations by applying 
+#' Hamming distance-based threshold correction. It then assigns cell-UTR barcode 
+#' combinations as follows: a UTR barcode combination is assigned to a cell if 
+#' and only if there are at least `min_reads` reads of that barcode combination 
+#' in the cell, and they constitute more than `min_reads_proportion` of the 
+#' barcode reads in that cell.
+#' 
 #' @param source_dir String containing the relative path to the directory that
 #' source data should be imported from.
-#' @param cell_to_extracted_BCs_file_name String containing the file name
-#' structure for the data frame linking cells to extracted barcodes.
-#' @param list_BC1_file_name String containing the file name structure for the
-#' named list of nearest BC1 barcode candidates.
-#' @param list_BC2_3_file_name String containing the file name structure for the
-#' named list of nearest BC2/BC3 barcode candidates.
 #' @param BC_thresholds Named ist containing the following barcode thresholds:
 #' `BC1_threshold`, `BC2_3_threshold`.
 #' @param reads_thresholds Named list containing the following barcode
@@ -26,11 +21,8 @@
 #' and proportion thresholds.
 
 #' @examples
-#' cell_barcode_assignment(
+#' assign_UTR_barcodes(
 #' source_dir = "data",
-#' cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
-#' list_BC1_file_name = "list_BC1.rds",
-#' list_BC2_3_file_name = "list_BC2_3.rds",
 #' BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
 #' reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
 #' output_dir = "data",
@@ -40,11 +32,8 @@
 #' @importFrom dplyr %>%
 
 #' @export
-cell_barcode_assignment <- function(
+assign_UTR_barcodes <- function(
   source_dir,
-  cell_to_extracted_BCs_file_name,
-  list_BC1_file_name,
-  list_BC2_3_file_name,
   BC_thresholds,
   reads_thresholds,
   output_dir,
@@ -54,24 +43,22 @@ cell_barcode_assignment <- function(
 
   cell_to_extracted_BCs <- import_cell_to_extracted_BCs(
     source_dir,
-    cell_to_extracted_BCs_file_name,
+    "cell_to_extracted_BCs.rds",
     verbose
   )
 
-  imported_barcode_distance_lists <- import_barcode_distance_lists(
+  invisible(list2env(import_barcode_distance_lists(
     source_dir,
-    list_BC1_file_name,
-    list_BC2_3_file_name,
+    "list_BC1.rds",
+    "list_BC2_3.rds",
     verbose
-  )
-
-  invisible(list2env(imported_barcode_distance_lists, envir = environment()))
+  ), envir = environment()))
 
   cli::cli_alert_success("Successfully imported datasets.")
 
   # -- Barcode Correction --
 
-  cell_to_BCs_corrected <- correct_barcodes(
+  cell_to_BCs_corrected <- correct_UTR_barcodes(
     cell_to_extracted_BCs,
     list_BC1,
     list_BC2_3,
@@ -81,7 +68,8 @@ cell_barcode_assignment <- function(
 
   # -- Cell Barcode Assignment --
 
-  cell_to_BCs_assigned <- assign_barcodes(cell_to_BCs_corrected, verbose)
+  cell_to_BCs_assigned <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected, 
+                                                       verbose)
 
   # -- Filtration --
 
@@ -101,15 +89,13 @@ cell_barcode_assignment <- function(
       "Cell to UTR barcode system saved to: {normalizePath(output_dir)}."
     )
   }
-
-  return(cell_to_BCs_filtered)
 }
 
 
 #' @keywords internal
 #' This function corrects barcode assignments by applying Hamming distance-based
 #' threshold correction.
-correct_barcodes <- function(
+correct_UTR_barcodes <- function(
   cell_to_extracted_BCs,
   list_BC1,
   list_BC2_3,
@@ -157,18 +143,18 @@ correct_barcodes <- function(
     dplyr::group_by(cell_barcode, BC1, BC2, BC3) %>%
     dplyr::summarise(n_corrected = sum(n), .groups = "drop")
 
-  if (verbose) cli::cli_alert_success("Barcodes corrected.")
+  if (verbose) cli::cli_alert_success("UTR barcodes corrected.")
 
   return(cell_to_BCs_corrected)
 }
 
 
 #' @keywords internal
-assign_barcodes <- function(
+assign_UTR_barcodes_to_cells <- function(
   cell_to_BCs_corrected,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Performing cell barcode assignment...")
+  if (verbose) cli::cli_inform("Performing cell-UTR barcode assignment...")
 
   # Creates column to store the proportion of reads per barcode within each cell
   cell_to_BCs_corrected$proportion_reads_in_cell <- NA
@@ -192,7 +178,7 @@ assign_barcodes <- function(
   }
   cli::cli_progress_done() # Close the progress bar
 
-  if (verbose) cli::cli_alert_success("Cell barcodes assigned.")
+  if (verbose) cli::cli_alert_success("UTR barcodes assigned.")
 
   return (cell_to_BCs_corrected)
 }
@@ -216,7 +202,7 @@ filter_assigned_barcodes <- function(
   cell_to_BCs_filtered <- cell_to_BCs_filtered %>%
     dplyr::mutate(all_BCs = paste(BC1, BC2, BC3, sep = "_"))
 
-  if (verbose) cli::cli_alert_success("Cell barcodes filtered.")
+  if (verbose) cli::cli_alert_success("Assigned barcodes filtered.")
 
   return(cell_to_BCs_filtered)
 }
