@@ -41,8 +41,7 @@ assign_cell_barcodes <- function(
   # -- Loop through amplicons --
   
   for (AmpID in amplicons) {
-    if (verbose) cat("\n")
-    if (verbose) cli::cli_inform("Processing amplicon: {AmpID}")
+    if (verbose) cli::cli_h2("Processing amplicon: {AmpID}")
     
     # Import Dataset for AmpID
     mapped_reads <- import_mapped_reads(source_dir, AmpID, 
@@ -60,14 +59,22 @@ assign_cell_barcodes <- function(
     data.table::setkey(mapped_reads, readname)
     
     # Pair mapped_reads
-    if (verbose) cli::cli_inform(" - Pairing mapped reads...")
+    if (verbose) cli::cli_process_start(msg = "Pairing mapped reads...",
+                                        msg_done = "Mapped reads paired.")
     
     keep_readnames <- mapped_reads[ , .(N = .N), by = .(readname) ][ N == 2L, readname ] 
     
     mapped_reads <- mapped_reads[readname %chin% keep_readnames]
     
+    if (verbose) cli::cli_process_done()
+    
     # Merge barcodes into mapped reads
+    if (verbose) cli::cli_process_start(msg = "Merging barcodes into mapped reads...",
+                                        msg_done = "Barcodes merged.")
+    
     mapped_reads <- barcodes_readnames[mapped_reads, nomatch = 0]
+    
+    if (verbose) cli::cli_process_done()
     
     # -- Optional file saving (only if output_dir is specified) --
     if (!is.null(output_dir)) {
@@ -102,9 +109,11 @@ import_assign_cell_barcodes_data <- function(
   )
   
   # Convert barcodes_readnames to a data.table and assign readname as the key
-  if (verbose) cli::cli_inform(" - Converting barcodes_readnames to data.table...")
+  if (verbose) cli::cli_process_start(msg = "Converting barcodes_readnames to data.table...",
+                                      msg_done = "barcodes_readnames converted to data.table.")
   data.table::setDT(barcodes_readnames)
   data.table::setkey(barcodes_readnames, readname)
+  if (verbose) cli::cli_process_done()
   
   # -- Read in amplicon list --
   

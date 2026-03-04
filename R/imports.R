@@ -324,7 +324,8 @@ import_amplicon_list <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, col_names = FALSE,
@@ -335,8 +336,7 @@ import_amplicon_list <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -352,7 +352,9 @@ import_mapped_reads <- function(
 ) {
   file_name <- paste0(AmpID, "_data.tsv.gz")
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform(" - Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+  
   tryCatch(
     data <- data.table::fread(
       file_path, sep = "\t", header = FALSE,
@@ -367,8 +369,7 @@ import_mapped_reads <- function(
   
   data <- data[data$quality >= min_quality_threshold, ]
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
