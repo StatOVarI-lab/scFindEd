@@ -93,7 +93,9 @@ filter_cell_barcode_reads <- function(
   min_reads,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Filtering cell barcode reads...")
+  if (verbose) cli::cli_process_start(msg = "Filtering cell barcode reads...",
+                                      msg_done = "Cell barcode reads filtered.")
+  
   # Mark and filter for barcodes that appear more than @min_reads times
   barcodes.keep <-
     names(table(mapped_cell_barcode_reads$cell_barcode))[table(mapped_cell_barcode_reads$cell_barcode)>min_reads]
@@ -112,7 +114,7 @@ filter_cell_barcode_reads <- function(
   filtered_cell_barcode_reads_reverse <- filtered_cell_barcode_reads_reverse %>%
     dplyr::filter(!duplicated(readname))
 
-  if (verbose) cli::cli_alert_success("Cell barcode reads filtered.")
+  if (verbose) cli::cli_process_done()
 
   return(list(
     filtered_cell_barcode_reads_forward = filtered_cell_barcode_reads_forward,
@@ -130,7 +132,8 @@ extract_UTR_barcodes <- function(
   seq_after_barcode_3,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Extracting UTR barcodes...")
+  if (verbose) cli::cli_process_start(msg = "Extracting UTR barcodes...",
+                                      msg_done = "UTR barcodes extracted.")
   
   # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
   cell_barcode_reads_with_seq_before_BC_1_2 <-
@@ -180,7 +183,7 @@ extract_UTR_barcodes <- function(
   readname_cell_table <-
     readname_cell_table[stats::complete.cases(readname_cell_table), ]
 
-  if (verbose) cli::cli_alert_success("UTR barcodes extracted.")
+  if (verbose) cli::cli_process_done()
 
   return(readname_cell_table)
 }
@@ -191,7 +194,8 @@ group_UTR_barcodes <- function(
   readname_cell_table,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Grouping UTR barcodes...")
+  if (verbose) cli::cli_process_start(msg = "Grouping UTR barcodes...",
+                                      msg_done = "UTR barcodes grouped.")
   
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
   cell_BC1_BC2_BC3 <- readname_cell_table %>%
@@ -206,7 +210,7 @@ group_UTR_barcodes <- function(
   cell_BC1_BC2_BC3 <- cell_BC1_BC2_BC3 %>%
     dplyr::filter(nchar(BC1) == 20, nchar(BC2) == 30, nchar(BC3) == 30)
 
-  if (verbose) cli::cli_alert_success("UTR barcodes grouped.")
+  if (verbose) cli::cli_process_done()
 
   return(cell_BC1_BC2_BC3)
 }
