@@ -72,9 +72,9 @@ barcodes_QC_plots(source_dir = "data",
                   verbose = TRUE)
 ```
 
-# cell_barcode_assignment.R
+# assign_UTR_barcodes.R
 
-## cell_barcode_assignment()
+## assign_UTR_barcodes()
 
 ```{r}
 assign_UTR_barcodes(source_dir = "data",

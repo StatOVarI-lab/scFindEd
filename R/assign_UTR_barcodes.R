@@ -54,8 +54,6 @@ assign_UTR_barcodes <- function(
     verbose
   ), envir = environment()))
 
-  cli::cli_alert_success("Successfully imported datasets.")
-
   # -- Barcode Correction --
 
   cell_to_BCs_corrected <- correct_UTR_barcodes(
@@ -66,7 +64,7 @@ assign_UTR_barcodes <- function(
     verbose
   )
 
-  # -- Cell Barcode Assignment --
+  # -- UTR Barcode Assignment --
 
   cell_to_BCs_assigned <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected, 
                                                        verbose)
@@ -102,7 +100,8 @@ correct_UTR_barcodes <- function(
   BC_thresholds,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Performing barcode correction...")
+  if (verbose) cli::cli_process_start(msg = "Correcting UTR barcodes...",
+                                      msg_done = "UTR barcodes corrected.")
 
   # Extract correction thresholds
   BC1_threshold <- BC_thresholds$BC1_threshold
@@ -143,7 +142,7 @@ correct_UTR_barcodes <- function(
     dplyr::group_by(cell_barcode, BC1, BC2, BC3) %>%
     dplyr::summarise(n_corrected = sum(n), .groups = "drop")
 
-  if (verbose) cli::cli_alert_success("UTR barcodes corrected.")
+  if (verbose) cli::cli_process_done()
 
   return(cell_to_BCs_corrected)
 }
@@ -154,8 +153,6 @@ assign_UTR_barcodes_to_cells <- function(
   cell_to_BCs_corrected,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Performing cell-UTR barcode assignment...")
-
   # Creates column to store the proportion of reads per barcode within each cell
   cell_to_BCs_corrected$proportion_reads_in_cell <- NA
 
@@ -163,7 +160,7 @@ assign_UTR_barcodes_to_cells <- function(
   # current cell barcode, and calculate the proportion of reads for each barcode
   # assignment within the cell
   cli::cli_progress_bar(
-    "Assigning barcodes",
+    "Assigning corrected UTR barcodes",
     total = length(unique(cell_to_BCs_corrected$cell_barcode))
   )
   for (j in 1:length(unique(cell_to_BCs_corrected$cell_barcode))){
@@ -178,7 +175,7 @@ assign_UTR_barcodes_to_cells <- function(
   }
   cli::cli_progress_done() # Close the progress bar
 
-  if (verbose) cli::cli_alert_success("UTR barcodes assigned.")
+  if (verbose) cli::cli_alert_success("Corrected UTR barcodes assigned.")
 
   return (cell_to_BCs_corrected)
 }
@@ -190,7 +187,8 @@ filter_assigned_barcodes <- function(
   reads_thresholds,
   verbose
 ) {
-  if (verbose) cli::cli_inform("Filtering assigned barcodes...")
+  if (verbose) cli::cli_process_start(msg = "Filtering assigned barcodes...",
+                                      msg_done = "Assigned barcodes filtered.")
 
   # Filters barcode assignments by read count, read count proportion thresholds
   cell_to_BCs_filtered <- cell_to_BCs_assigned %>%
@@ -202,7 +200,7 @@ filter_assigned_barcodes <- function(
   cell_to_BCs_filtered <- cell_to_BCs_filtered %>%
     dplyr::mutate(all_BCs = paste(BC1, BC2, BC3, sep = "_"))
 
-  if (verbose) cli::cli_alert_success("Assigned barcodes filtered.")
+  if (verbose) cli::cli_process_done()
 
   return(cell_to_BCs_filtered)
 }
