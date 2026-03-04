@@ -194,7 +194,8 @@ import_HDR_barcoded_data <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, show_col_types = FALSE),
@@ -203,8 +204,7 @@ import_HDR_barcoded_data <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -273,7 +273,8 @@ import_cell_to_UTR_barcode_system <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, show_col_types = FALSE),
@@ -283,8 +284,7 @@ import_cell_to_UTR_barcode_system <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }

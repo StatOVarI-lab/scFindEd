@@ -211,7 +211,7 @@ merge_r1_r2 <- function(
   verbose
 ) {
   if (verbose) cli::cli_process_start(msg = "Merging R1 and R2...",
-                                      msg_done = "Sucessfully merged R1 and R2.")
+                                      msg_done = "R1 and R2 merged.")
   
   # Ensure both read vectors are the same length
   if (length(r1) != length(r2)) {
