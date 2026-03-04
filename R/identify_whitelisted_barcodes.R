@@ -57,8 +57,6 @@ identify_whitelisted_barcodes <- function(
     verbose
   )
 
-  cli::cli_alert_success("Successfully imported datasets.")
-
   # -- Identify the Three BC1s with the Shortest Hamming Distance
 
   list_BC1 <- identify_BC1_closest_barcodes(
@@ -66,8 +64,17 @@ identify_whitelisted_barcodes <- function(
     BC1_whitelist,
     verbose
   )
+  
+  # -- Optional file saving (only if output_dir is specified) --
+  if (!is.null(output_dir)) {
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+    saveRDS(list_BC1, file = file.path(output_dir, "list_BC1.rds"))
+    
+    cli::cli_alert_success(
+      "BC1: List of closest barcodes saved to: {normalizePath(output_dir)}.")
+  }
 
-  # -- Identify the Three BC2/BC3s with the Shortest Hamming Distance
+  # -- Identify the Three BC2_3 pairs with the Shortest Hamming Distance
 
   list_BC2_3 <- identify_BC2_3_closest_barcodes(
     cell_to_extracted_BCs,
@@ -75,23 +82,14 @@ identify_whitelisted_barcodes <- function(
     verbose
   )
 
-  if (verbose) cli::cli_inform("Exporting lists of closest barcodes...")
-
   # -- Optional file saving (only if output_dir is specified) --
   if (!is.null(output_dir)) {
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    saveRDS(list_BC1, file = file.path(output_dir, "list_BC1.rds"))
-
-    cli::cli_alert_success(
-      "BC1: List of closest barcodes saved to: {normalizePath(output_dir)}.")
-
     saveRDS(list_BC2_3, file = file.path(output_dir, "list_BC2_3.rds"))
 
     cli::cli_alert_success(
-      "BC2/3: List of closest barcodes saved to: {normalizePath(output_dir)}.")
+      "BC2_3: List of closest barcode pairs saved to: {normalizePath(output_dir)}.")
   }
-
-  invisible(list(list_BC1 = list_BC1, list_BC1 = list_BC2_3))
 }
 
 
@@ -130,7 +128,7 @@ identify_BC1_closest_barcodes <- function(
   BC1_whitelist,
   verbose
 ) {
-  cli::cli_inform("Processing BC1 whitelist...")
+  cli::cli_h2("Processing BC1 whitelist")
 
   # Get unique BC1 sequences from the dataset
   unique_BC_1 <- unique(cell_to_extracted_BCs$BC1)
@@ -140,8 +138,8 @@ identify_BC1_closest_barcodes <- function(
 
   if (verbose) cli::cli_alert_info("Number of Unique BC1s: {length(unique_BC_1)}")
 
-  cli::cli_process_start("Computing distance matrix...",
-                         msg_done = "Matrix computed.")
+  cli::cli_process_start("Computing BC1 distance matrix...",
+                         msg_done = "BC1 distance matrix computed.")
 
   # Calculate distance matrix between each extracted barcode and whitelist barcode
   dist_matrix <- stringdist::stringdistmatrix(
@@ -154,7 +152,7 @@ identify_BC1_closest_barcodes <- function(
   cli::cli_process_done()
 
   cli::cli_process_start("Extracting three closest BC1s...",
-                         msg_done = "Successfully extracted three closest BC1s.")
+                         msg_done = "Three closest BC1s extracted.")
 
   # Use lapply to extract the top 3 from each row of the matrix
   list_BC1 <- lapply(1:nrow(dist_matrix), extract_closest_barcodes,
@@ -177,7 +175,7 @@ identify_BC2_3_closest_barcodes <- function(
     BC2_BC3_whitelist,
     verbose
 ) {
-  cli::cli_inform("Processing BC2/3 whitelist...")
+  cli::cli_h2("Processing BC2_3 whitelist")
 
   # Get unique BC2 and BC3 sequences from the dataset
   cell_BC1_BC2_BC3 <- cell_to_extracted_BCs
@@ -187,11 +185,11 @@ identify_BC2_3_closest_barcodes <- function(
   whitelist_names <- names(BC2_BC3_whitelist)
 
   if (verbose) {
-    cli::cli_alert_info("Number of Unique BC2_3s: {length(unique_BC_2_3)}")
+    cli::cli_alert_info("Number of Unique BC2_3 pairs: {length(unique_BC_2_3)}")
   }
 
-  cli::cli_process_start("Computing distance matrix...",
-                         msg_done = "Matrix computed.")
+  cli::cli_process_start("Computing BC2_3 distance matrix...",
+                         msg_done = "BC2_3 distance matrix computed.")
 
   # Calculate distance matrix between each extracted barcode and whitelist barcode
   dist_matrix <- stringdist::stringdistmatrix(
@@ -203,8 +201,8 @@ identify_BC2_3_closest_barcodes <- function(
 
   cli::cli_process_done()
 
-  cli::cli_process_start("Extracting three closest BC2/3s...",
-                         msg_done = "Successfully extracted three closest BC2/3s.")
+  cli::cli_process_start("Extracting three closest BC2_3 pairs...",
+                         msg_done = "Three closest BC2_3 pairs extracted.")
 
   # Use lapply to extract the top 3 from each row of the matrix
   list_BC2_3 <- lapply(1:nrow(dist_matrix), extract_closest_barcodes,

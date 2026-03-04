@@ -7,7 +7,8 @@ import_cell_to_extracted_BCs <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readRDS(file_path),
@@ -15,8 +16,7 @@ import_cell_to_extracted_BCs <- function(
       cli::cli_abort("Failed to import {file_name} from {source_dir}.")
     }
   )
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -140,7 +140,8 @@ import_BC1_whitelist <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Load BC1 whitelist from CSV and assign each a unique name
   tryCatch(
@@ -152,8 +153,7 @@ import_BC1_whitelist <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -168,7 +168,8 @@ import_BC2_BC3_whitelist <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Load barcode pair whitelist
   tryCatch(
@@ -178,8 +179,7 @@ import_BC2_BC3_whitelist <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
