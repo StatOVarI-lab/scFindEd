@@ -114,7 +114,8 @@ import_barcode_distance_list <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Import list of BC distances
   tryCatch(
@@ -124,8 +125,7 @@ import_barcode_distance_list <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
