@@ -47,8 +47,7 @@ process_reads <- function(
   
   for (i in 1:number_of_HDRs) {
     if (verbose) {
-      cat("\n")
-      cli::cli_inform("-- Processing HDR {i} of {number_of_HDRs} --")
+      cli::cli_h2("Processing HDR {i} of {number_of_HDRs}")
     }
     
     AmpID <- HDR_barcoded_outcomes$AMPLICON_NAME[i]
@@ -69,6 +68,7 @@ process_reads <- function(
     
     mapped_reads_paired_count <- pair_reads(
       mapped_reads_barcoded,
+      i,
       verbose
     )
     
@@ -156,11 +156,12 @@ import_process_reads_data <- function(
 
 #' @keywords internal
 pair_reads <- function(
-    mapped_reads_barcoded,
+  mapped_reads_barcoded,
+  HDR_no,
   verbose
 ) {
-  if (verbose) cli::cli_process_start(msg = "Pairing reads...",
-                                      msg_done = "Successfully paired reads.")
+  if (verbose) cli::cli_process_start(msg = "Pairing HDR {HDR_no} reads...",
+                                      msg_done = "HDR {HDR_no} reads paired.")
   
   # Pair reads (R1 and R2)
   paired_idx <- seq(1, nrow(mapped_reads_barcoded) - 1, by = 2)

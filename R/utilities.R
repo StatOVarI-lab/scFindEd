@@ -126,8 +126,6 @@ prepare_hamming_plot_dataframe <- function(
   BC_name,
   verbose
 ) {
-  if (verbose) cli::cli_alert_info("Preparing data frame for {BC_name}...")
-  
   # Distance from nearest whitelist barcode
   closest <- as.numeric(unlist(lapply(BC_list, function(x) x[1])))
   
@@ -140,10 +138,6 @@ prepare_hamming_plot_dataframe <- function(
     type = factor(c(rep("Closest", length(closest)),
                     rep("Second Closest", length(second_closest))))
   )
-  
-  if (verbose) {
-    cli::cli_alert_success("Successfully created data frame for {BC_name}.")
-  }
   
   return(BC_df)
 }
@@ -217,7 +211,7 @@ merge_r1_r2 <- function(
   verbose
 ) {
   if (verbose) cli::cli_process_start(msg = "Merging R1 and R2...",
-                                      msg_done = "Sucessfully merged R1 and R2.")
+                                      msg_done = "R1 and R2 merged.")
   
   # Ensure both read vectors are the same length
   if (length(r1) != length(r2)) {

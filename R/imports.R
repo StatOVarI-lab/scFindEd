@@ -7,7 +7,8 @@ import_cell_to_extracted_BCs <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readRDS(file_path),
@@ -15,8 +16,7 @@ import_cell_to_extracted_BCs <- function(
       cli::cli_abort("Failed to import {file_name} from {source_dir}.")
     }
   )
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -114,7 +114,8 @@ import_barcode_distance_list <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Import list of BC distances
   tryCatch(
@@ -124,8 +125,7 @@ import_barcode_distance_list <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -140,7 +140,8 @@ import_BC1_whitelist <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Load BC1 whitelist from CSV and assign each a unique name
   tryCatch(
@@ -152,8 +153,7 @@ import_BC1_whitelist <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -168,7 +168,8 @@ import_BC2_BC3_whitelist <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   # Load barcode pair whitelist
   tryCatch(
@@ -178,8 +179,7 @@ import_BC2_BC3_whitelist <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -194,7 +194,8 @@ import_HDR_barcoded_data <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, show_col_types = FALSE),
@@ -203,8 +204,7 @@ import_HDR_barcoded_data <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -273,7 +273,8 @@ import_cell_to_UTR_barcode_system <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, show_col_types = FALSE),
@@ -283,8 +284,7 @@ import_cell_to_UTR_barcode_system <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -324,7 +324,8 @@ import_amplicon_list <- function(
   verbose
 ) {
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
   
   tryCatch(
     data <- readr::read_csv(file_path, col_names = FALSE,
@@ -335,8 +336,7 @@ import_amplicon_list <- function(
     }
   )
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }
@@ -352,7 +352,9 @@ import_mapped_reads <- function(
 ) {
   file_name <- paste0(AmpID, "_data.tsv.gz")
   file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform(" - Importing {file_path}...")
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+  
   tryCatch(
     data <- data.table::fread(
       file_path, sep = "\t", header = FALSE,
@@ -367,8 +369,7 @@ import_mapped_reads <- function(
   
   data <- data[data$quality >= min_quality_threshold, ]
   
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
+  if (verbose) cli::cli_process_done()
   
   return(data)
 }

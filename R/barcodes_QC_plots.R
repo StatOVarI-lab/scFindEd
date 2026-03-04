@@ -39,20 +39,18 @@ barcodes_QC_plots <- function(
 ) {
   # -- Import Datasets --
 
-  imported_data <- import_barcode_distance_lists(
+  invisible(list2env(import_barcode_distance_lists(
     source_dir,
     list_BC1_file_name,
     list_BC2_3_file_name,
     verbose
-  )
-
-  invisible(list2env(imported_data, envir = environment()))
-
-  cli::cli_alert_success("Successfully imported datasets.")
+  ), envir = environment()))
 
   # -- BC1 QC Plot --
 
-  if (verbose) cli::cli_inform("Constructing QC plots for BC1...")
+  if (verbose) cli::cli_process_start(
+    msg = "Constructing QC plots for BC1...",
+    msg_done = "QC plot for BC1 exported to {normalizePath(output_dir)}.")
 
   # Prepare dataframe for BC1
   BC1_df <- prepare_hamming_plot_dataframe(list_BC1, "BC1", verbose)
@@ -70,13 +68,14 @@ barcodes_QC_plots <- function(
            plot = BC1_hamming_plot,
            width = 8, height = 5, dpi = 300)
 
-    cli::cli_alert_success(
-      "QC plot for BC1 exported to {normalizePath(output_dir)}")
+    if (verbose) cli::cli_process_done()
   }
 
   # -- BC2/BC3 QC Plot --
 
-  if (verbose) cli::cli_inform("Constructing QC plots for BC2/3...")
+  if (verbose) cli::cli_process_start(
+    msg = "Constructing QC plots for BC2_3 pairs...",
+    msg_done = "QC plot for BC2_3 pairs exported to {normalizePath(output_dir)}.")
 
   # Prepare dataframe for BC1
   BC2_3_df <- prepare_hamming_plot_dataframe(list_BC2_3, "BC2/3", verbose)
@@ -94,8 +93,7 @@ barcodes_QC_plots <- function(
            plot = BC2_3_hamming_plot,
            width = 8, height = 5, dpi = 300)
 
-    cli::cli_alert_success(
-      "QC plot for BC2/3 exported to {normalizePath(output_dir)}")
+    if (verbose) cli::cli_process_done()
   }
 }
 
