@@ -50,7 +50,7 @@ process_reads <- function(
       cli::cli_h2("Processing HDR {i} of {number_of_HDRs}")
     }
     
-    AmpID <- HDR_barcoded_outcomes$AMPLICON_NAME[i]
+    AmpID <- HDR_barcoded_outcomes$AmpID[i]
     
     # -- Load Mapped Reads for AmpID --
     
@@ -90,7 +90,7 @@ process_reads <- function(
     # Extract templates for HDR
     WT_editing_window <- HDR_barcoded_outcomes$amplicon_seq_in_window[i]
     HDR_editing_window <- HDR_barcoded_outcomes$HDR_seq_in_window[i]
-    amplicon_sequence <- HDR_barcoded_outcomes$Amplicon.sequence[i]
+    amplicon_sequence <- HDR_barcoded_outcomes$amplicon_seq[i]
     
     # Generate possible variants
     df_variants <- generate_all_variants(
