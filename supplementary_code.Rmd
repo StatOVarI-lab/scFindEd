@@ -7,18 +7,6 @@ output:
     toc: yes  
 ---
 
-# merge_HDR_amplicon_sequences.R
-
-## merge_HDR_amplicon_sequences()
-
-```{r}
-merge_HDR_amplicon_sequences(source_dir = "data",
-                             HDR_barcoded_file_name = "HDR_file_barcoded.csv",
-                             design_summary_file_name = "6915_design_summary_extended_information.csv",
-                             output_dir = "data",
-                             verbose = TRUE)
-```
-
 # process_UTR_barcodes.R
 
 ## process_UTR_barcodes()
