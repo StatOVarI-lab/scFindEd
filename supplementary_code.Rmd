@@ -72,6 +72,22 @@ barcodes_QC_plots(source_dir = "data",
                   verbose = TRUE)
 ```
 
+# calculate_HGVSc_codes.R
+
+## calculate_HGVSc_codes()
+
+```{r}
+calculate_mutation_codes(source_dir = "data/testing",
+                         sample_name = "MB_barcoded",
+                         panel_ID = "6915",
+                         output_dir = "data/testing",
+                         verbose = TRUE)
+```
+
+
+
+**Below are deprecated example functions**
+
 # assign_UTR_barcodes.R
 
 ## assign_UTR_barcodes()

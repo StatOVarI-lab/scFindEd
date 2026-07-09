@@ -14,22 +14,11 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return A table linking cells to extracted barcodes.
-
-#' @examples
-#' process_UTR_barcodes(
-#' source_dir = "data",
-#' cell_AmpID = "AMPL902654",
-#' min_reads = 2,
-#' seq_before_barcode_1 = "GTACGAAGACTG",
-#' seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-#' seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
-#' output_dir = "data",
-#' verbose = TRUE)
-
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 process_UTR_barcodes <- function(
   source_dir,
@@ -44,8 +33,8 @@ process_UTR_barcodes <- function(
   # -- Import datasets --
 
   mapped_cell_barcode_reads <- import_barcoded_mapped_reads(
-    source_dir, 
-    cell_AmpID, 
+    source_dir,
+    cell_AmpID,
     verbose
   )
   if ("barcode" %in% colnames(mapped_cell_barcode_reads)) {
@@ -70,7 +59,7 @@ process_UTR_barcodes <- function(
     seq_after_barcode_3,
     verbose
   )
-  
+
   # -- Group UTR barcodes --
 
   cell_BC1_BC2_BC3 <- group_UTR_barcodes(readname_cell_table, verbose)
@@ -95,7 +84,7 @@ filter_cell_barcode_reads <- function(
 ) {
   if (verbose) cli::cli_process_start(msg = "Filtering cell barcode reads...",
                                       msg_done = "Cell barcode reads filtered.")
-  
+
   # Mark and filter for barcodes that appear more than @min_reads times
   barcodes.keep <-
     names(table(mapped_cell_barcode_reads$cell_barcode))[table(mapped_cell_barcode_reads$cell_barcode)>min_reads]
@@ -103,10 +92,10 @@ filter_cell_barcode_reads <- function(
     mapped_cell_barcode_reads[mapped_cell_barcode_reads$cell_barcode%in%barcodes.keep,]
 
   # Subset of forward reads with a start position between 40 and 43
-  filtered_cell_barcode_reads_forward <- 
+  filtered_cell_barcode_reads_forward <-
     filtered_cell_barcode_reads[filtered_cell_barcode_reads$start%in%40:43,]
   # Subset of reverse reads with a start position between 142 and 148
-  filtered_cell_barcode_reads_reverse <- 
+  filtered_cell_barcode_reads_reverse <-
     filtered_cell_barcode_reads[filtered_cell_barcode_reads$start%in%142:148,]
 
   # Removing the two reads with unusual start position for forward read
@@ -134,7 +123,7 @@ extract_UTR_barcodes <- function(
 ) {
   if (verbose) cli::cli_process_start(msg = "Extracting UTR barcodes...",
                                       msg_done = "UTR barcodes extracted.")
-  
+
   # Filter FORWARD reads that contain both flanking sequences BEFORE the barcode
   cell_barcode_reads_with_seq_before_BC_1_2 <-
     cell_barcode_reads_forward[grepl_seq1_2(
@@ -196,7 +185,7 @@ group_UTR_barcodes <- function(
 ) {
   if (verbose) cli::cli_process_start(msg = "Grouping UTR barcodes...",
                                       msg_done = "UTR barcodes grouped.")
-  
+
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
   cell_BC1_BC2_BC3 <- readname_cell_table %>%
     dplyr::select(cell_barcode,BC1,BC2,BC3) %>%

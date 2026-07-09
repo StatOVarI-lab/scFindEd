@@ -13,21 +13,12 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return A data frame containing summarised cell genotypes across each
 #' amplicon, optionally saved to a CSV file entitled "cell_genotypes_summary".
-
-#' @examples
-#' cell_genotypes <- combine_amplicons(
-#' source_dir = "data",
-#' combined_summaries_file_name = "final_summary_minimum_2counts_70_30_70_all_amplicons.csv",
-#' barcode_system_file_name = "cell_to_UTR_barcode_system.csv",
-#' output_dir = "data",
-#' verbose = TRUE
-#' )
-
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 combine_amplicons <- function(
   source_dir,

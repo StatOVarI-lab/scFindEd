@@ -39,13 +39,3 @@ BC2/BC3.
 This function identifies the three shortest Hamming distances between barcode
 and whitelisted barcode, for each of BC1 and BC2/BC3.
 }
-\examples{
-identify_whitelisted_barcodes(
-source_dir = "data",
-BC1_whitelist_file_name = "75K_barcode.csv",
-BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
-cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
-output_dir = "data",
-verbose = TRUE
-)
-}

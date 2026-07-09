@@ -22,26 +22,13 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return Writes a CSV file containing the final joined summary for all
 #' amplicons at the provided genotype thresholds, with one CSV file exported for
 #' each value provided to `minimum_count_thresholds`.
-
-#' @examples
-#' join_amplicon_summaries(
-#' source_dir = "data",
-#' sample_name = "MB_barcoded",
-#' n_amplicons = 9,
-#' minimum_count_thresholds = c(2, 5, 10, 20),
-#' HOM_cutoff = 70,
-#' HET_low_cutoff = 30,
-#' HET_high_cutoff = 70,
-#' output_dir = "data",
-#' verbose = TRUE
-#' )
-
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 join_amplicon_summaries <- function(
   source_dir,

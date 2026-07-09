@@ -29,7 +29,7 @@ the output data should be exported to.}
 }
 \value{
 An exported .rds file for each amplicon, containing the mapped reads
-each tagged with the corresponding cell barcode, named "{AmpID}_info.rds".
+each tagged with the corresponding cell barcode, named "\{AmpID\}_info.rds".
 }
 \description{
 This function takes the mapped reads for each amplicon (.tsv.gz), and both the

@@ -37,12 +37,3 @@ This function produces illustrative QC plots displaying the distribution of
 Hamming distances for the closest and second closest barcode matches for both
 BC1 and BC2/3.
 }
-\examples{
-barcodes_QC_plots(
-source_dir = "data",
-list_BC1_file_name = "list_BC1.rds",
-list_BC2_3_file_name = "list_BC2_3.rds",
-output_dir = "plots",
-verbose = TRUE
-)
-}

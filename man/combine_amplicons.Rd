@@ -36,12 +36,3 @@ This function takes the combined amplicon summaries file and the cell to
 UTR barcode system file, merging them and summarising cell genotypes across
 amplicons.
 }
-\examples{
-cell_genotypes <- combine_amplicons(
-source_dir = "data",
-combined_summaries_file_name = "final_summary_minimum_2counts_70_30_70_all_amplicons.csv",
-barcode_system_file_name = "cell_to_UTR_barcode_system.csv",
-output_dir = "data",
-verbose = TRUE
-)
-}

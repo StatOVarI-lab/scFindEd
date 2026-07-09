@@ -33,7 +33,7 @@ the output data should be exported to.}
 }
 \value{
 An exported summary CSV file for each amplicon, named
-"reads_classified_no_extension_Element_HDR_{HDR_number}.csv"
+"reads_classified_no_extension_Element_HDR_\{HDR_number\}.csv"
 }
 \description{
 This function takes the mapped reads for each amplicon (.rds), and both the

@@ -39,12 +39,3 @@ and only if there are at least \code{min_reads} reads of that barcode combinatio
 in the cell, and they constitute more than \code{min_reads_proportion} of the
 barcode reads in that cell.
 }
-\examples{
-assign_UTR_barcodes(
-source_dir = "data",
-BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
-reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
-output_dir = "data",
-verbose = TRUE
-)
-}

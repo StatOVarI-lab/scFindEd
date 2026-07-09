@@ -1,6 +1,6 @@
-#' @keywords internal
 #' Generates all SNP and 1bp indel variants for a given WT/HDR input and
 #' amplicon sequence template.
+#' @keywords internal
 generate_all_variants <- function(
   WT_input,
   HDR_input,
@@ -123,9 +123,9 @@ generate_all_variants <- function(
 }
 
 
-#' @keywords internal
 #' Generates all variants of a given editing window, assuming a genotype and a
 #' set of protected positions (a window around the SNP) are provided.
+#' @keywords internal
 generate_variants <- function(
   template, 
   genotype_prefix, 
@@ -206,9 +206,10 @@ generate_variants <- function(
   return(df_variants)
 }
 
-#' @keywords internal
+
 #' Wrapper function for assigning all given read sequences a genotype by matching
 #' with a table of generated variants.
+#' @keywords internal
 map_genotypes <- function(
   sequences_df,
   variants_df,
@@ -259,9 +260,9 @@ map_genotypes <- function(
 }
 
 
-#' @keywords internal
 #' Helper function for extracting the sequence of bases that lie between the 
 #' upstream and downstream flanks.
+#' @keywords internal
 extract_between_flanks <- function(
   sequence,
   upstream_flank,

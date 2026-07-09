@@ -54,16 +54,3 @@ This function takes the amplicon summary files for each amplicon/HDR
 thresholding before categorising barcodes into
 homozygous HDR/homozygous WT/heterozygous/other.
 }
-\examples{
-join_amplicon_summaries(
-source_dir = "data",
-sample_name = "MB_barcoded",
-n_amplicons = 9,
-minimum_count_thresholds = c(2, 5, 10, 20),
-HOM_cutoff = 70,
-HET_low_cutoff = 30,
-HET_high_cutoff = 70,
-output_dir = "data",
-verbose = TRUE
-)
-}

@@ -13,22 +13,12 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return A list of barcode matches for BC1 and a list of barcode matches for
 #' BC2/BC3.
-
-#' @examples
-#' identify_whitelisted_barcodes(
-#' source_dir = "data",
-#' BC1_whitelist_file_name = "75K_barcode.csv",
-#' BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
-#' cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
-#' output_dir = "data",
-#' verbose = TRUE
-#' )
-
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 identify_whitelisted_barcodes <- function(
   source_dir,
@@ -64,12 +54,12 @@ identify_whitelisted_barcodes <- function(
     BC1_whitelist,
     verbose
   )
-  
+
   # -- Optional file saving (only if output_dir is specified) --
   if (!is.null(output_dir)) {
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
     saveRDS(list_BC1, file = file.path(output_dir, "list_BC1.rds"))
-    
+
     cli::cli_alert_success(
       "BC1: List of closest barcodes saved to: {normalizePath(output_dir)}.")
   }
