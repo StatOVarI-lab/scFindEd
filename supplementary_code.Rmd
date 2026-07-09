@@ -100,19 +100,6 @@ assign_UTR_barcodes(source_dir = "data",
                     verbose = TRUE)
 ```
 
-# process_reads.R
-
-## process_reads()
-
-```{r}
-process_reads(source_dir = "data",
-              flank_len = 8,
-              editing_window_extension = 0,
-              n_cores = 4,
-              output_dir = "data",
-              verbose = TRUE)
-```
-
 # combine_amplicons.R
 
 ## combine_amplicons()

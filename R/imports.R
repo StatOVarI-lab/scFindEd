@@ -186,31 +186,6 @@ import_BC2_BC3_whitelist <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "HDR_file_barcoded_with_amplicon_sequences.csv"
-#' @keywords internal
-import_HDR_barcoded_data <- function(
-  source_dir,
-  file_name,
-  verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
-                                      msg_done = "Successfully imported {file_name}.")
-
-  tryCatch(
-    data <- readr::read_csv(file_path, show_col_types = FALSE),
-    error = function(e) {
-      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_process_done()
-
-  return(data)
-}
-
-
-#' Imports data from a file
 #' Expected file name: "XXXX_design_summary_joined.csv"
 #' @keywords internal
 import_design_summary_info <- function(
