@@ -7,30 +7,6 @@ output:
     toc: yes  
 ---
 
-# assign_cell_barcodes.R
-
-## assign_cell_barcodes()
-
-```{r}
-assign_cell_barcodes(source_dir = "data", 
-                     sample_name = "MB_barcoded",
-                     min_quality_threshold = 30,
-                     output_dir = "data",
-                     verbose = TRUE)
-```
-
-# merge_HDR_amplicon_sequences.R
-
-## merge_HDR_amplicon_sequences()
-
-```{r}
-merge_HDR_amplicon_sequences(source_dir = "data",
-                             HDR_barcoded_file_name = "HDR_file_barcoded.csv",
-                             design_summary_file_name = "6915_design_summary_extended_information.csv",
-                             output_dir = "data",
-                             verbose = TRUE)
-```
-
 # process_UTR_barcodes.R
 
 ## process_UTR_barcodes()
@@ -98,19 +74,6 @@ assign_UTR_barcodes(source_dir = "data",
                     reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
                     output_dir = "data",
                     verbose = TRUE)
-```
-
-# process_reads.R
-
-## process_reads()
-
-```{r}
-process_reads(source_dir = "data",
-              flank_len = 8,
-              editing_window_extension = 0,
-              n_cores = 4,
-              output_dir = "data",
-              verbose = TRUE)
 ```
 
 # combine_amplicons.R
