@@ -7,30 +7,6 @@ output:
     toc: yes  
 ---
 
-# assign_cell_barcodes.R
-
-## assign_cell_barcodes()
-
-```{r}
-assign_cell_barcodes(source_dir = "data", 
-                     sample_name = "MB_barcoded",
-                     min_quality_threshold = 30,
-                     output_dir = "data",
-                     verbose = TRUE)
-```
-
-# merge_HDR_amplicon_sequences.R
-
-## merge_HDR_amplicon_sequences()
-
-```{r}
-merge_HDR_amplicon_sequences(source_dir = "data",
-                             HDR_barcoded_file_name = "HDR_file_barcoded.csv",
-                             design_summary_file_name = "6915_design_summary_extended_information.csv",
-                             output_dir = "data",
-                             verbose = TRUE)
-```
-
 # process_UTR_barcodes.R
 
 ## process_UTR_barcodes()
@@ -100,19 +76,6 @@ assign_UTR_barcodes(source_dir = "data",
                     verbose = TRUE)
 ```
 
-# process_reads.R
-
-## process_reads()
-
-```{r}
-process_reads(source_dir = "data",
-              flank_len = 8,
-              editing_window_extension = 0,
-              n_cores = 4,
-              output_dir = "data",
-              verbose = TRUE)
-```
-
 # combine_amplicons.R
 
 ## combine_amplicons()
@@ -127,23 +90,7 @@ cell_genotypes <- combine_amplicons(
 )
 ```
 
-# join_amplicon_summaries.R
 
-## join_amplicon_summaries()
-
-```{r}
-join_amplicon_summaries(
-  source_dir = "data",
-  sample_name = "MB_barcoded",
-  n_amplicons = 9,
-  minimum_count_thresholds = c(2, 5, 10, 20),
-  HOM_cutoff = 70,
-  HET_low_cutoff = 30, 
-  HET_high_cutoff = 70,
-    output_dir = "data",
-  verbose = TRUE
-)
-```
 
 ```{r}
 reads_classified_MB_barcoded_HDR_1 <- read.csv(
