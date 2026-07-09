@@ -13,22 +13,12 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the merged data file will be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return A data frame containing the merged amplicon summary data. Also
 #' exported as a .csv file to the defined output_dir.
-
-#' @examples
-#' merge_HDR_amplicon_sequences(
-#' source_dir = "data",
-#' HDR_barcoded_file_name = "HDR_file_barcoded.csv",
-#' design_summary_file_name = "6915_design_summary_extended_information.csv",
-#' output_dir = "data",
-#' verbose = TRUE
-#' )
-
-#' importFrom base sequence
+#'
 #' importFrom dplyr %>%
-
+#'
 #' @export
 merge_HDR_amplicon_sequences <- function(
   source_dir,

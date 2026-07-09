@@ -42,14 +42,3 @@ This function takes barcode reads data and first performs some basic QC
 filtering. It then extracts BC1 and BC2/BC3s from provided flanking
 sequences, before grouping cells by cell_barcode and counting reads.
 }
-\examples{
-process_UTR_barcodes(
-source_dir = "data",
-cell_AmpID = "AMPL902654",
-min_reads = 2,
-seq_before_barcode_1 = "GTACGAAGACTG",
-seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
-output_dir = "data",
-verbose = TRUE)
-}

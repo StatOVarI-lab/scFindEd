@@ -13,22 +13,13 @@
 #' @param output_dir String containing the relative path to the directory that
 #' the plots should be exported to.
 #' @param verbose Boolean deciding whether detailed outputs should be printed.
-
+#'
 #' @return Two sanity-check histograms that compare the Hamming distance of the
 #' closest barcode matches with the Hamming distance of the second closest
 #' barcode matches.
-
-#' @examples
-#' barcodes_QC_plots(
-#' source_dir = "data",
-#' list_BC1_file_name = "list_BC1.rds",
-#' list_BC2_3_file_name = "list_BC2_3.rds",
-#' output_dir = "plots",
-#' verbose = TRUE
-#' )
-
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 barcodes_QC_plots <- function(
   source_dir,

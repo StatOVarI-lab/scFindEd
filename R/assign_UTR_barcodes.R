@@ -1,12 +1,12 @@
 #' Assign UTR Barcodes
 #'
-#' This function begins by correcting UTR barcode combinations by applying 
-#' Hamming distance-based threshold correction. It then assigns cell-UTR barcode 
-#' combinations as follows: a UTR barcode combination is assigned to a cell if 
-#' and only if there are at least `min_reads` reads of that barcode combination 
-#' in the cell, and they constitute more than `min_reads_proportion` of the 
+#' This function begins by correcting UTR barcode combinations by applying
+#' Hamming distance-based threshold correction. It then assigns cell-UTR barcode
+#' combinations as follows: a UTR barcode combination is assigned to a cell if
+#' and only if there are at least `min_reads` reads of that barcode combination
+#' in the cell, and they constitute more than `min_reads_proportion` of the
 #' barcode reads in that cell.
-#' 
+#'
 #' @param source_dir String containing the relative path to the directory that
 #' source data should be imported from.
 #' @param BC_thresholds Named ist containing the following barcode thresholds:
@@ -19,18 +19,10 @@
 #'
 #' @return A filtered data frame of barcode assignments that meet the read count
 #' and proportion thresholds.
-
-#' @examples
-#' assign_UTR_barcodes(
-#' source_dir = "data",
-#' BC_thresholds = list(BC1_threshold = 3, BC2_3_threshold = 5),
-#' reads_thresholds = list(min_reads = 5, min_reads_proportion = 0.9),
-#' output_dir = "data",
-#' verbose = TRUE
-#' )
-
+#'
+#'
 #' @importFrom dplyr %>%
-
+#'
 #' @export
 assign_UTR_barcodes <- function(
   source_dir,
@@ -66,7 +58,7 @@ assign_UTR_barcodes <- function(
 
   # -- UTR Barcode Assignment --
 
-  cell_to_BCs_assigned <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected, 
+  cell_to_BCs_assigned <- assign_UTR_barcodes_to_cells(cell_to_BCs_corrected,
                                                        verbose)
 
   # -- Filtration --
@@ -90,9 +82,9 @@ assign_UTR_barcodes <- function(
 }
 
 
-#' @keywords internal
 #' This function corrects barcode assignments by applying Hamming distance-based
 #' threshold correction.
+#' @keywords internal
 correct_UTR_barcodes <- function(
   cell_to_extracted_BCs,
   list_BC1,

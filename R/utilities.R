@@ -1,5 +1,5 @@
+#' Checks if both seq1 and seq2 are present in each element of vector v
 #' @keywords internal
-# Checks if both seq1 and seq2 are present in each element of vector v
 grepl_seq1_2 <- function(
   v, 
   seq1, 
@@ -16,8 +16,8 @@ grepl_seq1_2 <- function(
 }
 
 
+#' Extracts up to 20 bases following seq_before_barcode_1
 #' @keywords internal
-# Extracts up to 20 bases following seq_before_barcode_1
 extract_BC1 <- function(
   x, 
   seq_before_barcode_1
@@ -38,8 +38,8 @@ extract_BC1 <- function(
 }
 
 
+#' Extracts up to 30 bases following seq_before_barcode_2
 #' @keywords internal
-# Extracts up to 30 bases following seq_before_barcode_2
 extract_BC2 <- function(
   x, 
   seq_before_barcode_2
@@ -60,8 +60,8 @@ extract_BC2 <- function(
 }
 
 
+#' Extracts up to 30 bases preceding seq_after_barcode_3
 #' @keywords internal
-# Extracts up to 30 bases preceding seq_after_barcode_3
 extract_BC3 <- function(
   x, 
   seq_after_barcode_3
@@ -84,8 +84,8 @@ extract_BC3 <- function(
 }
 
 
-#' @keywords internal
 #' Returns the n_barcodes whitelist barcodes with the smallest distance
+#' @keywords internal
 extract_closest_barcodes <- function(
   i,
   dist_matrix,
@@ -102,9 +102,9 @@ extract_closest_barcodes <- function(
 }
 
 
-#' @keywords internal
 #' Corrects a barcode by selecting the closest match, as long as the closest
 #' match has its distance below a defined threshold.
+#' @keywords internal
 correct_BC <- function(distances, thresh){
   # If the distance < the threshold, select the barcode as a match
   if (distances[1] < thresh){
@@ -118,9 +118,9 @@ correct_BC <- function(distances, thresh){
 }
 
 
-#' @keywords internal
 #' Converts a list of barcode distances into a data frame, better suited for
 #' building the downstream QC ggplot histogram
+#' @keywords internal
 prepare_hamming_plot_dataframe <- function(
   BC_list,
   BC_name,
@@ -143,8 +143,8 @@ prepare_hamming_plot_dataframe <- function(
 }
 
 
-#' @keywords internal
 #' Produces a histogram of Hamming distances to the nearest whitelist barcode.
+#' @keywords internal
 barcode_hamming_plot <- function(
   data,
   title
@@ -174,10 +174,10 @@ barcode_hamming_plot <- function(
 }
 
 
-#' @keywords internal
 #' Takes a list of data frame names with vectors of column names to check for in
 #' each, and returns TRUE/FALSE dependent on whether every required column is
 #' present.
+#' @keywords internal
 check_required_columns <- function(
   required_cols
 ) {
@@ -201,8 +201,8 @@ check_required_columns <- function(
 }
 
 
-# Inputs: two character vectors of equal length (NAs allowed).
-# Returns data.frame with merged_sequence (NA if no overlap) and overlap_length (0 if none).
+#' Inputs: two character vectors of equal length (NAs allowed).
+#' Returns data.frame with merged_sequence (NA if no overlap) and overlap_length (0 if none).
 #' @keywords internal
 merge_r1_r2 <- function(
   r1,
@@ -303,13 +303,13 @@ merge_r1_r2 <- function(
 }
 
 
-#' @keywords internal
 #' Searches for substring matches of a target string in DNA sequences.
 #' All sequences and search strings are converted to uppercase for easier
 #' comparison.
 #' Returns: Logical vector indicating which sequences contain the target string
 #' as a substring, or list with logical vector and indices if return_indices =
 #' TRUE
+#' @keywords internal
 check_sequences_contain_string <- function(
   data,
   target_string,
@@ -372,6 +372,27 @@ check_sequences_contain_string <- function(
   }
 }
 
+
+
+#' Calculate a read's end position from the start position and the read's CIGAR string
+#' @keywords internal
+calculate_read_end_position <- function(pos, cigar) {
+  # Break the cigar strings into their constituent chunks
+  cigar_ops <- cigarillo::cigars_as_RleList(cigar)
+  
+  # Extract chunk operations and chunk lengths separately
+  ops  <- S4Vectors::runValue(cigar_ops)
+  lens <- S4Vectors::runLength(cigar_ops)
+  
+  # Create a mask for only ops with value "M" (match) or "D" (deletion)
+  M_or_D <- ops == "M" | ops == "D"
+  lens_filtered <- lens * M_or_D
+  
+  # Sum the lengths of these "M" and "D" chunks
+  total_alignment_lengths <- sum(lens_filtered)
+  
+  return (pos + total_alignment_lengths - 1)
+}
 
 
 
