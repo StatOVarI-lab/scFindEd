@@ -6,7 +6,8 @@
 \usage{
 process_UTR_barcodes(
   source_dir,
-  cell_AmpID,
+  sample_name,
+  UTR_barcode_AmpID,
   min_reads,
   seq_before_barcode_1,
   seq_before_barcode_2,
@@ -19,7 +20,11 @@ process_UTR_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{cell_AmpID}{String containing the AmpID for the cell-barcode amplicon.}
+\item{sample_name}{String containing the file name structure for the
+experiment sample.}
+
+\item{UTR_barcode_AmpID}{String containing the AmpID for the amplicon that
+contains the UTR barcode(s).}
 
 \item{min_reads}{QC threshold: minimum number of reads.}
 
