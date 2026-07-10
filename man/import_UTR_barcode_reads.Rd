@@ -3,12 +3,12 @@
 \name{import_UTR_barcode_reads}
 \alias{import_UTR_barcode_reads}
 \title{Imports data from a file
-Expected file name: e.g. "\{sample_name\}_\{AmpID\}_info.rds"}
+Expected file name: e.g. "\{sample_name\}_\{UTR_barcode_AmpID\}_data.tsv.gz"}
 \usage{
 import_UTR_barcode_reads(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: e.g. "\{sample_name\}_\{AmpID\}_info.rds"
+Expected file name: e.g. "\{sample_name\}_\{UTR_barcode_AmpID\}_data.tsv.gz"
 }
 \keyword{internal}

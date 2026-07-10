@@ -22,59 +22,6 @@ import_cell_to_extracted_BCs <- function(
 }
 
 
-#' Imports data from a file
-#' Expected file name: "sample_name_barcodes_fastq.txt"
-#' @keywords internal
-import_barcode_reads_data <- function(
-  source_dir,
-  file_name,
-  verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- readLines(file_path),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
-#' Imports data from a file
-#' Expected file name: "sample_name_R2_001_readnames_fastq.txt"
-#' @keywords internal
-import_readnames_data <- function(
-  source_dir,
-  file_name,
-  verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- data.table::fread(
-      file_path, header = FALSE, showProgress = verbose)$V1,
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
-
-  return(data)
-}
-
-
 #' Imports data from files
 #' Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"
 #' @keywords internal
@@ -186,7 +133,7 @@ import_BC2_BC3_whitelist <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "XXXX_design_summary_joined.csv"
+#' Expected file name: "\{panel_ID\}_design_summary_joined.csv"
 #' @keywords internal
 import_design_summary_info <- function(
   source_dir,
@@ -210,32 +157,6 @@ import_design_summary_info <- function(
   )
 
   if (verbose) cli::cli_process_done()
-
-  return(data)
-}
-
-
-#' Imports data from a file
-#' Expected file name: "amplicons_barcoded_data.txt"
-#' @keywords internal
-import_amplicons_barcoded_data <- function(
-  source_dir,
-  file_name,
-  verbose
-) {
-  file_path <- file.path(source_dir, file_name)
-  if (verbose) cli::cli_inform("Importing {file_path}...")
-
-  tryCatch(
-    data <- readr::read_tsv(file_path, show_col_types = FALSE),
-    error = function(e) {
-      cli::cli_abort(
-        "Failed to import {file_name} from {source_dir}.")
-    }
-  )
-
-  if (verbose) cli::cli_alert_success(
-    "Successfully imported {file_name} from {source_dir}.")
 
   return(data)
 }
@@ -268,7 +189,7 @@ import_cell_to_UTR_barcode_system <- function(
 
 
 #' Imports data from a file
-#' Expected file name: e.g. "\{sample_name\}_\{AmpID\}_info.rds"
+#' Expected file name: e.g. "\{sample_name\}_\{UTR_barcode_AmpID\}_data.tsv.gz"
 #' @keywords internal
 import_UTR_barcode_reads <- function(
   source_dir,
@@ -294,7 +215,7 @@ import_UTR_barcode_reads <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "sample_name_AmpID_fragment_mutations.tsv"
+#' Expected file name: "\{sample_name\}_\{AmpID\}_fragment_mutations.tsv"
 #' @keywords internal
 import_fragment_mutations <- function(
   source_dir,

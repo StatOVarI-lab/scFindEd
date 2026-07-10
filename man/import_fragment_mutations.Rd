@@ -3,12 +3,12 @@
 \name{import_fragment_mutations}
 \alias{import_fragment_mutations}
 \title{Imports data from a file
-Expected file name: "sample_name_AmpID_fragment_mutations.tsv"}
+Expected file name: "\{sample_name\}_\{AmpID\}_fragment_mutations.tsv"}
 \usage{
 import_fragment_mutations(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: "sample_name_AmpID_fragment_mutations.tsv"
+Expected file name: "\{sample_name\}_\{AmpID\}_fragment_mutations.tsv"
 }
 \keyword{internal}
