@@ -268,20 +268,19 @@ import_cell_to_UTR_barcode_system <- function(
 
 
 #' Imports data from a file
-#' Expected file name: e.g. "AmpID_info.rds"
+#' Expected file name: e.g. "\{sample_name\}_\{AmpID\}_info.rds"
 #' @keywords internal
-import_barcoded_mapped_reads <- function(
+import_UTR_barcode_reads <- function(
   source_dir,
-  AmpID,
+  file_name,
   verbose
 ) {
-  file_name <- paste0(AmpID, "_info.rds")
   file_path <- file.path(source_dir, file_name)
   if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
                                       msg_done = "Successfully imported {file_name}.")
 
   tryCatch(
-    data <- readRDS(file_path),
+    data <- readr::read_tsv(file_path, show_col_types = FALSE),
     error = function(e) {
       cli::cli_abort(
         "Failed to import {file_name} from {source_dir}.")

@@ -12,13 +12,14 @@ output:
 ## process_UTR_barcodes()
 
 ```{r}
-process_UTR_barcodes(source_dir = "data",
-                     cell_AmpID = "AMPL902654",
+process_UTR_barcodes(source_dir = "data/testing",
+                     sample_name = "MB_barcoded",
+                     UTR_barcode_AmpID = "AMPL902654",
                      min_reads = 2,
                      seq_before_barcode_1 = "GTACGAAGACTG",
                      seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
                      seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
-                     output_dir = "data",
+                     output_dir = "data/testing",
                      verbose = TRUE) 
 ```
 
