@@ -61,16 +61,16 @@ assign_UTR_barcodes(source_dir = "data/testing",
                     verbose = TRUE)
 ```
 
-# calculate_HGVSc_codes.R
+# summarise_variants.R
 
-## calculate_HGVSc_codes()
+## summarise_variants()
 
 ```{r}
-calculate_mutation_codes(source_dir = "data/testing",
-                         sample_name = "MB_barcoded",
-                         panel_ID = "6915",
-                         output_dir = "data/testing",
-                         verbose = TRUE)
+summarise_variants(source_dir = "data/testing",
+                   sample_name = "MB_barcoded",
+                   panel_ID = "6915",
+                   output_dir = "data/testing",
+                   verbose = TRUE)
 ```
 
 

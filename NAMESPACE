@@ -2,7 +2,8 @@
 
 export(assign_UTR_barcodes)
 export(barcodes_QC_plots)
-export(calculate_mutation_codes)
 export(identify_whitelisted_barcodes)
 export(process_UTR_barcodes)
+export(summarise_variants)
+importFrom(data.table,":=")
 importFrom(dplyr,"%>%")
