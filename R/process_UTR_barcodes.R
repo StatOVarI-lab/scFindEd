@@ -4,19 +4,12 @@
 #' filtering. It then extracts BC1 and BC2/BC3s from provided flanking
 #' sequences, before grouping cells by cell_barcode and counting reads.
 #'
-#' @param source_dir String containing the relative path to the directory that
-#' source data should be imported from.
-#' @param sample_name String containing the file name structure for the
-#' experiment sample.
-#' @param UTR_barcode_AmpID String containing the AmpID for the amplicon that
-#' contains the UTR barcode(s).
-#' @param min_reads QC threshold: minimum number of reads.
-#' @param seq_before_barcode_1 BC1 flanking sequence.
-#' @param seq_before_barcode_2 BC2 flanking sequence.
-#' @param seq_after_barcode_3 BC3 flanking sequence.
-#' @param output_dir String containing the relative path to the directory that
-#' the output data should be exported to.
-#' @param verbose Boolean deciding whether detailed outputs should be printed.
+#' @inheritParams global_params source_dir sample_name UTR_barcode_AmpID output_dir verbose
+#'
+#' @param min_reads Quality control threshold: minimum number of reads.
+#' @param seq_before_barcode_1 Barcode 1 flanking sequence.
+#' @param seq_before_barcode_2 Barcode 2 flanking sequence.
+#' @param seq_after_barcode_3 Barcode 3 flanking sequence.
 #'
 #' @return A table linking cells to extracted barcodes.
 #'

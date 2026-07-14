@@ -16,7 +16,7 @@ assign_UTR_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{BC_thresholds}{Named ist containing the following barcode thresholds:
+\item{BC_thresholds}{Named list containing the following barcode thresholds:
 \code{BC1_threshold}, \code{BC2_3_threshold}.}
 
 \item{reads_thresholds}{Named list containing the following barcode
@@ -25,7 +25,8 @@ correction thresholds: \code{min_reads}, \code{min_reads_proportion}.}
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 
-\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
+\item{verbose}{Boolean that determines whether detailed outputs should be
+printed.}
 }
 \value{
 A filtered data frame of barcode assignments that meet the read count

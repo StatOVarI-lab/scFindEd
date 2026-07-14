@@ -7,19 +7,15 @@
 #' in the cell, and they constitute more than `min_reads_proportion` of the
 #' barcode reads in that cell.
 #'
-#' @param source_dir String containing the relative path to the directory that
-#' source data should be imported from.
-#' @param BC_thresholds Named ist containing the following barcode thresholds:
+#' @inheritParams global_params source_dir output_dir verbose
+#'
+#' @param BC_thresholds Named list containing the following barcode thresholds:
 #' `BC1_threshold`, `BC2_3_threshold`.
 #' @param reads_thresholds Named list containing the following barcode
 #' correction thresholds: `min_reads`, `min_reads_proportion`.
-#' @param output_dir String containing the relative path to the directory that
-#' the output data should be exported to.
-#' @param verbose Boolean deciding whether detailed outputs should be printed.
 #'
 #' @return A filtered data frame of barcode assignments that meet the read count
 #' and proportion thresholds.
-#'
 #'
 #' @importFrom dplyr %>%
 #'

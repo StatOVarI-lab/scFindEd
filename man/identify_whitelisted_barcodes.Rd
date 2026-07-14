@@ -17,25 +17,27 @@ identify_whitelisted_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{BC1_whitelist_file_name}{String containing the file name structure for
-the BC1 barcode whitelist.}
+\item{BC1_whitelist_file_name}{String containing the exact file name (including
+the file type) for the barcode 1 whitelist.}
 
-\item{BC2_BC3_whitelist_file_name}{String containing the file name structure
-for the BC2/3 barcode whitelist.}
+\item{BC2_BC3_whitelist_file_name}{String containing the exact file name
+(including the file type) for the barcode 2-3 whitelist.}
 
-\item{cell_to_extracted_BCs_file_name}{A string containing the file name
-structure for the RDS data frame linking cells to extracted barcodes.}
+\item{cell_to_extracted_BCs_file_name}{A string containing the exact file name
+(including the file type) for the .RDS data frame that links cells to extracted
+barcodes.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 
-\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
+\item{verbose}{Boolean that determines whether detailed outputs should be
+printed.}
 }
 \value{
-A list of barcode matches for BC1 and a list of barcode matches for
-BC2/BC3.
+A list of barcode matches for barcode 1 and a list of barcode matches
+for barcode 2-3.
 }
 \description{
 This function identifies the three shortest Hamming distances between barcode
-and whitelisted barcode, for each of BC1 and BC2/BC3.
+and whitelisted barcode, for each of barcode 1 and barcode 2-3.
 }

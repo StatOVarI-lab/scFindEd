@@ -16,15 +16,16 @@ summarise_variants(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{sample_name}{String containing the file name structure for the
-experiment sample.}
+\item{sample_name}{String containing the exact file name (including the file
+type) for the experiment sample.}
 
 \item{panel_ID}{String containing the ID number for the design summary panel.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 
-\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
+\item{verbose}{Boolean that determines whether detailed outputs should be
+printed.}
 }
 \value{
 Exports the variant summary file, containing the HGVSc mutation code
