@@ -10,14 +10,7 @@
 #' These variants are then collapsed per cell barcode, and the cell barcode is
 #' matched to its corresponding UTR barcode combination.
 #'
-#' @param source_dir String containing the relative path to the directory that
-#' source data should be imported from.
-#' @param sample_name String containing the file name structure for the
-#' experiment sample.
-#' @param panel_ID String containing the ID number for the design summary panel.
-#' @param output_dir String containing the relative path to the directory that
-#' the output data should be exported to.
-#' @param verbose Boolean deciding whether detailed outputs should be printed.
+#' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
 #'
 #' @return Exports the variant summary file, containing the HGVSc mutation code
 #' that uniquely identifies each variant and its count, for each cell barcode.

@@ -1,21 +1,20 @@
 #' Identifying Closest Whitelisted Barcodes
 #'
 #' This function identifies the three shortest Hamming distances between barcode
-#' and whitelisted barcode, for each of BC1 and BC2/BC3.
-#' @param source_dir String containing the relative path to the directory that
-#' source data should be imported from.
-#' @param BC1_whitelist_file_name String containing the file name structure for
-#' the BC1 barcode whitelist.
-#' @param BC2_BC3_whitelist_file_name String containing the file name structure
-#' for the BC2/3 barcode whitelist.
-#' @param cell_to_extracted_BCs_file_name A string containing the file name
-#' structure for the RDS data frame linking cells to extracted barcodes.
-#' @param output_dir String containing the relative path to the directory that
-#' the output data should be exported to.
-#' @param verbose Boolean deciding whether detailed outputs should be printed.
+#' and whitelisted barcode, for each of barcode 1 and barcode 2-3.
 #'
-#' @return A list of barcode matches for BC1 and a list of barcode matches for
-#' BC2/BC3.
+#' @inheritParams global_params source_dir output_dir verbose
+#'
+#' @param BC1_whitelist_file_name String containing the exact file name (including
+#' the file type) for the barcode 1 whitelist.
+#' @param BC2_BC3_whitelist_file_name String containing the exact file name
+#' (including the file type) for the barcode 2-3 whitelist.
+#' @param cell_to_extracted_BCs_file_name A string containing the exact file name
+#' (including the file type) for the .RDS data frame that links cells to extracted
+#' barcodes.
+#'
+#' @return A list of barcode matches for barcode 1 and a list of barcode matches
+#' for barcode 2-3.
 #'
 #' @importFrom dplyr %>%
 #'

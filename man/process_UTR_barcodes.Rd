@@ -20,24 +20,25 @@ process_UTR_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{sample_name}{String containing the file name structure for the
-experiment sample.}
+\item{sample_name}{String containing the exact file name (including the file
+type) for the experiment sample.}
 
-\item{UTR_barcode_AmpID}{String containing the AmpID for the amplicon that
-contains the UTR barcode(s).}
+\item{UTR_barcode_AmpID}{String containing the amplicon ID (AmpID) for the
+amplicon that contains the inserted UTR barcode(s).}
 
-\item{min_reads}{QC threshold: minimum number of reads.}
+\item{min_reads}{Quality control threshold: minimum number of reads.}
 
-\item{seq_before_barcode_1}{BC1 flanking sequence.}
+\item{seq_before_barcode_1}{Barcode 1 flanking sequence.}
 
-\item{seq_before_barcode_2}{BC2 flanking sequence.}
+\item{seq_before_barcode_2}{Barcode 2 flanking sequence.}
 
-\item{seq_after_barcode_3}{BC3 flanking sequence.}
+\item{seq_after_barcode_3}{Barcode 3 flanking sequence.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 
-\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
+\item{verbose}{Boolean that determines whether detailed outputs should be
+printed.}
 }
 \value{
 A table linking cells to extracted barcodes.

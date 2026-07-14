@@ -1,18 +1,16 @@
-#' Barcoding QC Plots
+#' Barcoding Quality Control Plots
 #'
-#' This function produces illustrative QC plots displaying the distribution of
-#' Hamming distances for the closest and second closest barcode matches for both
-#' BC1 and BC2/3.
+#' This function produces illustrative quality control plots displaying the
+#' distribution of Hamming distances for the closest and second closest barcode
+#' matches for both barcode 1 and barcode 2-3.
 #'
-#' @param source_dir String containing the relative path to the directory that
-#' source data should be imported from.
-#' @param list_BC1_file_name String containing the file name structure for the
-#' list of closest barcode matches for BC1, with Hamming distances.
-#' @param list_BC2_3_file_name String containing the file name structure for the
-#' list of closest barcode matches for BC2/3, with Hamming distances.
-#' @param output_dir String containing the relative path to the directory that
-#' the plots should be exported to.
-#' @param verbose Boolean deciding whether detailed outputs should be printed.
+#' @inheritParams global_params source_dir output_dir verbose
+#'
+#' @param list_BC1_file_name String containing the exact file name (including the
+#' file type) for the list of closest matches for barcode 1, with Hamming distances.
+#' @param list_BC2_3_file_name String containing the exact file name (including
+#' the file type) for the list of closest matches for barcode 2-3, with Hamming
+#' distances.
 #'
 #' @return Two sanity-check histograms that compare the Hamming distance of the
 #' closest barcode matches with the Hamming distance of the second closest

@@ -2,7 +2,7 @@
 % Please edit documentation in R/barcodes_QC_plots.R
 \name{barcodes_QC_plots}
 \alias{barcodes_QC_plots}
-\title{Barcoding QC Plots}
+\title{Barcoding Quality Control Plots}
 \usage{
 barcodes_QC_plots(
   source_dir,
@@ -16,16 +16,18 @@ barcodes_QC_plots(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{list_BC1_file_name}{String containing the file name structure for the
-list of closest barcode matches for BC1, with Hamming distances.}
+\item{list_BC1_file_name}{String containing the exact file name (including the
+file type) for the list of closest matches for barcode 1, with Hamming distances.}
 
-\item{list_BC2_3_file_name}{String containing the file name structure for the
-list of closest barcode matches for BC2/3, with Hamming distances.}
+\item{list_BC2_3_file_name}{String containing the exact file name (including
+the file type) for the list of closest matches for barcode 2-3, with Hamming
+distances.}
 
 \item{output_dir}{String containing the relative path to the directory that
-the plots should be exported to.}
+the output data should be exported to.}
 
-\item{verbose}{Boolean deciding whether detailed outputs should be printed.}
+\item{verbose}{Boolean that determines whether detailed outputs should be
+printed.}
 }
 \value{
 Two sanity-check histograms that compare the Hamming distance of the
@@ -33,7 +35,7 @@ closest barcode matches with the Hamming distance of the second closest
 barcode matches.
 }
 \description{
-This function produces illustrative QC plots displaying the distribution of
-Hamming distances for the closest and second closest barcode matches for both
-BC1 and BC2/3.
+This function produces illustrative quality control plots displaying the
+distribution of Hamming distances for the closest and second closest barcode
+matches for both barcode 1 and barcode 2-3.
 }
