@@ -16,8 +16,6 @@
 #' @return A list of barcode matches for barcode 1 and a list of barcode matches
 #' for barcode 2-3.
 #'
-#' @importFrom dplyr %>%
-#'
 #' @export
 identify_whitelisted_barcodes <- function(
   source_dir,

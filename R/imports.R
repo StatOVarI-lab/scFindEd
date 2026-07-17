@@ -93,7 +93,7 @@ import_BC1_whitelist <- function(
   # Load BC1 whitelist from CSV and assign each a unique name
   tryCatch(
     data <- readr::read_csv(file_path, col_names = FALSE,
-                            show_col_types = FALSE) %>%
+                            show_col_types = FALSE) |>
       dplyr::pull(X1),
     error = function(e) {
       cli::cli_abort("Failed to import {file_name} from {source_dir}.")
