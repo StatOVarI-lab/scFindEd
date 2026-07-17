@@ -17,8 +17,6 @@
 #' @return A filtered data frame of barcode assignments that meet the read count
 #' and proportion thresholds.
 #'
-#' @importFrom dplyr %>%
-#'
 #' @export
 assign_UTR_barcodes <- function(
   source_dir,
@@ -122,12 +120,12 @@ correct_UTR_barcodes <- function(
   )
 
   # Filter out rows with missing barcode corrections
-  cell_to_BCs_all_BCs <- cell_to_BCs %>%
+  cell_to_BCs_all_BCs <- cell_to_BCs |>
     dplyr::filter(BC1 != "", BC2 != "", BC3 != "")
 
   # Group by full barcode combination and sum the counts
-  cell_to_BCs_corrected <- cell_to_BCs_all_BCs %>%
-    dplyr::group_by(cell_barcode, BC1, BC2, BC3) %>%
+  cell_to_BCs_corrected <- cell_to_BCs_all_BCs |>
+    dplyr::group_by(cell_barcode, BC1, BC2, BC3) |>
     dplyr::summarise(n_corrected = sum(n), .groups = "drop")
 
   if (verbose) cli::cli_process_done()
@@ -179,13 +177,13 @@ filter_assigned_barcodes <- function(
                                       msg_done = "Assigned barcodes filtered.")
 
   # Filters barcode assignments by read count, read count proportion thresholds
-  cell_to_BCs_filtered <- cell_to_BCs_assigned %>%
+  cell_to_BCs_filtered <- cell_to_BCs_assigned |>
     dplyr::filter(
       n_corrected >= reads_thresholds$min_reads &
         proportion_reads_in_cell >= reads_thresholds$min_reads_proportion)
 
   # Creates a combined barcode string for each assignment
-  cell_to_BCs_filtered <- cell_to_BCs_filtered %>%
+  cell_to_BCs_filtered <- cell_to_BCs_filtered |>
     dplyr::mutate(all_BCs = paste(BC1, BC2, BC3, sep = "_"))
 
   if (verbose) cli::cli_process_done()

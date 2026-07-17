@@ -16,8 +16,6 @@
 #' closest barcode matches with the Hamming distance of the second closest
 #' barcode matches.
 #'
-#' @importFrom dplyr %>%
-#'
 #' @export
 barcodes_QC_plots <- function(
   source_dir,

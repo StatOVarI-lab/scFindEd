@@ -13,8 +13,6 @@
 #'
 #' @return A table linking cells to extracted barcodes.
 #'
-#' @importFrom dplyr %>%
-#'
 #' @export
 process_UTR_barcodes <- function(
   source_dir,
@@ -38,13 +36,9 @@ process_UTR_barcodes <- function(
     verbose
   )
 
-  print(colnames(UTR_barcode_reads))
-
   if ("barcode" %in% colnames(UTR_barcode_reads)) {
     colnames(UTR_barcode_reads)[colnames(UTR_barcode_reads) == "barcode"] <- "cell_barcode"
   }
-
-  print(colnames(UTR_barcode_reads))
 
   # -- Filter reads according at min_reads threshold --
 
@@ -105,7 +99,7 @@ filter_UTR_barcode_reads <- function(
 
   # Removing the two reads with unusual start position for forward read
   # and are included for both forward and reverse read
-  filtered_UTR_barcode_reads_reverse <- filtered_UTR_barcode_reads_reverse %>%
+  filtered_UTR_barcode_reads_reverse <- filtered_UTR_barcode_reads_reverse |>
     dplyr::filter(!duplicated(read_name))
 
   if (verbose) cli::cli_process_done()
@@ -152,8 +146,7 @@ extract_UTR_barcodes <- function(
                   function(x) extract_BC2(x, seq_before_barcode_2)))
 
   # Create a table with selected columns: read_name, cell_barcode, BC1, and BC2
-  readname_barcodes_table <-
-    UTR_barcode_reads_with_seq_before_BC_1_2 %>%
+  readname_barcodes_table <- UTR_barcode_reads_with_seq_before_BC_1_2 |>
     dplyr::select(read_name, cell_barcode, BC1, BC2)
 
   # Apply extract_BC3 to each sequence and store results in BC3 column
@@ -163,12 +156,12 @@ extract_UTR_barcodes <- function(
 
   # Remove duplicate readnames to ensure unique mapping
   UTR_barcode_reads_with_seq_after_barcode_3 <-
-    UTR_barcode_reads_with_seq_after_barcode_3 %>%
+    UTR_barcode_reads_with_seq_after_barcode_3 |>
     dplyr::filter(!(duplicated(read_name)))
 
-  readname_barcodes_table <- readname_barcodes_table %>%
+  readname_barcodes_table <- readname_barcodes_table |>
     dplyr::left_join(
-      UTR_barcode_reads_with_seq_after_barcode_3 %>%
+      UTR_barcode_reads_with_seq_after_barcode_3 |>
         dplyr::select(read_name, BC3),
       by = "read_name"
     )
@@ -192,16 +185,16 @@ group_UTR_barcodes <- function(
                                       msg_done = "UTR barcodes grouped.")
 
   # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
-  cell_to_extracted_BCs <- readname_barcodes_table %>%
-    dplyr::select(cell_barcode, BC1, BC2, BC3) %>%
-    dplyr::group_by_all()%>%
+  cell_to_extracted_BCs <- readname_barcodes_table |>
+    dplyr::select(cell_barcode, BC1, BC2, BC3) |>
+    dplyr::group_by_all() |>
     dplyr::count()
 
   # Remove rows with any missing values
   cell_to_extracted_BCs <- cell_to_extracted_BCs[stats::complete.cases(cell_to_extracted_BCs),]
 
   # Filter for only the rows where BC1 is 20 bases, and BC2 and BC3 are 30 bases
-  cell_to_extracted_BCs <- cell_to_extracted_BCs %>%
+  cell_to_extracted_BCs <- cell_to_extracted_BCs |>
     dplyr::filter(nchar(BC1) == 20, nchar(BC2) == 30, nchar(BC3) == 30)
 
   if (verbose) cli::cli_process_done()

@@ -14,10 +14,9 @@
 #'
 #' @return Exports the variant summary file, containing the HGVSc mutation code
 #' that uniquely identifies each variant and its count, for each cell barcode.
-
-#' @importFrom dplyr %>%
+#'
 #' @importFrom data.table :=
-
+#'
 #' @export
 summarise_variants <- function(
   source_dir,
@@ -122,8 +121,8 @@ summarise_variants <- function(
 
     # Group all reads in each cell that share the same combined_HGVSc and sum
     # the total fragments
-    variant_summary <- fragment_mutations %>%
-      dplyr::group_by(sample_id, cell_barcode, amp_id, combined_HGVSc) %>%
+    variant_summary <- fragment_mutations |>
+      dplyr::group_by(sample_id, cell_barcode, amp_id, combined_HGVSc) |>
       dplyr::summarise(count = sum(n_fragments, na.rm = TRUE), .groups = "drop")
 
     # -- Assign UTR Barcode Combinations --
@@ -138,11 +137,11 @@ summarise_variants <- function(
 
     # Filter for only cell barcodes that have an assigned UTR barcode combination
     # then match cell barcodes to attach the UTR barcode column to variant_summary
-    variant_summary <- variant_summary %>%
-      dplyr::filter(cell_barcode %in% barcode_system$cell_barcode) %>%
-      dplyr::left_join(barcode_system %>%
+    variant_summary <- variant_summary |>
+      dplyr::filter(cell_barcode %in% barcode_system$cell_barcode) |>
+      dplyr::left_join(barcode_system |>
                          dplyr::select(cell_barcode, all_BCs),
-                       by = "cell_barcode") %>%
+                       by = "cell_barcode") |>
       dplyr::rename(UTR_barcode = all_BCs)
 
     n_cells_post_filter <- length(unique(variant_summary$cell_barcode))
