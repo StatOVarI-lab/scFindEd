@@ -139,29 +139,17 @@ assign_UTR_barcodes_to_cells <- function(
   cell_to_BCs_corrected,
   verbose
 ) {
-  # Creates column to store the proportion of reads per barcode within each cell
-  cell_to_BCs_corrected$proportion_reads_in_cell <- NA
+  if (verbose) cli::cli_process_start(msg = "Assigning corrected UTR barcodes...",
+                                      msg_done = "Corrected UTR barcodes assigned.")
 
-  # Loops through each unique cell barcodeto identify rows corresponding to the
-  # current cell barcode, and calculate the proportion of reads for each barcode
+  # For each cell barcode, calculate the proportion of reads for each UTR barcode
   # assignment within the cell
-  cli::cli_progress_bar(
-    "Assigning corrected UTR barcodes",
-    total = length(unique(cell_to_BCs_corrected$cell_barcode))
-  )
-  for (j in 1:length(unique(cell_to_BCs_corrected$cell_barcode))){
-    xx <- cell_to_BCs_corrected$cell_barcode ==
-      unique(cell_to_BCs_corrected$cell_barcode)[j]
+  cell_to_BCs_corrected <- cell_to_BCs_corrected |>
+    dplyr::group_by(cell_barcode) |>
+    dplyr::mutate(proportion_reads_in_cell = n_corrected / sum(n_corrected, na.rm = TRUE)) |>
+    dplyr::ungroup()
 
-    cell_to_BCs_corrected$proportion_reads_in_cell[xx] <-
-      cell_to_BCs_corrected$n_corrected[xx] / sum(
-        cell_to_BCs_corrected$n_corrected[xx])
-
-    cli::cli_progress_update() # Update progress
-  }
-  cli::cli_progress_done() # Close the progress bar
-
-  if (verbose) cli::cli_alert_success("Corrected UTR barcodes assigned.")
+  if (verbose) cli::cli_process_done()
 
   return (cell_to_BCs_corrected)
 }
