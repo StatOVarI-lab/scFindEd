@@ -127,11 +127,6 @@ identify_BC1_closest_barcodes <- function(
 
   cli::cli_process_start("Computing BC1 distances and extracting three closest...",
                          msg_done = "Three closest BC1s extracted.")
-
-  # A full unique_BC_1 x whitelist distance matrix can exceed .Machine$integer.max
-  # cells (here ~4e9) and tens of GB, which overflows stringdist's indexing and
-  # segfaults. Process the queries in chunks so only a small block of the matrix
-  # exists at once, extracting the three closest whitelist barcodes per row.
   chunk_size <- 1000L
   n_query <- length(unique_BC_1)
   list_BC1 <- vector("list", n_query)
