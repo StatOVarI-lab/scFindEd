@@ -124,7 +124,6 @@ identify_BC1_closest_barcodes <- function(
   whitelist_names <- names(BC1_whitelist)
 
   if (verbose) cli::cli_alert_info("Number of Unique BC1s: {length(unique_BC_1)}")
-
   cli::cli_process_start("Computing BC1 distances and extracting three closest...",
                          msg_done = "Three closest BC1s extracted.")
   chunk_size <- 1000L
@@ -177,12 +176,9 @@ identify_BC2_3_closest_barcodes <- function(
     cli::cli_alert_info("Number of Unique BC2_3 pairs: {length(unique_BC_2_3)}")
   }
 
-  cli::cli_process_start("Computing BC2_3 distances and extracting three closest...",
+  cli::cli_process_start("Extracting three closest BC2_3 pairs...",
                          msg_done = "Three closest BC2_3 pairs extracted.")
 
-  # As for BC1, chunk the queries so the full unique_BC_2_3 x whitelist distance
-  # matrix is never materialised at once (avoids the stringdist integer-overflow
-  # segfault on large inputs).
   chunk_size <- 1000L
   n_query <- length(unique_BC_2_3)
   list_BC2_3 <- vector("list", n_query)
