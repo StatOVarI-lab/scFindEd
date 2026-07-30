@@ -105,6 +105,53 @@ AMPL902653 <- readr::read_tsv("data/testing/MB_barcoded_AMPL902653_true_mutation
                               show_col_types = FALSE)
 ```
 
+# plot_variant_summary.R
+
+## plot_variant_summary()
+
+```{r}
+plot_variant_summary(
+  source_dir = "data/testing",
+  sample_name = "MB_barcoded",
+  panel_ID = "6915",
+  output_dir = "plots",
+  verbose = TRUE
+)
+```
+
+```{r}
+plot_variant_summary(
+  source_dir = "data/testing",
+  sample_name = "MB_barcoded",
+  panel_ID = "6915",
+  amplicon = "AMPL902649",
+  output_dir = "plots",
+  verbose = TRUE
+)
+```
+
+```{r}
+plot_variant_summary(
+  source_dir = "data/testing",
+  sample_name = "MB_barcoded",
+  panel_ID = "6915",
+  barcode = "GCGTCGTCTCCGTCAGGT-1",
+  output_dir = "plots",
+  verbose = TRUE
+)
+```
+
+```{r}
+plot_variant_summary(
+  source_dir = "data/testing",
+  sample_name = "MB_barcoded",
+  panel_ID = "6915",
+  amplicon = "AMPL902649",
+  barcode = "GCGTCGTCTCCGTCAGGT-1",
+  output_dir = "plots",
+  verbose = TRUE
+)
+```
 
 
 

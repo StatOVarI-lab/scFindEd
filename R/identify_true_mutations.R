@@ -1,5 +1,14 @@
 #' Identifying True Mutations in Read Variants
 #'
+#' This function is used to trim the 'noisy' mutations from each variant,
+#' returning variant codes that contain only the likely 'true' mutations. A
+#' 'noisy' mutation is one that appears in less than `true_mutation_proportion`
+#' of the reads in a cell.
+#'
+#' This function also filters variants for a minimum number of reads per cell
+#' - `min_reads`, and a minimum number of cells per UTR barcode combination -
+#' `min_cells`.
+#'
 #' @param min_reads Minimum number of reads for each cell. Cells with fewer than
 #' `min_reads` reads will be filtered out.
 #' @param true_mutation_proportion Minimum proportion of reads that a mutation
@@ -8,6 +17,9 @@
 #' barcode combinations with fewer than `min_cells` cells will be filtered out.
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
+#'
+#' @return Exports the true mutations file, containing the stripped HGVSc mutation
+#' codes that uniquely identifies each variant and its count, for each cell barcode.
 #'
 #' @export
 identify_true_mutations <- function(
