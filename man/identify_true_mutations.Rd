@@ -39,6 +39,20 @@ the output data should be exported to.}
 \item{verbose}{Boolean that determines whether detailed outputs should be
 printed.}
 }
+\value{
+Exports the true mutations file, containing the stripped HGVSc mutation
+codes that uniquely identifies each variant and its count, for each cell barcode.
+}
 \description{
-Identifying True Mutations in Read Variants
+This function is used to trim the 'noisy' mutations from each variant,
+returning variant codes that contain only the likely 'true' mutations. A
+'noisy' mutation is one that appears in less than \code{true_mutation_proportion}
+of the reads in a cell.
+}
+\details{
+This function also filters variants for a minimum number of reads per cell
+\itemize{
+\item \code{min_reads}, and a minimum number of cells per UTR barcode combination -
+\code{min_cells}.
+}
 }
