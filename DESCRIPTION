@@ -16,19 +16,16 @@ Config/testthat/edition: 3
 Imports: 
     cli,
     dplyr,
-    glue,
     data.table,
     readr,
-    tibble,
-    utils,
     ggplot2,
     stats,
     mockery,
     stringdist,
-    stringi,
     cigarillo,
     S4Vectors,
-    stringr
+    stringr,
+    tidyr
 Depends: 
     R (>= 3.5)
 LazyData: true

@@ -242,3 +242,33 @@ import_fragment_mutations <- function(
 
   return(data)
 }
+
+
+#' Imports data from a file
+#' Expected file name: "\{sample_name\}_\{AmpID\}_variant_summary.tsv"
+#' @keywords internal
+import_variant_summary <- function(
+  source_dir,
+  file_name,
+  verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+
+  # Load experiment design summary file
+  tryCatch(
+    if (verbose) {
+      data <- readr::read_tsv(file_path, show_col_types = FALSE)
+    } else {
+      data <- suppressMessages(readr::read_tsv(file_path, show_col_types = FALSE))
+    },
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_process_done()
+
+  return(data)
+}
