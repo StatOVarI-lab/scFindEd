@@ -101,7 +101,7 @@ summarise_variants <- function(
                              msg_done = "HGVSc codes merged.")
     }
 
-    fragment_mutations$combined_HGVSc <- merge_HGVSc_codes(
+    fragment_mutations$merged_HGVSc <- merge_HGVSc_codes(
       fragment_mutations$r1_HGVSc,
       fragment_mutations$r1_pos,
       fragment_mutations$r1_cigar,
@@ -115,14 +115,14 @@ summarise_variants <- function(
 
     if (verbose) {
       cli::cli_process_done()
-      cli::cli_process_start(msg = "Collapsing reads by shared mutation code...",
-                             msg_done = "Reads collapsed by shared mutation code.")
+      cli::cli_process_start(msg = "Collapsing reads by shared HGVSc...",
+                             msg_done = "Reads collapsed by shared HGVSc.")
     }
 
-    # Group all reads in each cell that share the same combined_HGVSc and sum
+    # Group all reads in each cell that share the same merged_HGVSc and sum
     # the total fragments
     variant_summary <- fragment_mutations |>
-      dplyr::group_by(sample_id, cell_barcode, amp_id, combined_HGVSc) |>
+      dplyr::group_by(sample_id, cell_barcode, amp_id, merged_HGVSc) |>
       dplyr::summarise(count = sum(n_fragments, na.rm = TRUE), .groups = "drop")
 
     # -- Assign UTR Barcode Combinations --

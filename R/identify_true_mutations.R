@@ -65,7 +65,7 @@ identify_true_mutations <- function(
                                         msg_done = "Discordant reads removed.")
 
     variant_summary <- variant_summary |>
-      dplyr::filter(combined_HGVSc != "Discordance in overlapping region") |>
+      dplyr::filter(merged_HGVSc != "Discordance in overlapping region") |>
       dplyr::group_by(cell_barcode) |>
       dplyr::mutate(cell_count = sum(count, na.rm = TRUE)) |>
       dplyr::ungroup()
@@ -110,12 +110,12 @@ identify_true_mutations <- function(
                                         msg_done = "'True' mutations identified.")
 
     true_mutations <- variant_summary |>
-      dplyr::mutate(individual_mutation = strsplit(as.character(combined_HGVSc), ";")) |>
+      dplyr::mutate(individual_mutation = strsplit(as.character(merged_HGVSc), ";")) |>
       tidyr::unnest(individual_mutation) |>
       dplyr::group_by(cell_barcode, cell_count, individual_mutation) |>
       dplyr::summarise(mutation_count = sum(count, na.rm = TRUE), .groups = "drop") |>
       dplyr::filter(mutation_count / cell_count > true_mutation_proportion) |>
-      dplyr::arrange(cell_barcode, desc(mutation_count))
+      dplyr::arrange(cell_barcode, dplyr::desc(mutation_count))
 
     if (verbose) cli::cli_process_done()
 
@@ -125,7 +125,7 @@ identify_true_mutations <- function(
                                         msg_done = "'Noise' mutations removed.")
 
     AMPL_variants_denoised <- variant_summary |>
-      dplyr::mutate(individual_mutation = strsplit(as.character(combined_HGVSc), ";")) |>
+      dplyr::mutate(individual_mutation = strsplit(as.character(merged_HGVSc), ";")) |>
       tidyr::unnest(individual_mutation) |>
       dplyr::semi_join(
         true_mutations,
@@ -133,24 +133,25 @@ identify_true_mutations <- function(
       ) |>
       dplyr::group_by(row_id) |>
       dplyr::summarise(
-        combined_HGVSc_denoised = paste(unique(individual_mutation), collapse = ";"),
+        merged_HGVSc_denoised = paste(unique(individual_mutation), collapse = ";"),
         .groups = "drop"
       )
 
     true_mutations <- variant_summary |>
-      dplyr::select(-combined_HGVSc) |>  # Drop old column to avoid duplication
+      dplyr::select(-merged_HGVSc) |>  # Drop old column to avoid duplication
       dplyr::left_join(AMPL_variants_denoised, by = "row_id") |>
       dplyr::mutate(
         # If it's NA (meaning no mutations survived the filter), change it to "WT"
-        combined_HGVSc_denoised = dplyr::if_else(
-          is.na(combined_HGVSc_denoised) | combined_HGVSc_denoised == "",
+        merged_HGVSc_denoised = dplyr::if_else(
+          is.na(merged_HGVSc_denoised) | merged_HGVSc_denoised == "",
           "WT",
-          combined_HGVSc_denoised
+          merged_HGVSc_denoised
         )
       ) |>
-      dplyr::group_by(sample_id, cell_barcode, amp_id, UTR_barcode, cell_count, combined_HGVSc_denoised) |>
+      dplyr::rename(merged_HGVSc = merged_HGVSc_denoised) |>
+      dplyr::group_by(sample_id, cell_barcode, amp_id, UTR_barcode, cell_count, merged_HGVSc) |>
       dplyr::summarise(count = sum(count, na.rm = TRUE), .groups = "drop") |>
-      dplyr::arrange(UTR_barcode, cell_barcode, desc(count))
+      dplyr::arrange(UTR_barcode, cell_barcode, dplyr::desc(count))
 
     if (verbose) cli::cli_process_done()
 
