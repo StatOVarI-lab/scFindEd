@@ -173,7 +173,7 @@ select_variants <- function(
   if (is.null(barcode)) {
     # Remove wildtypes, only if not filtering by barcode
     true_mutations <- true_mutations |>
-      dplyr::filter(combined_HGVSc_denoised != "WT")
+      dplyr::filter(merged_HGVSc != "WT")
   }
 
   # If barcode IS defined, filter for only cell_barcode / UTR_barcode == barcode
@@ -187,18 +187,18 @@ select_variants <- function(
 
   # Calculate counts and proportions of each variant, as well as a total count
   true_mutations <- true_mutations |>
-    dplyr::group_by(sample_id, amp_id, combined_HGVSc_denoised) |>
+    dplyr::group_by(sample_id, amp_id, merged_HGVSc) |>
     dplyr::summarise(variant_copy = sum(count, na.rm = TRUE), .groups = "drop") |>
     dplyr::ungroup() |>
     dplyr::mutate(total_count = sum(variant_copy)) |>
     dplyr::mutate(variant_proportion = variant_copy / total_count) |>
-    dplyr::arrange(desc(variant_proportion), desc(variant_copy))
+    dplyr::arrange(dplyr::desc(variant_proportion), dplyr::desc(variant_copy))
 
   # Limit the number of printed variants to 20 rows
   variant_data <- true_mutations |>
     dplyr::slice_head(n = 20) |>
     dplyr::select(
-      variant    = combined_HGVSc_denoised,
+      variant    = merged_HGVSc,
       count      = variant_copy,
       proportion = variant_proportion
     ) |>
@@ -234,7 +234,7 @@ compile_alignments <- function(
     alignments_df$sequence_pos <- 1:nrow(alignments_df)
     alignments_df$sample <- label
     return(alignments_df)
-  }) %>%
+  }) |>
     dplyr::bind_rows()
 
   # Assign layout factor order explicitly
@@ -283,9 +283,9 @@ construct_variant_summary_plot <- function(
       dplyr::summarise(
         xmin = min(sequence_pos) - 0.5,
         xmax = max(sequence_pos) + 0.5,
-        ymin = first(as.numeric(factor(sample, levels = rev(y_axis_levels)))) - 0.5,
-        ymax = first(as.numeric(factor(sample, levels = rev(y_axis_levels)))) + 0.5,
-        event_type = first(event_type),
+        ymin = dplyr::first(as.numeric(factor(sample, levels = rev(y_axis_levels)))) - 0.5,
+        ymax = dplyr::first(as.numeric(factor(sample, levels = rev(y_axis_levels)))) + 0.5,
+        event_type = dplyr::first(event_type),
         .groups = 'drop'
       )
   } else {
@@ -298,19 +298,23 @@ construct_variant_summary_plot <- function(
   }
 
   # Construct ggplot
-  variant_summary_plot <- ggplot(compiled_alignments, aes(x = sequence_pos, y = sample)) +
-    geom_tile(aes(fill = base), colour = "white", lwd = 0.2, show.legend = FALSE) +
+  variant_summary_plot <- ggplot2::ggplot(
+    compiled_alignments, ggplot2::aes(x = sequence_pos, y = sample)) +
 
-    geom_text(aes(label = base), colour = "black", size = 2.6, fontface = "plain") +
+    ggplot2::geom_tile(ggplot2::aes(fill = base),
+                       colour = "white", lwd = 0.2, show.legend = FALSE) +
 
-    scale_y_discrete(
+    ggplot2::geom_text(ggplot2::aes(label = base),
+                       colour = "black", size = 2.6, fontface = "plain") +
+
+    ggplot2::scale_y_discrete(
       drop = FALSE,
       limits = rev(y_axis_levels),
       labels = axis_label_lookup) +
 
-    scale_fill_manual(values = base_colours) +
+    ggplot2::scale_fill_manual(values = base_colours) +
 
-    scale_x_continuous(
+    ggplot2::scale_x_continuous(
       breaks = seq(informative_window_coordinates[["window_start"]],
                    informative_window_coordinates[["window_end"]],
                    by = 5),
@@ -318,19 +322,21 @@ construct_variant_summary_plot <- function(
                  informative_window_coordinates[["window_end"]] + 0.5),
       expand = c(0, 0)) +
 
-    labs(title = plot_title,
+    ggplot2::labs(title = plot_title,
          x = "Sequence Position Relative to Reference Amplicon",
          y = NULL)
 
   if (n_variants > 0) {
     # Only plot mutation boxes if there *are* mutations
     variant_summary_plot <- variant_summary_plot +
-      geom_rect(data = mutation_boxes, aes(xmin = xmin, xmax = xmax,
-                                           ymin = ymin, ymax = ymax,
-                                           colour = event_type),
-                fill = NA, lwd = 0.5, inherit.aes = FALSE) +
+      ggplot2::geom_rect(data = mutation_boxes, ggplot2::aes(xmin = xmin,
+                                                             xmax = xmax,
+                                                             ymin = ymin,
+                                                             ymax = ymax,
+                                                             colour = event_type),
+                         fill = NA, lwd = 0.5, inherit.aes = FALSE) +
 
-      scale_colour_manual(
+      ggplot2::scale_colour_manual(
         values = border_colours,
         breaks = c("insertion", "deletion", "substitution"),
         labels = c("Insertion", "Deletion", "Substitution"))
@@ -338,13 +344,13 @@ construct_variant_summary_plot <- function(
 
   # Add theme for the plot *after* conditionally adding mutation boxes
   variant_summary_plot <- variant_summary_plot +
-    theme_minimal() +
-    theme(
-      panel.grid = element_blank(),
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      panel.grid      = ggplot2::element_blank(),
       legend.position = "top",
-      legend.title = element_blank(),
-      axis.text.y = element_text(face = "bold", size = 9),
-      plot.title = element_text(face = "bold", hjust = 0.5, size = 13))
+      legend.title    = ggplot2::element_blank(),
+      axis.text.y     = ggplot2::element_text(face = "bold", size = 9),
+      plot.title      = ggplot2::element_text(face = "bold", hjust = 0.5, size = 13))
 
   if (verbose) cli::cli_process_done()
 
