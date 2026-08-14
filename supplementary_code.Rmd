@@ -43,9 +43,6 @@ process_UTR_barcodes(source_dir = "data/testing",
                      sample_name = "MB_barcoded",
                      UTR_barcode_AmpID = "AMPL902654",
                      min_reads = 2,
-                     seq_before_barcode_1 = "GTACGAAGACTG",
-                     seq_before_barcode_2 = "CGATACTTGTTCGATCCTTCGC",
-                     seq_after_barcode_3 = "CTTGTCTCGCTCCGGG",
                      output_dir = "data/testing",
                      verbose = TRUE) 
 ```
@@ -56,9 +53,9 @@ process_UTR_barcodes(source_dir = "data/testing",
 
 ```{r}
 identify_whitelisted_barcodes(source_dir = "data/testing",
+                              sample_name = "MB_barcoded",
                               BC1_whitelist_file_name = "75K_barcode.csv",
                               BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
-                              cell_to_extracted_BCs_file_name = "cell_to_extracted_BCs.rds",
                               output_dir = "data/testing",
                               verbose = TRUE)
 ```

@@ -74,10 +74,8 @@ evaluate_optimal_barcode_flanks <- function(
   flank_sizes <- seq(min_flank_size, max_flank_size)
 
   # Combine filtered forward and reverse reads
-  reads_by_orientation <- list(
-    forward = filtered_UTR_barcode_reads_forward,
-    reverse = filtered_UTR_barcode_reads_reverse
-  )
+  reads_by_orientation <- list(forward = filtered_UTR_barcode_reads_forward,
+                               reverse = filtered_UTR_barcode_reads_reverse)
   directions <- c("upstream", "downstream")
 
   # Create a grid of every (barcode x orientation x direction) combination
