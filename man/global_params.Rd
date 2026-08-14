@@ -15,6 +15,8 @@ type) for the experiment sample.}
 \item{UTR_barcode_AmpID}{String containing the amplicon ID (AmpID) for the
 amplicon that contains the inserted UTR barcode(s).}
 
+\item{min_reads}{Quality control threshold: minimum number of reads.}
+
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 

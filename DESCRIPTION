@@ -11,6 +11,7 @@ Roxygen: list(markdown = TRUE)
 Suggests: 
     knitr,
     rmarkdown,
+    mockery,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
@@ -20,12 +21,15 @@ Imports:
     readr,
     ggplot2,
     stats,
-    mockery,
     stringdist,
     cigarillo,
     S4Vectors,
     stringr,
-    tidyr
+    tidyr,
+    Biostrings,
+    IRanges,
+    purrr,
+    tibble
 Depends: 
     R (>= 3.5)
 LazyData: true

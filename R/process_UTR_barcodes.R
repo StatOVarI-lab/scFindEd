@@ -4,9 +4,8 @@
 #' filtering. It then extracts BC1 and BC2/BC3s from provided flanking
 #' sequences, before grouping cells by cell_barcode and counting reads.
 #'
-#' @inheritParams global_params source_dir sample_name UTR_barcode_AmpID output_dir verbose
+#' @inheritParams global_params source_dir sample_name UTR_barcode_AmpID min_reads output_dir verbose
 #'
-#' @param min_reads Quality control threshold: minimum number of reads.
 #' @param seq_before_barcode_1 Barcode 1 flanking sequence.
 #' @param seq_before_barcode_2 Barcode 2 flanking sequence.
 #' @param seq_after_barcode_3 Barcode 3 flanking sequence.

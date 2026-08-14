@@ -7,6 +7,7 @@
 #' @param panel_ID String containing the ID number for the design summary panel.
 #' @param UTR_barcode_AmpID String containing the amplicon ID (AmpID) for the
 #' amplicon that contains the inserted UTR barcode(s).
+#' @param min_reads Quality control threshold: minimum number of reads.
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
 #' @param verbose Boolean that determines whether detailed outputs should be

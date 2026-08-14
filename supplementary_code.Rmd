@@ -7,6 +7,33 @@ output:
     toc: yes  
 ---
 
+# extract_UTR_barcode_info.R
+
+## extract_UTR_barcode_info()
+
+```{r}
+extract_UTR_barcode_info(source_dir = "data/testing",
+                         sample_name = "MB_barcoded",
+                         UTR_barcode_AmpID = "AMPL902654",
+                         output_dir = "data/testing",
+                         verbose = TRUE)
+```
+
+# evaluate_optimal_barcode_flanks.R
+
+## evaluate_optimal_barcode_flanks()
+
+```{r}
+evaluate_optimal_barcode_flanks(source_dir = "data/testing",
+                                sample_name = "MB_barcoded",
+                                UTR_barcode_AmpID = "AMPL902654",
+                                min_reads = 2,
+                                min_flank_size = 5,
+                                max_flank_size = 20,
+                                output_dir = "data/testing",
+                                verbose = TRUE) 
+```
+
 # process_UTR_barcodes.R
 
 ## process_UTR_barcodes()
