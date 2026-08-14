@@ -20,7 +20,6 @@ Imports:
     data.table,
     readr,
     ggplot2,
-    stats,
     stringdist,
     cigarillo,
     S4Vectors,

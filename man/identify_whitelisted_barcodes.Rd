@@ -6,9 +6,9 @@
 \usage{
 identify_whitelisted_barcodes(
   source_dir,
+  sample_name,
   BC1_whitelist_file_name,
   BC2_BC3_whitelist_file_name,
-  cell_to_extracted_BCs_file_name,
   output_dir = NULL,
   verbose = TRUE
 )
@@ -17,15 +17,14 @@ identify_whitelisted_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
+\item{sample_name}{String containing the exact file name (including the file
+type) for the experiment sample.}
+
 \item{BC1_whitelist_file_name}{String containing the exact file name (including
 the file type) for the barcode 1 whitelist.}
 
 \item{BC2_BC3_whitelist_file_name}{String containing the exact file name
 (including the file type) for the barcode 2-3 whitelist.}
-
-\item{cell_to_extracted_BCs_file_name}{A string containing the exact file name
-(including the file type) for the .RDS data frame that links cells to extracted
-barcodes.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}

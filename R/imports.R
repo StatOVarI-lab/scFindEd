@@ -71,7 +71,11 @@ import_cell_to_extracted_BCs <- function(
                                       msg_done = "Successfully imported {file_name}.")
 
   tryCatch(
-    data <- readRDS(file_path),
+    if (verbose) {
+      data <- readr::read_csv(file_path, show_col_types = FALSE)
+    } else {
+      data <- suppressMessages(readr::read_csv(file_path, show_col_types = FALSE))
+    },
     error = function(e) {
       cli::cli_abort("Failed to import {file_name} from {source_dir}.")
     }

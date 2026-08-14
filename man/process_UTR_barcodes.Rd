@@ -9,9 +9,6 @@ process_UTR_barcodes(
   sample_name,
   UTR_barcode_AmpID,
   min_reads,
-  seq_before_barcode_1,
-  seq_before_barcode_2,
-  seq_after_barcode_3,
   output_dir = NULL,
   verbose = TRUE
 )
@@ -27,12 +24,6 @@ type) for the experiment sample.}
 amplicon that contains the inserted UTR barcode(s).}
 
 \item{min_reads}{Quality control threshold: minimum number of reads.}
-
-\item{seq_before_barcode_1}{Barcode 1 flanking sequence.}
-
-\item{seq_before_barcode_2}{Barcode 2 flanking sequence.}
-
-\item{seq_after_barcode_3}{Barcode 3 flanking sequence.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}

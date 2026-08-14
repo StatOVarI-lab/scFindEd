@@ -3,15 +3,12 @@
 #' This function identifies the three shortest Hamming distances between barcode
 #' and whitelisted barcode, for each of barcode 1 and barcode 2-3.
 #'
-#' @inheritParams global_params source_dir output_dir verbose
+#' @inheritParams global_params source_dir sample_name output_dir verbose
 #'
 #' @param BC1_whitelist_file_name String containing the exact file name (including
 #' the file type) for the barcode 1 whitelist.
 #' @param BC2_BC3_whitelist_file_name String containing the exact file name
 #' (including the file type) for the barcode 2-3 whitelist.
-#' @param cell_to_extracted_BCs_file_name A string containing the exact file name
-#' (including the file type) for the .RDS data frame that links cells to extracted
-#' barcodes.
 #'
 #' @return A list of barcode matches for barcode 1 and a list of barcode matches
 #' for barcode 2-3.
@@ -19,38 +16,33 @@
 #' @export
 identify_whitelisted_barcodes <- function(
   source_dir,
+  sample_name,
   BC1_whitelist_file_name,
   BC2_BC3_whitelist_file_name,
-  cell_to_extracted_BCs_file_name,
   output_dir = NULL,
   verbose = TRUE
 ) {
   # -- Import whitelists --
 
-  imported_whitelists <- import_whitelisted_barcodes(
-    source_dir,
-    BC1_whitelist_file_name,
-    BC2_BC3_whitelist_file_name,
-    verbose
-  )
+  imported_whitelists <- import_whitelisted_barcodes(source_dir,
+                                                     BC1_whitelist_file_name,
+                                                     BC2_BC3_whitelist_file_name,
+                                                     verbose)
 
   invisible(list2env(imported_whitelists, envir = environment()))
 
   # -- Import cell to extracted BCs --
 
-  cell_to_extracted_BCs <- import_cell_to_extracted_BCs(
-    source_dir,
-    cell_to_extracted_BCs_file_name,
-    verbose
-  )
+  cell_to_extracted_BCs_file_name <- paste0(sample_name, "_cell_to_extracted_BCs.csv")
+  cell_to_extracted_BCs <- import_cell_to_extracted_BCs(source_dir,
+                                                        cell_to_extracted_BCs_file_name,
+                                                        verbose)
 
   # -- Identify the Three BC1s with the Shortest Hamming Distance
 
-  list_BC1 <- identify_BC1_closest_barcodes(
-    cell_to_extracted_BCs,
-    BC1_whitelist,
-    verbose
-  )
+  list_BC1 <- identify_BC1_closest_barcodes(cell_to_extracted_BCs,
+                                            BC1_whitelist,
+                                            verbose)
 
   # -- Optional file saving (only if output_dir is specified) --
   if (!is.null(output_dir)) {
