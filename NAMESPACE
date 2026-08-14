@@ -2,6 +2,8 @@
 
 export(assign_UTR_barcodes)
 export(barcodes_QC_plots)
+export(evaluate_optimal_barcode_flanks)
+export(extract_UTR_barcode_info)
 export(identify_true_mutations)
 export(identify_whitelisted_barcodes)
 export(plot_variant_summary)

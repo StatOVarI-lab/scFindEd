@@ -1,4 +1,64 @@
 #' Imports data from a file
+#' Expected file name: "ref_amplicons_sorted.fa"
+#' @keywords internal
+import_reference_amplicons <- function(
+  source_dir,
+  verbose
+) {
+  file_name <- "ref_amplicons_sorted.fa"
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+
+  # Load experiment design summary file
+  tryCatch(
+    if (verbose) {
+      data <- Biostrings::readDNAStringSet(file_path)
+    } else {
+      data <- suppressMessages(Biostrings::readDNAStringSet(file_path))
+    },
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_process_done()
+
+  return(data)
+}
+
+
+#' Imports data from a file
+#' Expected file name: "\{sample_name\}_UTR_barcode_info.csv"
+#' @keywords internal
+import_UTR_barcode_info <- function(
+  source_dir,
+  file_name,
+  verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+
+  # Load experiment design summary file
+  tryCatch(
+    if (verbose) {
+      data <- readr::read_csv(file_path, show_col_types = FALSE)
+    } else {
+      data <- suppressMessages(readr::read_csv(file_path, show_col_types = FALSE))
+    },
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_process_done()
+
+  return(data)
+}
+
+
+#' Imports data from a file
 #' Expected file name: "cell_to_extracted_BCs.rds"
 #' @keywords internal
 import_cell_to_extracted_BCs <- function(
