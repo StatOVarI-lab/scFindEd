@@ -7,8 +7,7 @@ threshold correction.}
 \usage{
 correct_UTR_barcodes(
   cell_to_extracted_BCs,
-  list_BC1,
-  list_BC2_3,
+  barcode_distance_lists,
   BC_thresholds,
   verbose
 )

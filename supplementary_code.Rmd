@@ -19,6 +19,7 @@ extract_UTR_barcode_info(source_dir = "data/testing",
                          verbose = TRUE)
 ```
 
+
 # evaluate_optimal_barcode_flanks.R
 
 ## evaluate_optimal_barcode_flanks()
@@ -34,6 +35,7 @@ evaluate_optimal_barcode_flanks(source_dir = "data/testing",
                                 verbose = TRUE) 
 ```
 
+
 # process_UTR_barcodes.R
 
 ## process_UTR_barcodes()
@@ -47,6 +49,7 @@ process_UTR_barcodes(source_dir = "data/testing",
                      verbose = TRUE) 
 ```
 
+
 # identify_whitelisted_barcodes.R
 
 ## identify_whitelisted_barcodes()
@@ -54,24 +57,17 @@ process_UTR_barcodes(source_dir = "data/testing",
 ```{r}
 identify_whitelisted_barcodes(source_dir = "data/testing",
                               sample_name = "MB_barcoded",
-                              BC1_whitelist_file_name = "75K_barcode.csv",
-                              BC2_BC3_whitelist_file_name = "Wong_barcode_pairs.csv",
+                              whitelist_barcode_files = list(
+                                BC1 = "BC1_whitelist_barcodes.csv",
+                                BC2 = "BC2_whitelist_barcodes.csv",
+                                BC3 = "BC3_whitelist_barcodes.csv"
+                              ),
+                              n_threads = 4,
                               output_dir = "data/testing",
+                              plots_output_dir = "plots",
                               verbose = TRUE)
 ```
 
-
-# barcodes_QC_plots.R
-
-## barcodes_QC_plots()
-
-```{r}
-barcodes_QC_plots(source_dir = "data/testing",
-                  list_BC1_file_name = "list_BC1.rds",
-                  list_BC2_3_file_name = "list_BC2_3.rds",
-                  output_dir = "plots",
-                  verbose = TRUE)
-```
 
 # assign_UTR_barcodes.R
 
@@ -84,6 +80,24 @@ assign_UTR_barcodes(source_dir = "data/testing",
                     output_dir = "data/testing",
                     verbose = TRUE)
 ```
+
+```{r}
+assign_UTR_barcodes(source_dir = "data/testing",
+                    sample_name = "MB_barcoded",
+                    BC_thresholds = list(
+                      BC1 = 3, 
+                      BC2 = 5, 
+                      BC3 = 5
+                    ),
+                    reads_thresholds = list(
+                      min_reads = 5,
+                      min_reads_proportion = 0.9
+                    ),
+                    output_dir = "data/testing",
+                    verbose = TRUE)
+```
+
+
 
 # summarise_variants.R
 

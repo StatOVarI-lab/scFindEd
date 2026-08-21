@@ -6,6 +6,7 @@
 \usage{
 assign_UTR_barcodes(
   source_dir,
+  sample_name,
   BC_thresholds,
   reads_thresholds,
   output_dir,
@@ -16,8 +17,12 @@ assign_UTR_barcodes(
 \item{source_dir}{String containing the relative path to the directory that
 source data should be imported from.}
 
-\item{BC_thresholds}{Named list containing the following barcode thresholds:
-\code{BC1_threshold}, \code{BC2_3_threshold}.}
+\item{sample_name}{String containing the exact file name (including the file
+type) for the experiment sample.}
+
+\item{BC_thresholds}{A named list pairing each UTR barcode ID with the
+barcode-specific distance threshold below which an extracted barcode may be
+corrected to a whitelist barcode.}
 
 \item{reads_thresholds}{Named list containing the following barcode
 correction thresholds: \code{min_reads}, \code{min_reads_proportion}.}
