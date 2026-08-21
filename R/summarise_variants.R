@@ -34,7 +34,7 @@ summarise_variants <- function(
 
   # -- Import Cell to UTR Barcode System --
 
-  barcode_system_file_name <- "cell_to_UTR_barcode_system.csv"
+  barcode_system_file_name <- paste0(sample_name, "_cell_to_UTR_barcode_system.csv")
   barcode_system <- import_cell_to_UTR_barcode_system(source_dir,
                                                       barcode_system_file_name,
                                                       verbose)

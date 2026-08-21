@@ -7,9 +7,10 @@
 identify_whitelisted_barcodes(
   source_dir,
   sample_name,
-  BC1_whitelist_file_name,
-  BC2_BC3_whitelist_file_name,
+  whitelist_barcode_files = NULL,
+  n_threads = 1,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose = TRUE
 )
 }
@@ -20,23 +21,30 @@ source data should be imported from.}
 \item{sample_name}{String containing the exact file name (including the file
 type) for the experiment sample.}
 
-\item{BC1_whitelist_file_name}{String containing the exact file name (including
-the file type) for the barcode 1 whitelist.}
+\item{whitelist_barcode_files}{A named list pairing each UTR barcode ID with
+.csv file name from which to draw the whitelisted barcode from.}
 
-\item{BC2_BC3_whitelist_file_name}{String containing the exact file name
-(including the file type) for the barcode 2-3 whitelist.}
+\item{n_threads}{An integer value that confirms how many threads/cores the
+function should utilise in constructing the barcode distance matrices.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{plots_output_dir}{String containing the relative path to the directory
+that the output quality control plots should be exported to.}
 
 \item{verbose}{Boolean that determines whether detailed outputs should be
 printed.}
 }
 \value{
-A list of barcode matches for barcode 1 and a list of barcode matches
-for barcode 2-3.
+A .rds list of the shortest distance whitelist barcodes for each of
+the UTR barcodes in the experiment. Also produces a Hamming distance-based
+quality control plot for each UTR barcode, showing the distributions of
+distances between the extracted barcodes and the first and second closest
+whitelist barcodes.
 }
 \description{
-This function identifies the three shortest Hamming distances between barcode
-and whitelisted barcode, for each of barcode 1 and barcode 2-3.
+This function identifies the shortest Hamming distances between the extracted
+barcodes and the whitelist of barcodes for each of the UTR barcodes in the
+experiment.
 }

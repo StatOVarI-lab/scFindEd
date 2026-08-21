@@ -5,7 +5,7 @@
 \title{Corrects a barcode by selecting the closest match, as long as the closest
 match has its distance below a defined threshold.}
 \usage{
-correct_BC(distances, thresh)
+correct_BC(distances, threshold)
 }
 \description{
 Corrects a barcode by selecting the closest match, as long as the closest

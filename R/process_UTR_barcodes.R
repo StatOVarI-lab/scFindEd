@@ -62,7 +62,7 @@ process_UTR_barcodes <- function(
 
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
     readr::write_csv(cell_to_extracted_BCs,
-            file = file.path(output_dir, cell_to_extracted_BCS_file_name))
+                     file = file.path(output_dir, cell_to_extracted_BCS_file_name))
 
     cli::cli_alert_success(
       "Grouped UTR barcodes exported to: {normalizePath(output_dir)}")

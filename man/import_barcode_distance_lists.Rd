@@ -3,17 +3,12 @@
 \name{import_barcode_distance_lists}
 \alias{import_barcode_distance_lists}
 \title{Imports data from files
-Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"}
+Expected file name(s): "\{sample_name\}_\{BC_IDs\}_closest_barcodes.rds"}
 \usage{
-import_barcode_distance_lists(
-  source_dir,
-  list_BC1_file_name,
-  list_BC2_3_file_name,
-  verbose
-)
+import_barcode_distance_lists(source_dir, sample_name, BC_IDs, verbose)
 }
 \description{
 Imports data from files
-Expected file name(s): "list_BC1.rds", "list_BC2_3.rds"
+Expected file name(s): "\{sample_name\}_\{BC_IDs\}_closest_barcodes.rds"
 }
 \keyword{internal}
