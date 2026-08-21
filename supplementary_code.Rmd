@@ -98,7 +98,6 @@ assign_UTR_barcodes(source_dir = "data/testing",
 ```
 
 
-
 # summarise_variants.R
 
 ## summarise_variants()
@@ -110,6 +109,7 @@ summarise_variants(source_dir = "data/testing",
                    output_dir = "data/testing",
                    verbose = TRUE)
 ```
+
 
 # identify_true_mutations.R
 
@@ -142,6 +142,7 @@ AMPL902652 <- readr::read_tsv("data/testing/MB_barcoded_AMPL902652_true_mutation
 AMPL902653 <- readr::read_tsv("data/testing/MB_barcoded_AMPL902653_true_mutations.tsv",
                               show_col_types = FALSE)
 ```
+
 
 # plot_variant_summary.R
 
