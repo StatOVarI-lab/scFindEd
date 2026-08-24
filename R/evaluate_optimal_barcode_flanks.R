@@ -58,7 +58,7 @@ evaluate_optimal_barcode_flanks <- function(
   invisible(list2env(filter_identity_amplicon_reads(
     identity_amplicon_reads,
     min_reads,
-    verbose
+    verbose = FALSE
   ), envir = environment()))
 
   # -- Set Up Barcode Analysis --
@@ -74,8 +74,8 @@ evaluate_optimal_barcode_flanks <- function(
   flank_sizes <- seq(min_flank_size, max_flank_size)
 
   # Combine filtered forward and reverse reads
-  reads_by_orientation <- list(forward = filtered_identity_amplicon_reads_forward,
-                               reverse = filtered_identity_amplicon_reads_reverse)
+  reads_by_orientation <- list(forward = identity_amplicon_reads_forward,
+                               reverse = identity_amplicon_reads_reverse)
   directions <- c("upstream", "downstream")
 
   # Create a grid of every (barcode x orientation x direction) combination
@@ -138,7 +138,7 @@ evaluate_optimal_barcode_flanks <- function(
 
   # -- Consensus Suggestions --
 
-  total_reads <- nrow(filtered_identity_amplicon_reads_forward)
+  total_reads <- nrow(identity_amplicon_reads_forward)
 
   # Rule: among flank lengths with 0 multiple hits, select the flank with the
   # most single hits. Break ties by selecting the shorter flank.

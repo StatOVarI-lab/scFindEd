@@ -18,8 +18,8 @@ test_that("filter_identity_amplicon_reads returns a list with the correct names"
   expect_type(result, "list")
   expect_named(
     result,
-    c("filtered_identity_amplicon_reads_forward",
-      "filtered_identity_amplicon_reads_reverse")
+    c("identity_amplicon_reads_forward",
+      "identity_amplicon_reads_reverse")
   )
 })
 
@@ -40,12 +40,12 @@ test_that("filter_identity_amplicon_reads returns data frames for forward and re
   )
 
   expect_s3_class(
-    result$filtered_identity_amplicon_reads_forward,
+    result$identity_amplicon_reads_forward,
     "data.frame"
   )
 
   expect_s3_class(
-    result$filtered_identity_amplicon_reads_reverse,
+    result$identity_amplicon_reads_reverse,
     "data.frame"
   )
 })
