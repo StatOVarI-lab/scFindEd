@@ -37,8 +37,8 @@ evaluate_optimal_barcode_flanks <- function(
 ) {
   # -- Import datasets --
 
-  identity_amplicon_reads_file_name <- paste0(sample_name, "_",
-                                              identity_AmpID, "_data.tsv.gz")
+  identity_amplicon_reads_file_name <- paste0(sample_name, "_", identity_AmpID,
+                                              "_reads.tsv.gz")
   identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
                                                             identity_amplicon_reads_file_name,
                                                             verbose)

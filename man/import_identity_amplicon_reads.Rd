@@ -3,12 +3,12 @@
 \name{import_identity_amplicon_reads}
 \alias{import_identity_amplicon_reads}
 \title{Imports data from a file
-Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_data.tsv.gz"}
+Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_reads.tsv.gz"}
 \usage{
 import_identity_amplicon_reads(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_data.tsv.gz"
+Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_reads.tsv.gz"
 }
 \keyword{internal}
