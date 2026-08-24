@@ -6,15 +6,16 @@
 #' of the reads in a cell.
 #'
 #' This function also filters variants for a minimum number of reads per cell
-#' - `min_reads`, and a minimum number of cells per UTR barcode combination -
-#' `min_cells`.
+#' - `min_reads`, and a minimum number of cells per identity barcode combination
+#' - `min_cells`.
 #'
 #' @param min_reads Minimum number of reads for each cell. Cells with fewer than
 #' `min_reads` reads will be filtered out.
 #' @param true_mutation_proportion Minimum proportion of reads that a mutation
 #' must appear in to be considered a 'true' mutation within it's cell.
-#' @param min_cells Minimum number of cells per UTR barcode combination. UTR
-#' barcode combinations with fewer than `min_cells` cells will be filtered out.
+#' @param min_cells Minimum number of cells per identity barcode combination.
+#' Identity barcode combinations with fewer than `min_cells` cells will be
+#' filtered out.
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
 #'
@@ -91,11 +92,11 @@ identify_true_mutations <- function(
 
     # -- Filter by min_cells --
 
-    if (verbose) cli::cli_process_start(msg = "Removing UTR barcode combinations with fewer than {min_cells} cells...",
-                                        msg_done = "UTR barcode combinations with fewer than {min_cells} removed.")
+    if (verbose) cli::cli_process_start(msg = "Removing identity barcode combinations with fewer than {min_cells} cells...",
+                                        msg_done = "Identity barcode combinations with fewer than {min_cells} removed.")
 
     variant_summary <- variant_summary |>
-      dplyr::group_by(UTR_barcode) |>
+      dplyr::group_by(identity_barcode) |>
       dplyr::filter(dplyr::n_distinct(cell_barcode) >= min_cells) |>
       dplyr::ungroup()
 
@@ -149,9 +150,9 @@ identify_true_mutations <- function(
         )
       ) |>
       dplyr::rename(merged_HGVSc = merged_HGVSc_denoised) |>
-      dplyr::group_by(sample_id, cell_barcode, amp_id, UTR_barcode, cell_count, merged_HGVSc) |>
+      dplyr::group_by(sample_id, cell_barcode, amp_id, identity_barcode, cell_count, merged_HGVSc) |>
       dplyr::summarise(count = sum(count, na.rm = TRUE), .groups = "drop") |>
-      dplyr::arrange(UTR_barcode, cell_barcode, dplyr::desc(count))
+      dplyr::arrange(identity_barcode, cell_barcode, dplyr::desc(count))
 
     if (verbose) cli::cli_process_done()
 

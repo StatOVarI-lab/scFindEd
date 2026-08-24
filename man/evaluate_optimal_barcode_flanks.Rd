@@ -7,7 +7,7 @@
 evaluate_optimal_barcode_flanks(
   source_dir,
   sample_name,
-  UTR_barcode_AmpID,
+  identity_AmpID,
   min_reads = 2,
   min_flank_size = 5,
   max_flank_size = 20,
@@ -22,8 +22,8 @@ source data should be imported from.}
 \item{sample_name}{String containing the exact file name (including the file
 type) for the experiment sample.}
 
-\item{UTR_barcode_AmpID}{String containing the amplicon ID (AmpID) for the
-amplicon that contains the inserted UTR barcode(s).}
+\item{identity_AmpID}{String containing the amplicon ID (AmpID) for
+the amplicon that contains the inserted identity barcode(s).}
 
 \item{min_reads}{Quality control threshold: minimum number of reads.}
 
@@ -42,13 +42,13 @@ printed.}
 \value{
 The optimal flank (flank size, orientation - forward/reverse read,
 direction - upstream/downstream) is suggested and added to
-\verb{\{sample_name\}_UTR_barcode_info.csv}. Summary stats for each possible flank
-are also saved to \verb{\{sample_name\}_BC\{ID\}_flank_stats.csv}.
+\verb{\{sample_name\}_identity_barcode_info.csv}. Summary stats for each possible
+flank are also saved to \verb{\{sample_name\}_BC\{ID\}_flank_stats.csv}.
 }
 \description{
-This function takes the extracted UTR barcode information as well as the
-sequenced reads on \code{UTR_barcode_AmpID} in order to determin the best choice
-of flank for each UTR barocde.
+This function takes the extracted identity barcode information as well as the
+sequenced reads on \code{identity_AmpID} in order to determine the best choice of
+flank for each identity barocde.
 }
 \details{
 The best choice of flank is determined as the flank that: has 0 reads where

@@ -5,8 +5,8 @@
 #' @param sample_name String containing the exact file name (including the file
 #' type) for the experiment sample.
 #' @param panel_ID String containing the ID number for the design summary panel.
-#' @param UTR_barcode_AmpID String containing the amplicon ID (AmpID) for the
-#' amplicon that contains the inserted UTR barcode(s).
+#' @param identity_AmpID String containing the amplicon ID (AmpID) for
+#' the amplicon that contains the inserted identity barcode(s).
 #' @param min_reads Quality control threshold: minimum number of reads.
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.

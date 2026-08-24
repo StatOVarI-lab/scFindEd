@@ -1,8 +1,8 @@
 #' Evaluate Optimal Barcode Flanks
 #'
-#' This function takes the extracted UTR barcode information as well as the
-#' sequenced reads on `UTR_barcode_AmpID` in order to determin the best choice
-#' of flank for each UTR barocde.
+#' This function takes the extracted identity barcode information as well as the
+#' sequenced reads on `identity_AmpID` in order to determine the best choice of
+#' flank for each identity barocde.
 #'
 #' The best choice of flank is determined as the flank that: has 0 reads where
 #' the flank has multiple hits and has the most reads with a single hit, with
@@ -12,7 +12,7 @@
 #' .csv summary file for each barcode so that users may evaluate each flank
 #' possibility for themselves.
 #'
-#' @inheritParams global_params source_dir sample_name UTR_barcode_AmpID min_reads output_dir verbose
+#' @inheritParams global_params source_dir sample_name identity_AmpID min_reads output_dir verbose
 #'
 #' @param min_flank_size An integer that defines the minimum flank size to be
 #' evaluated. Cannot be less than 5.
@@ -21,14 +21,14 @@
 #'
 #' @return The optimal flank (flank size, orientation - forward/reverse read,
 #' direction - upstream/downstream) is suggested and added to
-#' `{sample_name}_UTR_barcode_info.csv`. Summary stats for each possible flank
-#' are also saved to `{sample_name}_BC{ID}_flank_stats.csv`.
+#' `{sample_name}_identity_barcode_info.csv`. Summary stats for each possible
+#' flank are also saved to `{sample_name}_BC{ID}_flank_stats.csv`.
 #'
 #' @export
 evaluate_optimal_barcode_flanks <- function(
   source_dir,
   sample_name,
-  UTR_barcode_AmpID,
+  identity_AmpID,
   min_reads = 2,
   min_flank_size = 5,
   max_flank_size = 20,
@@ -37,26 +37,26 @@ evaluate_optimal_barcode_flanks <- function(
 ) {
   # -- Import datasets --
 
-  UTR_barcode_reads_file_name <- paste0(sample_name, "_",
-                                        UTR_barcode_AmpID, "_data.tsv.gz")
-  UTR_barcode_reads <- import_UTR_barcode_reads(source_dir,
-                                                UTR_barcode_reads_file_name,
-                                                verbose)
+  identity_amplicon_reads_file_name <- paste0(sample_name, "_",
+                                              identity_AmpID, "_data.tsv.gz")
+  identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
+                                                            identity_amplicon_reads_file_name,
+                                                            verbose)
 
-  UTR_barcode_info_file_name <- paste0(sample_name, "_UTR_barcode_info.csv")
-  UTR_barcode_info <- import_UTR_barcode_info(source_dir,
-                                              UTR_barcode_info_file_name,
-                                              verbose)
+  identity_barcode_info_file_name <- paste0(sample_name, "_identity_barcode_info.csv")
+  identity_barcode_info <- import_identity_barcode_info(source_dir,
+                                                        identity_barcode_info_file_name,
+                                                        verbose)
 
   # If cell_barcode is mis-named as barcode, convert the column name
-  if ("barcode" %in% colnames(UTR_barcode_reads)) {
-    colnames(UTR_barcode_reads)[colnames(UTR_barcode_reads) == "barcode"] <- "cell_barcode"
+  if ("barcode" %in% colnames(identity_amplicon_reads)) {
+    colnames(identity_amplicon_reads)[colnames(identity_amplicon_reads) == "barcode"] <- "cell_barcode"
   }
 
   # -- Filter reads according to min_reads threshold --
 
-  invisible(list2env(filter_UTR_barcode_reads(
-    UTR_barcode_reads,
+  invisible(list2env(filter_identity_amplicon_reads(
+    identity_amplicon_reads,
     min_reads,
     verbose
   ), envir = environment()))
@@ -74,13 +74,13 @@ evaluate_optimal_barcode_flanks <- function(
   flank_sizes <- seq(min_flank_size, max_flank_size)
 
   # Combine filtered forward and reverse reads
-  reads_by_orientation <- list(forward = filtered_UTR_barcode_reads_forward,
-                               reverse = filtered_UTR_barcode_reads_reverse)
+  reads_by_orientation <- list(forward = filtered_identity_amplicon_reads_forward,
+                               reverse = filtered_identity_amplicon_reads_reverse)
   directions <- c("upstream", "downstream")
 
   # Create a grid of every (barcode x orientation x direction) combination
   plan <- tidyr::expand_grid(
-    barcode_row = seq_len(nrow(UTR_barcode_info)),
+    barcode_row = seq_len(nrow(identity_barcode_info)),
     orientation = names(reads_by_orientation),
     direction   = directions
   )
@@ -88,7 +88,7 @@ evaluate_optimal_barcode_flanks <- function(
   # -- Compute hits / multiple-hit stats for every combination --
 
   all_stats <- purrr::pmap_dfr(plan, function(barcode_row, orientation, direction) {
-    barcode_No <- UTR_barcode_info$barcode_ID[barcode_row]
+    barcode_No <- identity_barcode_info$barcode_ID[barcode_row]
 
     if (verbose) cli::cli_process_start(msg = "BC{barcode_No}: Assessing {orientation} {direction} flanks...",
                                         msg_done = "BC{barcode_No}: {orientation} {direction} flanks assessed.")
@@ -96,7 +96,7 @@ evaluate_optimal_barcode_flanks <- function(
     # Test flanks on both reads, in both directions, from min_flank_size to max_flank_size
     stats <- test_flanks(
       reads_by_orientation[[orientation]],
-      UTR_barcode_info[barcode_row, ],
+      identity_barcode_info[barcode_row, ],
       direction,
       min_flank_size,
       max_flank_size
@@ -138,10 +138,10 @@ evaluate_optimal_barcode_flanks <- function(
 
   # -- Consensus Suggestions --
 
-  total_reads <- nrow(filtered_UTR_barcode_reads_forward)
+  total_reads <- nrow(filtered_identity_amplicon_reads_forward)
 
-  # Rule: among flanl lengths with 0 multiple hits, select the flank with the most single hits
-  # Break ties by selecting the shorter flank.
+  # Rule: among flank lengths with 0 multiple hits, select the flank with the
+  # most single hits. Break ties by selecting the shorter flank.
   consensus <- all_stats |>
     dplyr::filter(multiple_hits == 0) |>
     dplyr::group_by(barcode_ID) |>
@@ -150,7 +150,7 @@ evaluate_optimal_barcode_flanks <- function(
     dplyr::ungroup()
 
   # Assess if any barcodes have no flank lengths that prevent multiple hits
-  failed_barcodes <- setdiff(UTR_barcode_info$barcode_ID, consensus$barcode_ID)
+  failed_barcodes <- setdiff(identity_barcode_info$barcode_ID, consensus$barcode_ID)
   if (length(failed_barcodes) > 0) {
     cli::cli_alert_warning(
       "No flank size with 0 multiple hits found for BC{failed_barcodes} within size range {min_flank_size}-{max_flank_size}."
@@ -171,14 +171,14 @@ evaluate_optimal_barcode_flanks <- function(
   # -- Optional file saving (only if output_dir is specified) --
 
   if (!is.null(output_dir)) {
-    UTR_barcode_info <- cbind(UTR_barcode_info,
-                              consensus |> dplyr::select(flank_size, orientation, direction) |>
-                                dplyr::rename(optimal_flank_size = flank_size))
+    identity_barcode_info <- cbind(identity_barcode_info,
+                                   consensus |> dplyr::select(flank_size, orientation, direction) |>
+                                     dplyr::rename(optimal_flank_size = flank_size))
 
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    readr::write_csv(UTR_barcode_info, file = file.path(output_dir, UTR_barcode_info_file_name))
+    readr::write_csv(identity_barcode_info, file = file.path(output_dir, identity_barcode_info_file_name))
 
-    cli::cli_alert_success("UTR barcode information saved to: {normalizePath(output_dir)}.")
+    cli::cli_alert_success("Identity barcode information saved to: {normalizePath(output_dir)}.")
   }
 }
 
@@ -186,15 +186,15 @@ evaluate_optimal_barcode_flanks <- function(
 #' @keywords internal
 test_flanks <- function(
   reads,
-  UTR_barcode_info,
+  identity_barcode_info,
   direction,
   min_size,
   max_size
 ) {
   # Extract barcode info
-  amplicon_seq <- UTR_barcode_info$amplicon_seq[1]
-  start        <- UTR_barcode_info$start[1]
-  end          <- UTR_barcode_info$end[1]
+  amplicon_seq <- identity_barcode_info$amplicon_seq[1]
+  start        <- identity_barcode_info$start[1]
+  end          <- identity_barcode_info$end[1]
   flank_sizes  <- min_size:max_size
 
   # One vectorized str_count() pass per flank size against ALL reads at once,

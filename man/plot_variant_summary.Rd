@@ -26,9 +26,9 @@ type) for the experiment sample.}
 \item{amplicon}{A string containing the amplicon ID (AmpID), to be used when
 generating a plot for a specific amplicon.}
 
-\item{barcode}{A string containing the cell barcode / UTR barcode combination,
-to be used when generating plot(s) only for a specific cell / UTR barcode
-combination subset.}
+\item{barcode}{A string containing the cell barcode / identity barcode
+combination, to be used when generating plot(s) only for a specific cell /
+identity barcode combination subset.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
@@ -38,13 +38,13 @@ printed.}
 }
 \value{
 By default, exports a bulked variant summary plot for every amplicon.
-Can also export a specific amplicon, a specific cell barcode / UTR barcode
-combination, or both.
+Can also export a specific amplicon, a specific cell barcode / identity
+barcode combination, or both.
 }
 \description{
 This function is used to visualise the distribution of variants across a
 sample. It can be used to generate plot(s) for all variants in each amplicon,
 or in a specific amplicon. It can also be used to generate plot(s) for all
-variants that belong to a specific cell barcode / UTR barcode combination,
-also for either every amplicon or a specific amplicon.
+variants that belong to a specific cell barcode / identity barcode
+combination, also for either every amplicon or a specific amplicon.
 }

@@ -1,15 +1,15 @@
-#' Assign UTR Barcodes
+#' Assign Identity Barcodes
 #'
-#' This function begins by correcting UTR barcode combinations by applying
-#' Hamming distance-based threshold correction. It then assigns cell-UTR barcode
-#' combinations as follows: a UTR barcode combination is assigned to a cell if
-#' and only if there are at least `min_reads` reads of that barcode combination
-#' in the cell, and they constitute more than `min_reads_proportion` of the
-#' barcode reads in that cell.
+#' This function begins by correcting identity barcode combinations by applying
+#' Hamming distance-based threshold correction. It then assigns cell-identity
+#' barcode combinations as follows: an identity barcode combination is assigned
+#' to a cell if and only if there are at least `min_reads` reads of that barcode
+#' combination in the cell, and they constitute more than `min_reads_proportion`
+#' of the barcode reads in that cell.
 #'
 #' @inheritParams global_params source_dir sample_name output_dir verbose
 #'
-#' @param BC_thresholds A named list pairing each UTR barcode ID with the
+#' @param BC_thresholds A named list pairing each identity barcode ID with the
 #' barcode-specific distance threshold below which an extracted barcode may be
 #' corrected to a whitelist barcode.
 #' @param reads_thresholds Named list containing the following barcode
@@ -19,7 +19,7 @@
 #' and proportion thresholds.
 #'
 #' @export
-assign_UTR_barcodes <- function(
+assign_identity_barcodes <- function(
   source_dir,
   sample_name,
   BC_thresholds,
@@ -54,17 +54,17 @@ assign_UTR_barcodes <- function(
 
   # -- Barcode Correction --
 
-  cell_to_corrected_BCs <- correct_UTR_barcodes(
+  cell_to_corrected_BCs <- correct_identity_barcodes(
     cell_to_extracted_BCs,
     barcode_distance_lists,
     BC_thresholds,
     verbose
   )
 
-  # -- UTR Barcode Assignment --
+  # -- Identity Barcode Assignment --
 
-  cell_to_assigned_BCs <- assign_UTR_barcodes_to_cells(cell_to_corrected_BCs,
-                                                       verbose)
+  cell_to_assigned_BCs <- assign_identity_barcodes_to_cells(cell_to_corrected_BCs,
+                                                            verbose)
 
   # -- Filtration --
 
@@ -74,14 +74,14 @@ assign_UTR_barcodes <- function(
 
   # -- Optional file saving (only if output_dir is specified) --
   if (!is.null(output_dir)) {
-    barcode_system_file_name <- paste0(sample_name, "_cell_to_UTR_barcode_system.csv")
+    barcode_system_file_name <- paste0(sample_name, "_barcode_system.csv")
 
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
     readr::write_csv(barcode_system,
                      file = file.path(output_dir, barcode_system_file_name))
 
     cli::cli_alert_success(
-      "Cell to UTR barcode system saved to: {normalizePath(output_dir)}."
+      "Cell to identity barcode system saved to: {normalizePath(output_dir)}."
     )
   }
 }
@@ -90,14 +90,14 @@ assign_UTR_barcodes <- function(
 #' This function corrects barcode assignments by applying Hamming distance-based
 #' threshold correction.
 #' @keywords internal
-correct_UTR_barcodes <- function(
+correct_identity_barcodes <- function(
   cell_to_extracted_BCs,
   barcode_distance_lists,
   BC_thresholds,
   verbose
 ) {
-  if (verbose) cli::cli_process_start(msg = "Correcting UTR barcodes...",
-                                      msg_done = "UTR barcodes corrected.")
+  if (verbose) cli::cli_process_start(msg = "Correcting Identity barcodes...",
+                                      msg_done = "Identity barcodes corrected.")
 
   # Initialise corrected barcodes data frame
   cell_to_corrected_BCs <- data.frame(cell_barcode = cell_to_extracted_BCs$cell_barcode)
@@ -156,14 +156,14 @@ correct_UTR_barcodes <- function(
 
 
 #' @keywords internal
-assign_UTR_barcodes_to_cells <- function(
+assign_identity_barcodes_to_cells <- function(
   cell_to_corrected_BCs,
   verbose
 ) {
-  if (verbose) cli::cli_process_start(msg = "Assigning corrected UTR barcodes...",
-                                      msg_done = "Corrected UTR barcodes assigned to cells.")
+  if (verbose) cli::cli_process_start(msg = "Assigning corrected identity barcodes...",
+                                      msg_done = "Corrected identity barcodes assigned to cells.")
 
-  # For each cell barcode, calculate the proportion of reads for each UTR barcode
+  # For each cell barcode, calculate the proportion of reads for each identity barcode
   # assignment within the cell
   cell_to_corrected_BCs <- cell_to_corrected_BCs |>
     dplyr::group_by(cell_barcode) |>

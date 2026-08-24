@@ -31,7 +31,7 @@ import_reference_amplicons <- function(
 #' Imports data from a file
 #' Expected file name: "\{sample_name\}_UTR_barcode_info.csv"
 #' @keywords internal
-import_UTR_barcode_info <- function(
+import_identity_barcode_info <- function(
   source_dir,
   file_name,
   verbose
@@ -200,9 +200,9 @@ import_design_summary_info <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "cell_to_UTR_barcode_system.csv"
+#' Expected file name: "\{sample_name\}_barcode_system.csv"
 #' @keywords internal
-import_cell_to_UTR_barcode_system <- function(
+import_barcode_system <- function(
   source_dir,
   file_name,
   verbose
@@ -226,9 +226,9 @@ import_cell_to_UTR_barcode_system <- function(
 
 
 #' Imports data from a file
-#' Expected file name: e.g. "\{sample_name\}_\{UTR_barcode_AmpID\}_data.tsv.gz"
+#' Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_data.tsv.gz"
 #' @keywords internal
-import_UTR_barcode_reads <- function(
+import_identity_amplicon_reads <- function(
   source_dir,
   file_name,
   verbose

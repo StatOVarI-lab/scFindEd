@@ -1,25 +1,24 @@
 #' Identifying Closest Whitelisted Barcodes
 #'
 #' This function identifies the shortest Hamming distances between the extracted
-#' barcodes and the whitelist of barcodes for each of the UTR barcodes in the
-#' experiment.
+#' barcodes and the whitelist of barcodes for each of the identity barcodes in
+#' the experiment.
 #'
 #' @inheritParams global_params source_dir sample_name output_dir verbose
 #'
-#' @param whitelist_barcode_files A named list pairing each UTR barcode ID with
-#' .csv file name from which to draw the whitelisted barcode from.
+#' @param whitelist_barcode_files A named list pairing each identity barcode ID
+#' with .csv file name from which to draw the whitelisted barcode from.
 #' @param n_threads An integer value that confirms how many threads/cores the
 #' function should utilise in constructing the barcode distance matrices.
 #' @param plots_output_dir String containing the relative path to the directory
 #' that the output quality control plots should be exported to.
 #'
 #' @return A .rds list of the shortest distance whitelist barcodes for each of
-#' the UTR barcodes in the experiment. Also produces a Hamming distance-based
-#' quality control plot for each UTR barcode, showing the distributions of
-#' distances between the extracted barcodes and the first and second closest
-#' whitelist barcodes.
+#' the identity barcodes in the experiment. Also produces a Hamming
+#' distance-based quality control plot for each identity barcode, showing the
+#' distributions of distances between the extracted barcodes and the first and
+#' second closest whitelist barcodes.
 #'
-#' @export
 #' @export
 identify_whitelisted_barcodes <- function(
   source_dir,
