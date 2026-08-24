@@ -47,8 +47,8 @@ process_identity_barcodes <- function(
   # -- Extract identity barcodes using known flanking sequences --
 
   extracted_barcodes_table <- extract_identity_barcodes(
-    filtered_identity_amplicon_reads_forward,
-    filtered_identity_amplicon_reads_reverse,
+    identity_amplicon_reads_forward,
+    identity_amplicon_reads_reverse,
     identity_barcode_info,
     verbose
   )
@@ -77,32 +77,74 @@ filter_identity_amplicon_reads <- function(
   min_reads,
   verbose
 ) {
-  if (verbose) cli::cli_process_start(msg = "Filtering identity amplicon reads...",
-                                      msg_done = "Identity amplicon reads filtered.")
+  if (verbose) {
+    cli::cli_process_start(msg = "Filtering identity amplicon reads...",
+                           msg_done = "Identity amplicon reads filtered.")
+
+    # Calculate pre-filter cells and reads total
+    pre_filter_cells <- length(unique(identity_amplicon_reads$cell_barcode))
+    pre_filter_reads <- length(unique(identity_amplicon_reads$read_name))
+  }
 
   # Mark and filter for barcodes that appear more than min_reads times
-  barcodes_keep <-
-    names(table(identity_amplicon_reads$cell_barcode))[table(identity_amplicon_reads$cell_barcode)>min_reads]
-  filtered_identity_amplicon_reads <-
-    identity_amplicon_reads[identity_amplicon_reads$cell_barcode%in%barcodes_keep,]
+  identity_amplicon_reads <- identity_amplicon_reads |>
+    dplyr::group_by(cell_barcode) |>
+    dplyr::filter(dplyr::n() > min_reads) |>
+    dplyr::ungroup()
 
-  # Subset of forward reads with a start position between 40 and 43
-  filtered_identity_amplicon_reads_forward <-
-    filtered_identity_amplicon_reads[filtered_identity_amplicon_reads$pos%in%40:43,]
-  # Subset of reverse reads with a start position between 142 and 148
-  filtered_identity_amplicon_reads_reverse <-
-    filtered_identity_amplicon_reads[filtered_identity_amplicon_reads$pos%in%142:148,]
+  # Filter out read names where the forward and reverse read positions are the same
+  duplicate_pos <- identity_amplicon_reads$read_name[
+    duplicated(identity_amplicon_reads[, c("read_name", "pos")])]
+  identity_amplicon_reads <- identity_amplicon_reads[
+    !identity_amplicon_reads$read_name %in% duplicate_pos, ]
 
-  # Removing the two reads with unusual start position for forward read
-  # and are included for both forward and reverse read
-  filtered_identity_amplicon_reads_reverse <- filtered_identity_amplicon_reads_reverse |>
-    dplyr::filter(!duplicated(read_name))
+  # Sort the data frame by read_name, then by pos
+  # Such that the first occurrence of each read_name is the forward read
+  sorted_reads <- identity_amplicon_reads[
+    order(identity_amplicon_reads$read_name, identity_amplicon_reads$pos), ]
+  is_second_read <- duplicated(sorted_reads$read_name)
 
-  if (verbose) cli::cli_process_done()
+  # First occurrence = forward, second occurrence = reverse
+  identity_amplicon_reads_forward <- sorted_reads[!is_second_read, ]
+  identity_amplicon_reads_reverse <- sorted_reads[is_second_read, ]
+
+  # Calculate acceptable read pos bounds
+  forward_bounds <- quantile(identity_amplicon_reads_forward$pos,
+                             probs = c(0.025, 0.975))
+  reverse_bounds <- quantile(identity_amplicon_reads_reverse$pos,
+                             probs = c(0.025, 0.975))
+
+  # Subset reads with start positions between acceptable bounds
+  identity_amplicon_reads_forward <- identity_amplicon_reads_forward |>
+    dplyr::filter(dplyr::between(pos, forward_bounds[1], forward_bounds[2]))
+  identity_amplicon_reads_reverse <- identity_amplicon_reads_reverse |>
+    dplyr::filter(dplyr::between(pos, reverse_bounds[1], reverse_bounds[2]))
+
+  # Remove any now unpaired reads
+  identity_amplicon_reads_forward <- dplyr::semi_join(identity_amplicon_reads_forward,
+                                                      identity_amplicon_reads_reverse,
+                                                      by = "read_name")
+  identity_amplicon_reads_reverse <- dplyr::semi_join(identity_amplicon_reads_reverse,
+                                                      identity_amplicon_reads_forward,
+                                                      by = "read_name")
+
+  if (verbose) {
+    cli::cli_process_done()
+
+    # Calculate post-filter cells and reads total
+    post_filter_reads <- nrow(identity_amplicon_reads_forward)
+    post_filter_cells <- length(unique(identity_amplicon_reads_forward$cell_barcode))
+
+    cli::cli_alert_info("Total reads retained: {post_filter_reads} / {pre_filter_reads}.")
+    cli::cli_alert_info("Cells retained: {post_filter_cells} / {pre_filter_cells}.")
+
+    cli::cli_alert_info("Retained forward read start positions: {forward_bounds[1]} - {forward_bounds[2]}.")
+    cli::cli_alert_info("Retained reverse read start positions: {reverse_bounds[1]} - {reverse_bounds[2]}.")
+  }
 
   return(list(
-    filtered_identity_amplicon_reads_forward = filtered_identity_amplicon_reads_forward,
-    filtered_identity_amplicon_reads_reverse = filtered_identity_amplicon_reads_reverse
+    identity_amplicon_reads_forward = identity_amplicon_reads_forward,
+    identity_amplicon_reads_reverse = identity_amplicon_reads_reverse
   ))
 }
 
@@ -172,7 +214,6 @@ extract_identity_barcodes <- function(
                        values_from = barcode_seq)
 
   # Keep only read pairs where every barcode was found
-  n_reads <- nrow(extracted_barcodes_wide)
   extracted_barcodes_wide <- extracted_barcodes_wide |> tidyr::drop_na()
 
   # Switch read_name for cell_barcode
@@ -185,8 +226,8 @@ extract_identity_barcodes <- function(
 
   if (verbose) {
     cli::cli_process_done()
-    n_reads_all_barcodes <- nrow(extracted_barcodes_wide)
-    cli::cli_alert_info("Complete set of barcodes extracted for {n_reads_all_barcodes} out of {n_reads} total reads.")
+    n_reads <- nrow(extracted_barcodes_wide)
+    cli::cli_alert_info("Complete sets of barcodes extracted for {n_reads} reads.")
   }
 
   return(extracted_barcodes_wide)
@@ -212,8 +253,8 @@ group_identity_barcodes <- function(
 
   if (verbose) {
     cli::cli_process_done()
-    n_cells <- nrow(cell_to_extracted_BCs)
-    cli::cli_alert_info("Complete set of barcodes extracted for {n_cells} cells.")
+    n_cells <- length(unique(cell_to_extracted_BCs$cell_barcode))
+    cli::cli_alert_info("Complete sets of barcodes extracted for {n_cells} cells.")
   }
 
   return(cell_to_extracted_BCs)
