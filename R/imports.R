@@ -29,7 +29,7 @@ import_reference_amplicons <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "\{sample_name\}_UTR_barcode_info.csv"
+#' Expected file name: "\{sample_name\}_identity_barcode_info.csv"
 #' @keywords internal
 import_identity_barcode_info <- function(
   source_dir,
@@ -226,7 +226,7 @@ import_barcode_system <- function(
 
 
 #' Imports data from a file
-#' Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_data.tsv.gz"
+#' Expected file name: e.g. "\{sample_name\}_\{identity_AmpID\}_reads.tsv.gz"
 #' @keywords internal
 import_identity_amplicon_reads <- function(
   source_dir,

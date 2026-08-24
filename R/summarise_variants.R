@@ -58,7 +58,7 @@ summarise_variants <- function(
 
     fragment_mutations_file_name <- paste0(sample_name, "_", AmpID,
                                            "_fragment_mutations.tsv.gz")
-    fragment_mutations <- import_fragment_mutations(paste0(source_dir, "/fragments"),
+    fragment_mutations <- import_fragment_mutations(paste0(source_dir, "/fragment_mutations"),
                                                     fragment_mutations_file_name,
                                                     verbose)
 

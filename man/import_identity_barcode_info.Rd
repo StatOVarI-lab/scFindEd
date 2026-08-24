@@ -3,12 +3,12 @@
 \name{import_identity_barcode_info}
 \alias{import_identity_barcode_info}
 \title{Imports data from a file
-Expected file name: "\{sample_name\}_UTR_barcode_info.csv"}
+Expected file name: "\{sample_name\}_identity_barcode_info.csv"}
 \usage{
 import_identity_barcode_info(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: "\{sample_name\}_UTR_barcode_info.csv"
+Expected file name: "\{sample_name\}_identity_barcode_info.csv"
 }
 \keyword{internal}
