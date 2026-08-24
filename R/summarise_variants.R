@@ -8,7 +8,7 @@
 #' The two HGVSc codes are then merged - if they are concordant in the overlapping
 #' region - to produce a single code that describes a unique variant.
 #' These variants are then collapsed per cell barcode, and the cell barcode is
-#' matched to its corresponding UTR barcode combination.
+#' matched to its corresponding identity barcode combination.
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
 #'
@@ -32,12 +32,12 @@ summarise_variants <- function(
                                                     design_summary_file_name,
                                                     verbose)
 
-  # -- Import Cell to UTR Barcode System --
+  # -- Import Barcode System --
 
-  barcode_system_file_name <- paste0(sample_name, "_cell_to_UTR_barcode_system.csv")
-  barcode_system <- import_cell_to_UTR_barcode_system(source_dir,
-                                                      barcode_system_file_name,
-                                                      verbose)
+  barcode_system_file_name <- paste0(sample_name, "_barcode_system.csv")
+  barcode_system <- import_barcode_system(source_dir,
+                                          barcode_system_file_name,
+                                          verbose)
 
   # Extract unique amplicon IDs
   amplicon_list <- unique(design_summary_file$AmpID)
@@ -125,30 +125,30 @@ summarise_variants <- function(
       dplyr::group_by(sample_id, cell_barcode, amp_id, merged_HGVSc) |>
       dplyr::summarise(count = sum(n_fragments, na.rm = TRUE), .groups = "drop")
 
-    # -- Assign UTR Barcode Combinations --
+    # -- Assign Identity Barcode Combinations --
 
     if (verbose) {
       cli::cli_process_done()
-      cli::cli_process_start(msg = "Linking cell barcodes to UTR barcode combination...",
-                             msg_done = "Cells linked to UTR barcode combination.")
+      cli::cli_process_start(msg = "Linking cell barcodes to identity barcode combination...",
+                             msg_done = "Cells linked to identity barcode combination.")
     }
 
     n_cells_pre_filter <- length(unique(variant_summary$cell_barcode))
 
-    # Filter for only cell barcodes that have an assigned UTR barcode combination
-    # then match cell barcodes to attach the UTR barcode column to variant_summary
+    # Filter for only cell barcodes that have an assigned identity barcode combination
+    # then match cell barcodes to attach the identity barcode column to variant_summary
     variant_summary <- variant_summary |>
       dplyr::filter(cell_barcode %in% barcode_system$cell_barcode) |>
       dplyr::left_join(barcode_system |>
                          dplyr::select(cell_barcode, all_BCs),
                        by = "cell_barcode") |>
-      dplyr::rename(UTR_barcode = all_BCs)
+      dplyr::rename(identity_barcode = all_BCs)
 
     n_cells_post_filter <- length(unique(variant_summary$cell_barcode))
 
     if (verbose) {
       cli::cli_process_done()
-      cli::cli_alert_info("Number of cells retained after assigning UTR barcodes: {n_cells_post_filter} out of {n_cells_pre_filter}.")
+      cli::cli_alert_info("Number of cells retained after assigning identity barcodes: {n_cells_post_filter} out of {n_cells_pre_filter}.")
     }
 
     # -- Optional file saving (only if output_dir is specified) --

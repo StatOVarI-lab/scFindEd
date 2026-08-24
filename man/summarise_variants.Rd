@@ -40,5 +40,5 @@ each read and the reference amplicon.
 The two HGVSc codes are then merged - if they are concordant in the overlapping
 region - to produce a single code that describes a unique variant.
 These variants are then collapsed per cell barcode, and the cell barcode is
-matched to its corresponding UTR barcode combination.
+matched to its corresponding identity barcode combination.
 }

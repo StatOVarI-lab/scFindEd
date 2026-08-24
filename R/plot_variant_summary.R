@@ -3,20 +3,20 @@
 #' This function is used to visualise the distribution of variants across a
 #' sample. It can be used to generate plot(s) for all variants in each amplicon,
 #' or in a specific amplicon. It can also be used to generate plot(s) for all
-#' variants that belong to a specific cell barcode / UTR barcode combination,
-#' also for either every amplicon or a specific amplicon.
+#' variants that belong to a specific cell barcode / identity barcode
+#' combination, also for either every amplicon or a specific amplicon.
 #'
 #' @param amplicon A string containing the amplicon ID (AmpID), to be used when
 #' generating a plot for a specific amplicon.
-#' @param barcode A string containing the cell barcode / UTR barcode combination,
-#' to be used when generating plot(s) only for a specific cell / UTR barcode
-#' combination subset.
+#' @param barcode A string containing the cell barcode / identity barcode
+#' combination, to be used when generating plot(s) only for a specific cell /
+#' identity barcode combination subset.
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
 #'
 #' @return By default, exports a bulked variant summary plot for every amplicon.
-#' Can also export a specific amplicon, a specific cell barcode / UTR barcode
-#' combination, or both.
+#' Can also export a specific amplicon, a specific cell barcode / identity
+#' barcode combination, or both.
 #'
 #' @export
 plot_variant_summary <- function(
@@ -65,10 +65,10 @@ plot_variant_summary <- function(
                                             true_mutations_file_name,
                                             verbose)
 
-    # Check for presence of cell_barcode / UTR_barcode
+    # Check for presence of cell_barcode / identity_barcode
     if (!is.null(barcode)) {
       if (!barcode %in% true_mutations$cell_barcode &
-          !barcode %in% true_mutations$UTR_barcode) {
+          !barcode %in% true_mutations$identity_barcode) {
         # Skip to next amplicon if not present
         cli::cli_alert_warning("{barcode} is not present in {AmpID}.")
         next
@@ -176,12 +176,12 @@ select_variants <- function(
       dplyr::filter(merged_HGVSc != "WT")
   }
 
-  # If barcode IS defined, filter for only cell_barcode / UTR_barcode == barcode
+  # If barcode IS defined, filter for only cell_barcode / identity_barcode == barcode
   if (!is.null(barcode)) {
     if (barcode %in% true_mutations$cell_barcode) {
       true_mutations <- dplyr::filter(true_mutations, cell_barcode == barcode)
-    } else if (barcode %in% true_mutations$UTR_barcode) {
-      true_mutations <- dplyr::filter(true_mutations, UTR_barcode == barcode)
+    } else if (barcode %in% true_mutations$identity_barcode) {
+      true_mutations <- dplyr::filter(true_mutations, identity_barcode == barcode)
     }
   }
 
