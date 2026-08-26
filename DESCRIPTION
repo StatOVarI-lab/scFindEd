@@ -28,7 +28,8 @@ Imports:
     Biostrings,
     IRanges,
     purrr,
-    tibble
+    tibble,
+    stringi
 Depends: 
     R (>= 3.5)
 LazyData: true
