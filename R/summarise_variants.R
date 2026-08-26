@@ -62,6 +62,12 @@ summarise_variants <- function(
                                                     fragment_mutations_file_name,
                                                     verbose)
 
+    # -- Filter out rows with NA or "" CIGAR strings --
+
+    fragment_mutations <- fragment_mutations |>
+      dplyr::filter(r1_cigar != "", !is.na(r1_cigar),
+                    r2_cigar != "", !is.na(r2_cigar))
+
     # -- Calculate individual HGVSc codes for R1 reads --
 
     if (verbose) cli::cli_process_start(msg = "Calculating R1 HGVSc codes...",
@@ -221,14 +227,17 @@ calculate_HGVSc_codes <- function(
   # -- MD Parsing --
 
   # Breaks down md into a vector of its respective chunks
-  md_matches <- regmatches(dt_mutations$md, gregexpr("[0-9]+|\\^[A-Z]+|[A-Z]", dt_mutations$md))
+  # Only break down unique mds, to reduce redundant regex calls
+  unique_md <- unique(dt_mutations$md)
+  md_matches_unique <- stringi::stri_extract_all_regex(unique_md, "[0-9]+|\\^[A-Z]+|[A-Z]")
+  names(md_matches_unique) <- unique_md
+  # Re-expand unique md matches out by lookup
+  md_matches <- md_matches_unique[dt_mutations$md]
   lens_md    <- lengths(md_matches)
 
-  md_parsed <- data.table::data.table(
-    row_ID = rep(dt_mutations$row_ID, lens_md),
-    pos    = rep(dt_mutations$pos, lens_md),
-    chunk  = unlist(md_matches)
-  )
+  md_parsed <- data.table::data.table(row_ID = rep(dt_mutations$row_ID, lens_md),
+                                      pos    = rep(dt_mutations$pos, lens_md),
+                                      chunk  = unlist(md_matches, use.names = FALSE))
 
   md_parsed[, first_char := substr(chunk, 1, 1)]
   # Checks for lengths (numbers)
@@ -237,12 +246,12 @@ calculate_HGVSc_codes <- function(
   md_parsed[, is_del     := first_char == "^"]
 
   # Set reference step size
-  md_parsed[, ref_step := 1L]                              # default is 0
+  md_parsed[, ref_step := 1L]
   md_parsed[is_num == TRUE, ref_step := as.integer(chunk)] # if number, step is the length
   md_parsed[is_del == TRUE, ref_step := nchar(chunk) - 1L] # if deletion, step is size of deletion
 
   # Track the movement along the reference position by cumsumming ref_steps
-  md_parsed[, current_md_ref_pos := pos + cumsum(ref_step) - ref_step, by = row_ID]
+  md_parsed[, current_md_ref_pos := pos + vectorised_cumsum(ref_step, row_ID) - ref_step]
 
   # Create a separate data table for mismatches
   dt_mismatches <- md_parsed[is_num == FALSE & is_del == FALSE,
@@ -250,16 +259,8 @@ calculate_HGVSc_codes <- function(
 
   # -- CIGAR Parsing --
 
-  cigar_ops <- cigarillo::cigars_as_RleList(dt_mutations$cigar)
-  ops  <- S4Vectors::runValue(cigar_ops)
-  lens <- S4Vectors::runLength(cigar_ops)
-
-  # Flatten all CIGAR chunks into a single, long data table
-  cigar_long <- data.table::data.table(
-    row_ID = rep(dt_mutations$row_ID, lengths(ops)),
-    op     = unlist(ops),
-    len    = as.integer(unlist(lens))
-  )
+  # Chunk CIGAR strings and flatten them into a single, long data table
+  cigar_long <- construct_cigar_chunks_dt(dt_mutations$cigar, dt_mutations$row_ID, batch_size = 1000000)
 
   # Count the number of bases consumed relative to read / reference position for each chunk operation
   cigar_long[, `:=`(
@@ -271,9 +272,9 @@ calculate_HGVSc_codes <- function(
 
   # Calculate chunk start and end positions
   cigar_long[, `:=`(
-    read_chunk_start = data.table::shift(cumsum(read_step), fill = 0L, type = "lag") + 1L,
-    ref_chunk_start  = data.table::shift(cumsum(ref_step), fill = 0L, type = "lag")
-  ), by = row_ID]
+    read_chunk_start = vectorised_cumsum(read_step, row_ID) - read_step + 1L,
+    ref_chunk_start  = vectorised_cumsum(ref_step, row_ID) - ref_step
+  )]
 
   # Merge the chunk positions into the mutation table
   cigar_long[dt_mutations, on = "row_ID", pos := i.pos]
@@ -331,7 +332,7 @@ calculate_HGVSc_codes <- function(
   singles <- all_HGVSc[n_mutations == 1]
   HGVSc_codes[singles$row_ID] <- singles$HGVSc
 
-  # Assign HGVSc codes for reads with only >1 mutation (reduces number of paste() calls)
+  # Assign HGVSc codes for reads with only >1 mutation (reduces number of non-vectorised paste() calls)
   multis <- all_HGVSc[n_mutations > 1]
   if (nrow(multis) > 0) {
     collapsed_multis <- multis[, .(merged_code = paste(HGVSc, collapse = ";")), by = row_ID]
@@ -390,7 +391,7 @@ merge_HGVSc_codes <- function(
   )
 
   # Calculate r1_end values
-  dt_mutations[, r1_end := calculate_read_end_position(r1_pos, r1_cigar)]
+  dt_mutations[, r1_end := calculate_read_end_position(r1_pos, r1_cigar, batch_size = 1000000)]
 
   # -- Split HGVSc codes --
 
@@ -402,7 +403,7 @@ merge_HGVSc_codes <- function(
   r1_long   <- data.table::data.table(
     row_ID   = rep(dt_mutations$row_ID, lens_r1),
     r2_pos   = rep(dt_mutations$r2_pos, lens_r1),
-    mutation = unlist(chunks_r1),
+    mutation = unlist(chunks_r1, use.names = FALSE),
     source   = "r1"
   )[mutation != "WT"]
 
@@ -414,7 +415,7 @@ merge_HGVSc_codes <- function(
   r2_long   <- data.table::data.table(
     row_ID   = rep(dt_mutations$row_ID, lens_r2),
     r1_end   = rep(dt_mutations$r1_end, lens_r2),
-    mutation = unlist(chunks_r2),
+    mutation = unlist(chunks_r2, use.names = FALSE),
     source   = "r2"
   )[mutation != "WT"]
 
@@ -426,7 +427,12 @@ merge_HGVSc_codes <- function(
 
   # -- Extract mutation positions --
 
-  pos_matrix <- stringr::str_match(mutations_long$mutation, "c\\.(\\d+)(?:_(\\d+))?")
+  unique_mutations <- unique(mutations_long$mutation)
+  pos_matrix_unique <- stringi::stri_match_first_regex(unique_mutations, "c\\.(\\d+)(?:_(\\d+))?")
+  # Map each unique mutation row to mutations_long using index lookup
+  match_idx <- match(mutations_long$mutation, unique_mutations)
+  pos_matrix <- pos_matrix_unique[match_idx, , drop = FALSE]
+
   mutations_long[, mutation_start := as.integer(pos_matrix[, 2])]
   mutations_long[, mutation_end   := data.table::fifelse(!is.na(pos_matrix[, 3]),
                                                          as.integer(pos_matrix[, 3]),

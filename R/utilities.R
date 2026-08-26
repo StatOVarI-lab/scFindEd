@@ -14,24 +14,66 @@ correct_BC <- function(distances, threshold){
 }
 
 
+#' Cumulative sum that resets at the start of each contiguous group, and allows
+#' data.table to vectorise cleanly
+#' @keywords internal
+vectorised_cumsum <- function(ref_step, row_ID) {
+  cs <- cumsum(ref_step)
+  row_ID_start <- c(TRUE, row_ID[-1] != row_ID[-length(row_ID)])
+  row_ID_sizes <- rle(row_ID)$lengths
+  offset <- rep(cs[row_ID_start] - ref_step[row_ID_start], row_ID_sizes)
+
+  return(cs - offset)
+}
+
+
+#' Chunk CIGAR strings and flatten them into a single, long data table
+#' @keywords internal
+construct_cigar_chunks_dt <- function(cigars, row_IDs, batch_size = 1000000) {
+  # Construct batches
+  n <- length(cigars)
+  batch_starts <- seq.int(1, n, by = batch_size)
+  batch_ends <- pmin(batch_starts + batch_size - 1, n)
+
+  batched_dt <- lapply(seq_along(batch_starts), function(i) {
+    # Get batch indices
+    batch_idx <- batch_starts[i]:batch_ends[i]
+
+    # Break the CIGAR strings into their constituent chunks
+    cigar_ops <- cigarillo::cigars_as_RleList(cigars[batch_idx])
+    # Extract chunk operations and chunk lengths separately
+    ops  <- S4Vectors::runValue(cigar_ops)
+    lens <- S4Vectors::runLength(cigar_ops)
+
+    # Flatten all CIGAR chunks into a long data table
+    data.table::data.table(
+      row_ID = rep(row_IDs[batch_idx], lengths(ops)),
+      op     = unlist(ops, use.names = FALSE),
+      len    = unlist(lens, use.names = FALSE)
+    )
+  })
+
+  return(data.table::rbindlist(batched_dt, use.names = FALSE))
+}
+
+
 #' Calculate a read's end position from the start position and the read's CIGAR string
 #' @keywords internal
-calculate_read_end_position <- function(pos, cigar) {
-  # Break the cigar strings into their constituent chunks
-  cigar_ops <- cigarillo::cigars_as_RleList(cigar)
+calculate_read_end_position <- function(pos, cigars, batch_size = 1000000) {
+  # Construct batches
+  n <- length(cigars)
+  batch_starts <- seq.int(1, n, by = batch_size)
+  batch_ends <- pmin(batch_starts + batch_size - 1, n)
 
-  # Extract chunk operations and chunk lengths separately
-  ops  <- S4Vectors::runValue(cigar_ops)
-  lens <- S4Vectors::runLength(cigar_ops)
+  cigar_extents <- unlist(lapply(seq_along(batch_starts), function(i) {
+    # Get batch indices
+    batch_idx <- batch_starts[i]:batch_ends[i]
 
-  # Create a mask for only ops with value "M" (match) or "D" (deletion)
-  M_or_D <- ops == "M" | ops == "D"
-  lens_filtered <- lens * M_or_D
+    # Calculate distance CIGAR extends along the reference
+    cigarillo::cigar_extent_along_ref(cigars[batch_idx])
+  }), use.names = FALSE)
 
-  # Sum the lengths of these "M" and "D" chunks
-  total_alignment_lengths <- sum(lens_filtered)
-
-  return (pos + total_alignment_lengths - 1)
+  return(pos + cigar_extents - 1)
 }
 
 
