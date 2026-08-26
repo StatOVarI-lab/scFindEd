@@ -62,6 +62,12 @@ summarise_variants <- function(
                                                     fragment_mutations_file_name,
                                                     verbose)
 
+    # -- Filter out rows with NA or "" CIGAR strings --
+
+    fragment_mutations <- fragment_mutations |>
+      dplyr::filter(r1_cigar != "", !is.na(r1_cigar),
+                    r2_cigar != "", !is.na(r2_cigar))
+
     # -- Calculate individual HGVSc codes for R1 reads --
 
     if (verbose) cli::cli_process_start(msg = "Calculating R1 HGVSc codes...",
