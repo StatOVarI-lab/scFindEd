@@ -21,27 +21,55 @@ extract_identity_barcode_info <- function(
 
   reference_amplicons <- import_reference_amplicons(source_dir, verbose)
 
-  identity_amplicon <- reference_amplicons[identity_AmpID][[1]]
+  if (!all(identity_AmpID %in% names(reference_amplicons))) {
+    cli::cli_abort('All AmpIDs in identity_AmpID must be present in "ref_amplicons_sorted.fa".')
+  }
+
+  identity_amplicons <- reference_amplicons[identity_AmpID]
+
+  # -- Set Up Output Dataframe --
+
+  identity_barcode_info <- data.frame(AmpID = character(),
+                                      amplicon_seq = character(),
+                                      barcode_ID = integer(),
+                                      start = integer(),
+                                      length = integer(),
+                                      end = integer(),
+                                      stringsAsFactors = FALSE)
 
   # -- Extract N info --
 
-  if (verbose) cli::cli_process_start(msg = "Extracting identity barcode info from {identity_AmpID}...",
-                                      msg_done = "Identity barcode info from {identity_AmpID} extracted.")
+  for (AmpID in identity_AmpID) {
+    if (verbose) cli::cli_process_start(msg = "Extracting identity barcode info from {AmpID}...",
+                                        msg_done = "Identity barcode info from {AmpID} extracted.")
 
-  # Extract all 'N' bases
-  individual_Ns <- Biostrings::matchPattern("N", identity_amplicon, fixed = TRUE)
+    # Extract amplicon sequence for AmpID
+    identity_amplicon <- identity_amplicons[[AmpID]]
 
-  # Collapse adjacent 'N' positions into respective chunks
-  N_chunks <- IRanges::reduce(IRanges::ranges(individual_Ns))
+    # Extract all 'N' bases
+    individual_Ns <- Biostrings::matchPattern("N", identity_amplicon, fixed = TRUE)
 
-  identity_barcode_info <- data.frame(
-    amp_ID = identity_AmpID,
-    amplicon_seq = as.character(identity_amplicon),
-    barcode_ID = seq(1, length(N_chunks)),
-    start = IRanges::start(N_chunks),
-    length = IRanges::width(N_chunks),
-    end = IRanges::end(N_chunks)
-  )
+    # Collapse adjacent 'N' positions into respective chunks
+    N_chunks <- IRanges::reduce(IRanges::ranges(individual_Ns))
+
+    # Populate into data frame and append to bottom of identity_barcode_info
+    AmpID_barcode_info <- data.frame(
+      AmpID = AmpID,
+      amplicon_seq = as.character(identity_amplicon),
+      barcode_ID = NA,
+      start = IRanges::start(N_chunks),
+      length = IRanges::width(N_chunks),
+      end = IRanges::end(N_chunks)
+    )
+
+    identity_barcode_info <- dplyr::bind_rows(identity_barcode_info,
+                                              AmpID_barcode_info)
+
+    if (verbose) cli::cli_process_done()
+  }
+
+  # Assign unique barcode ID to each extracted barcode
+  identity_barcode_info[["barcode_ID"]] <- seq(1, nrow(identity_barcode_info))
 
   # -- Optional file saving (only if output_dir is specified) --
 

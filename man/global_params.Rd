@@ -12,8 +12,8 @@ type) for the experiment sample.}
 
 \item{panel_ID}{String containing the ID number for the design summary panel.}
 
-\item{identity_AmpID}{String containing the amplicon ID (AmpID) for
-the amplicon that contains the inserted identity barcode(s).}
+\item{identity_AmpID}{String or vector containing the amplicon ID(s) (AmpID)
+for the amplicon(s) that contains the inserted identity barcode(s).}
 
 \item{min_reads}{Quality control threshold: minimum number of reads.}
 
