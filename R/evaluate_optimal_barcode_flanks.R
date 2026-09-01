@@ -35,128 +35,149 @@ evaluate_optimal_barcode_flanks <- function(
   output_dir = NULL,
   verbose = TRUE
 ) {
-  # -- Import datasets --
-
-  identity_amplicon_reads_file_name <- paste0(sample_name, "_", identity_AmpID,
-                                              "_reads.tsv.gz")
-  identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
-                                                            identity_amplicon_reads_file_name,
-                                                            verbose)
+  # -- Import Identiy Barcode Info --
 
   identity_barcode_info_file_name <- paste0(sample_name, "_identity_barcode_info.csv")
   identity_barcode_info <- import_identity_barcode_info(source_dir,
                                                         identity_barcode_info_file_name,
                                                         verbose)
 
-  # If cell_barcode is mis-named as barcode, convert the column name
-  if ("barcode" %in% colnames(identity_amplicon_reads)) {
-    colnames(identity_amplicon_reads)[colnames(identity_amplicon_reads) == "barcode"] <- "cell_barcode"
+  if (!all(identity_AmpID %in% identity_barcode_info[["AmpID"]])) {
+    cli::cli_abort('All AmpIDs in identity_AmpID must be present in "_identity_barcode_info.csv".')
   }
 
-  # -- Filter reads according to min_reads threshold --
+  # Initialise consensus data frame
+  consensus <- data.frame()
 
-  invisible(list2env(filter_identity_amplicon_reads(
-    identity_amplicon_reads,
-    min_reads,
-    verbose = FALSE
-  ), envir = environment()))
-
-  # -- Set Up Barcode Analysis --
-
-  if (!is.numeric(min_flank_size) | !is.numeric(max_flank_size)) {
-    cli::cli_abort("min_flank_size and max_flank_size must be numeric.")
-  } else if (min_flank_size >= max_flank_size) {
-    cli::cli_abort("min_flank_size must be less than max_flank_size.")
-  } else if (min_flank_size < 5) {
-    cli::cli_abort("The minimum acceptable barcode flank is 5 bases.")
-  }
-
-  flank_sizes <- seq(min_flank_size, max_flank_size)
-
-  # Combine filtered forward and reverse reads
-  reads_by_orientation <- list(forward = identity_amplicon_reads_forward,
-                               reverse = identity_amplicon_reads_reverse)
-  directions <- c("upstream", "downstream")
-
-  # Create a grid of every (barcode x orientation x direction) combination
-  plan <- tidyr::expand_grid(
-    barcode_row = seq_len(nrow(identity_barcode_info)),
-    orientation = names(reads_by_orientation),
-    direction   = directions
-  )
-
-  # -- Compute hits / multiple-hit stats for every combination --
-
-  all_stats <- purrr::pmap_dfr(plan, function(barcode_row, orientation, direction) {
-    barcode_No <- identity_barcode_info$barcode_ID[barcode_row]
-
-    if (verbose) cli::cli_process_start(msg = "BC{barcode_No}: Assessing {orientation} {direction} flanks...",
-                                        msg_done = "BC{barcode_No}: {orientation} {direction} flanks assessed.")
-
-    # Test flanks on both reads, in both directions, from min_flank_size to max_flank_size
-    stats <- test_flanks(
-      reads_by_orientation[[orientation]],
-      identity_barcode_info[barcode_row, ],
-      direction,
-      min_flank_size,
-      max_flank_size
-    )
-
-    if (verbose) cli::cli_process_done()
-
-    # Record stats in combined dataframe
-    tibble::tibble(
-      barcode_row   = barcode_row,
-      barcode_ID    = barcode_No,
-      orientation   = orientation,
-      direction     = direction,
-      flank_size    = flank_sizes,
-      hits          = stats[["hits_vec"]],
-      multiple_hits = stats[["multiple_hits_vec"]]
-    )
-  })
-
-  # -- Optional file saving (only if output_dir is provided) --
-  # -- One .CSV per barcode --
-  if (!is.null(output_dir)) {
-    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-
-    # Structure output so each barcode's _hits and _multiple_hits are adjacent
-    combo_bases <- paste(
-      rep(names(reads_by_orientation), each = length(directions)),
-      directions,
-      sep = "_"
-    )
-    ordered_cols <- as.vector(rbind(paste0(combo_bases, "_hits"),
-                                    paste0(combo_bases, "_multiple_hits")))
-
-
-    for (ID in unique(all_stats$barcode_ID)) {
-      export_flank_test_stats(ID, all_stats, ordered_cols, sample_name, output_dir)
+  for (AmpID in identity_AmpID) {
+    if (length(identity_AmpID) > 1 & verbose) {
+      cli::cli_h2(AmpID)
     }
-  }
 
-  # -- Consensus Suggestions --
+    # -- Import Identity Amplicon Reads --
 
-  total_reads <- nrow(identity_amplicon_reads_forward)
+    identity_amplicon_reads_file_name <- paste0(sample_name, "_", AmpID, "_reads.tsv.gz")
+    identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
+                                                              identity_amplicon_reads_file_name,
+                                                              verbose)
 
-  # Rule: among flank lengths with 0 multiple hits, select the flank with the
-  # most single hits. Break ties by selecting the shorter flank.
-  consensus <- all_stats |>
-    dplyr::filter(multiple_hits == 0) |>
-    dplyr::group_by(barcode_ID) |>
-    dplyr::slice_max(hits, n = 1, with_ties = TRUE) |>
-    dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
-    dplyr::ungroup()
+    # If cell_barcode is mis-named as barcode, convert the column name
+    if ("barcode" %in% colnames(identity_amplicon_reads)) {
+      colnames(identity_amplicon_reads)[colnames(identity_amplicon_reads) == "barcode"] <- "cell_barcode"
+    }
 
-  # Assess if any barcodes have no flank lengths that prevent multiple hits
-  failed_barcodes <- setdiff(identity_barcode_info$barcode_ID, consensus$barcode_ID)
-  if (length(failed_barcodes) > 0) {
-    cli::cli_alert_warning(
-      "No flank size with 0 multiple hits found for BC{failed_barcodes} within size range {min_flank_size}-{max_flank_size}."
+    # Filter identity_barcode_info to only the rows containing barcodes in AmpID
+    AmpID_identity_barcode_info <- identity_barcode_info[identity_barcode_info$AmpID == AmpID, ]
+
+    # -- Filter reads according to min_reads threshold --
+
+    invisible(list2env(filter_identity_amplicon_reads(
+      identity_amplicon_reads,
+      min_reads,
+      verbose = FALSE
+    ), envir = environment()))
+
+    # -- Set Up Barcode Analysis --
+
+    if (!is.numeric(min_flank_size) | !is.numeric(max_flank_size)) {
+      cli::cli_abort("min_flank_size and max_flank_size must be numeric.")
+    } else if (min_flank_size >= max_flank_size) {
+      cli::cli_abort("min_flank_size must be less than max_flank_size.")
+    } else if (min_flank_size < 5) {
+      cli::cli_abort("The minimum acceptable barcode flank is 5 bases.")
+    }
+
+    flank_sizes <- seq(min_flank_size, max_flank_size)
+
+    # Combine filtered forward and reverse reads
+    reads_by_orientation <- list(forward = identity_amplicon_reads_forward,
+                                 reverse = identity_amplicon_reads_reverse)
+    directions <- c("upstream", "downstream")
+
+    # Create a grid of every (barcode x orientation x direction) combination
+    plan <- tidyr::expand_grid(
+      barcode_row = seq_len(nrow(AmpID_identity_barcode_info)),
+      orientation = names(reads_by_orientation),
+      direction   = directions
     )
+
+    # -- Compute hits / multiple-hit stats for every combination --
+
+    all_stats <- purrr::pmap_dfr(plan, function(barcode_row, orientation, direction) {
+      barcode_No <- AmpID_identity_barcode_info$barcode_ID[barcode_row]
+
+      if (verbose) cli::cli_process_start(msg = "BC{barcode_No}: Assessing {orientation} {direction} flanks...",
+                                          msg_done = "BC{barcode_No}: {orientation} {direction} flanks assessed.")
+
+      # Test flanks on both reads, in both directions, from min_flank_size to max_flank_size
+      stats <- test_flanks(
+        reads_by_orientation[[orientation]],
+        AmpID_identity_barcode_info[barcode_row, ],
+        direction,
+        min_flank_size,
+        max_flank_size
+      )
+
+      if (verbose) cli::cli_process_done()
+
+      # Record stats in combined dataframe
+      tibble::tibble(
+        barcode_row   = barcode_row,
+        barcode_ID    = barcode_No,
+        orientation   = orientation,
+        direction     = direction,
+        flank_size    = flank_sizes,
+        hits          = stats[["hits_vec"]],
+        multiple_hits = stats[["multiple_hits_vec"]]
+      )
+    })
+
+    # -- Optional file saving (only if output_dir is provided) --
+    # -- One .CSV per barcode --
+    if (!is.null(output_dir)) {
+      if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+
+      # Structure output so each barcode's _hits and _multiple_hits are adjacent
+      combo_bases <- paste(
+        rep(names(reads_by_orientation), each = length(directions)),
+        directions,
+        sep = "_"
+      )
+      ordered_cols <- as.vector(rbind(paste0(combo_bases, "_hits"),
+                                      paste0(combo_bases, "_multiple_hits")))
+
+
+      for (ID in unique(all_stats$barcode_ID)) {
+        export_flank_test_stats(ID, all_stats, ordered_cols, sample_name, output_dir)
+      }
+    }
+
+    # -- Consensus Suggestions --
+
+    total_reads <- nrow(identity_amplicon_reads_forward)
+
+    # Rule: among flank lengths with 0 multiple hits, select the flank with the
+    # most single hits. Break ties by selecting the shorter flank.
+    AmpID_consensus <- all_stats |>
+      dplyr::filter(multiple_hits == 0) |>
+      dplyr::group_by(barcode_ID) |>
+      dplyr::slice_max(hits, n = 1, with_ties = TRUE) |>
+      dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
+      dplyr::ungroup()
+
+    # Assess if any barcodes have no flank lengths that prevent multiple hits
+    failed_barcodes <- setdiff(AmpID_identity_barcode_info$barcode_ID, AmpID_consensus$barcode_ID)
+    if (length(failed_barcodes) > 0) {
+      cli::cli_alert_warning(
+        "No flank size with 0 multiple hits found for BC{failed_barcodes} within size range {min_flank_size}-{max_flank_size}."
+      )
+    }
+
+    # Append consensus for {AmpID} to complete consensus data frame
+    consensus <- dplyr::bind_rows(consensus, AmpID_consensus)
   }
 
+  # Optional optimal flank reporting
   if (verbose) {
     # Print the best barcode flank length and stats for each barcode
     for (row in seq_len(nrow(consensus))) {
@@ -203,13 +224,13 @@ test_flanks <- function(
     flank_sizes,
     function(i) {
       test_flank <- if (direction == "upstream") {
-        stringr::str_sub(amplicon_seq, start - i, start - 1)
+        stringi::stri_sub(amplicon_seq, start - i, start - 1)
       } else if (direction == "downstream") {
-        stringr::str_sub(amplicon_seq, end + 1, end + i)
+        stringi::stri_sub(amplicon_seq, end + 1, end + i)
       } else {
         cli::cli_abort("{direction}: Invalid value for direction.")
       }
-      stringr::str_count(reads$seq, stringr::fixed(test_flank))
+      stringi::stri_count_fixed(reads$seq, test_flank)
     },
     FUN.VALUE = integer(nrow(reads))
   )
