@@ -20,8 +20,8 @@ source data should be imported from.}
 \item{sample_name}{String containing the exact file name (including the file
 type) for the experiment sample.}
 
-\item{identity_AmpID}{String containing the amplicon ID (AmpID) for
-the amplicon that contains the inserted identity barcode(s).}
+\item{identity_AmpID}{String or vector containing the amplicon ID(s) (AmpID)
+for the amplicon(s) that contains the inserted identity barcode(s).}
 
 \item{min_reads}{Quality control threshold: minimum number of reads.}
 

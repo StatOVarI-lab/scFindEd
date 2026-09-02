@@ -107,15 +107,28 @@ test_that("filter_identity_amplicon_reads returns data frames for forward and re
 
 test_that("group_identity_barcodes returns a data frame with required columns", {
 
-  readname_barcodes_table <- data.frame(
-    cell_barcode = c("CELL1", "CELL1"),
-    BC1 = c(strrep("A", 20), strrep("A", 20)),
-    BC2 = c(strrep("C", 30), strrep("C", 30)),
-    BC3 = c(strrep("G", 30), strrep("G", 30)),
-    stringsAsFactors = FALSE
+  extracted_barcodes_tables <- list(
+    "AMP1" <- data.frame(
+      cell_barcode = c("CELL1", "CELL2"),
+      BC1 = c(strrep("A", 20), strrep("A", 20)),
+      BC2 = c(strrep("C", 30), strrep("C", 30)),
+      stringsAsFactors = FALSE
+    ),
+    "AMP2" <- data.frame(
+      cell_barcode = c("CELL1", "CELL2"),
+      BC3 = c(strrep("G", 30), strrep("G", 30)),
+      stringsAsFactors = FALSE
+    )
   )
 
-  result <- group_identity_barcodes(readname_barcodes_table, verbose = FALSE)
+  identity_barcode_info <- data.frame(
+    barcode_ID = c("BC1", "BC2", "BC3"),
+    length = c(20, 30, 30)
+  )
+
+  result <- group_identity_barcodes(extracted_barcodes_tables,
+                                    identity_barcode_info,
+                                    verbose = FALSE)
 
   expect_s3_class(result, "data.frame")
   expect_true(all(c("cell_barcode", "BC1", "BC2", "BC3", "n") %in% names(result)))
