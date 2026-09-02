@@ -35,12 +35,16 @@ evaluate_optimal_barcode_flanks <- function(
   output_dir = NULL,
   verbose = TRUE
 ) {
-  # -- Import Identiy Barcode Info --
+  # -- Import Identity Barcode Info --
 
   identity_barcode_info_file_name <- paste0(sample_name, "_identity_barcode_info.csv")
   identity_barcode_info <- import_identity_barcode_info(source_dir,
                                                         identity_barcode_info_file_name,
                                                         verbose)
+
+  # In case optimal_flank, orientation, direction already exist - remove them
+  identity_barcode_info <- identity_barcode_info |>
+    dplyr::select(AmpID, amplicon_seq, barcode_ID, start, length, end)
 
   if (!all(identity_AmpID %in% identity_barcode_info[["AmpID"]])) {
     cli::cli_abort('All AmpIDs in identity_AmpID must be present in "_identity_barcode_info.csv".')
@@ -104,10 +108,10 @@ evaluate_optimal_barcode_flanks <- function(
     # -- Compute hits / multiple-hit stats for every combination --
 
     all_stats <- purrr::pmap_dfr(plan, function(barcode_row, orientation, direction) {
-      barcode_No <- AmpID_identity_barcode_info$barcode_ID[barcode_row]
+      BC_ID <- AmpID_identity_barcode_info$barcode_ID[barcode_row]
 
-      if (verbose) cli::cli_process_start(msg = "BC{barcode_No}: Assessing {orientation} {direction} flanks...",
-                                          msg_done = "BC{barcode_No}: {orientation} {direction} flanks assessed.")
+      if (verbose) cli::cli_process_start(msg = "{BC_ID}: Assessing {orientation} {direction} flanks...",
+                                          msg_done = "{BC_ID}: {orientation} {direction} flanks assessed.")
 
       # Test flanks on both reads, in both directions, from min_flank_size to max_flank_size
       stats <- test_flanks(
@@ -123,7 +127,7 @@ evaluate_optimal_barcode_flanks <- function(
       # Record stats in combined dataframe
       tibble::tibble(
         barcode_row   = barcode_row,
-        barcode_ID    = barcode_No,
+        barcode_ID    = BC_ID,
         orientation   = orientation,
         direction     = direction,
         flank_size    = flank_sizes,
@@ -169,7 +173,7 @@ evaluate_optimal_barcode_flanks <- function(
     failed_barcodes <- setdiff(AmpID_identity_barcode_info$barcode_ID, AmpID_consensus$barcode_ID)
     if (length(failed_barcodes) > 0) {
       cli::cli_alert_warning(
-        "No flank size with 0 multiple hits found for BC{failed_barcodes} within size range {min_flank_size}-{max_flank_size}."
+        "No flank size with 0 multiple hits found for {failed_barcodes} within size range {min_flank_size}-{max_flank_size}."
       )
     }
 
@@ -183,7 +187,7 @@ evaluate_optimal_barcode_flanks <- function(
     for (row in seq_len(nrow(consensus))) {
       rec <- consensus[row, ]
       cli::cli_alert_success(
-        "Optimal BC{rec$barcode_ID} flank: {rec$orientation} reads; {rec$direction}; size = {rec$flank_size}."
+        "Optimal {rec$barcode_ID} flank: {rec$orientation} reads; {rec$direction}; size = {rec$flank_size}."
       )
       cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$hits} / {total_reads}.")
     }
@@ -262,10 +266,10 @@ export_flank_test_stats <- function(
     ) |>
     dplyr::select(flank_size, dplyr::all_of(ordered_cols))
 
-  BCX_stats_file <- file.path(output_dir, paste0(sample_name, "_BC", ID, "_flank_stats.csv"))
+  BCX_stats_file <- file.path(output_dir, paste0(sample_name, "_", ID, "_flank_stats.csv"))
   readr::write_csv(wide_stats, file = BCX_stats_file)
 
-  cli::cli_alert_success("BC{ID} flank stats exported to: {normalizePath(BCX_stats_file)}")
+  cli::cli_alert_success("{ID} flank stats exported to: {normalizePath(BCX_stats_file)}")
 }
 
 

@@ -69,7 +69,7 @@ extract_identity_barcode_info <- function(
   }
 
   # Assign unique barcode ID to each extracted barcode
-  identity_barcode_info[["barcode_ID"]] <- seq(1, nrow(identity_barcode_info))
+  identity_barcode_info[["barcode_ID"]] <- paste0("BC", seq(1, nrow(identity_barcode_info)))
 
   # -- Optional file saving (only if output_dir is specified) --
 

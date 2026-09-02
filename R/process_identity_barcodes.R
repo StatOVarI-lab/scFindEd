@@ -18,44 +18,69 @@ process_identity_barcodes <- function(
   output_dir = NULL,
   verbose = TRUE
 ) {
-  # -- Import datasets --
-
-  identity_amplicon_reads_file_name <- paste0(sample_name, "_", identity_AmpID,
-                                              "_reads.tsv.gz")
-  identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
-                                                            identity_amplicon_reads_file_name,
-                                                            verbose)
+  # -- Import Identity Barcode Info --
 
   identity_barcode_info_file_name <- paste0(sample_name, "_identity_barcode_info.csv")
   identity_barcode_info <- import_identity_barcode_info(source_dir,
                                                         identity_barcode_info_file_name,
                                                         verbose)
 
-  # If cell_barcode is mis-named as barcode, convert the column name
-  if ("barcode" %in% colnames(identity_amplicon_reads)) {
-    colnames(identity_amplicon_reads)[colnames(identity_amplicon_reads) == "barcode"] <- "cell_barcode"
+  if (!all(identity_AmpID %in% identity_barcode_info[["AmpID"]])) {
+    cli::cli_abort('All AmpIDs in identity_AmpID must be present in "_identity_barcode_info.csv".')
   }
 
-  # -- Filter reads according at min_reads threshold --
+  # Initialise list for extracted_barcodes tables
+  extracted_barcodes_tables <- list()
 
-  invisible(list2env(filter_identity_amplicon_reads(
-    identity_amplicon_reads,
-    min_reads,
-    verbose
-  ), envir = environment()))
+  for (AmpID in identity_AmpID) {
+    if (length(identity_AmpID) > 1 & verbose) {
+      cli::cli_h2(AmpID)
+    }
 
-  # -- Extract identity barcodes using known flanking sequences --
+    # -- Import Identity Amplicon Reads --
 
-  extracted_barcodes_table <- extract_identity_barcodes(
-    identity_amplicon_reads_forward,
-    identity_amplicon_reads_reverse,
-    identity_barcode_info,
-    verbose
-  )
+    identity_amplicon_reads_file_name <- paste0(sample_name, "_", AmpID, "_reads.tsv.gz")
+    identity_amplicon_reads <- import_identity_amplicon_reads(source_dir,
+                                                              identity_amplicon_reads_file_name,
+                                                              verbose)
+
+    # If cell_barcode is mis-named as barcode, convert the column name
+    if ("barcode" %in% colnames(identity_amplicon_reads)) {
+      colnames(identity_amplicon_reads)[colnames(identity_amplicon_reads) == "barcode"] <- "cell_barcode"
+    }
+
+    # Filter identity_barcode_info to only the rows containing barcodes in AmpID
+    AmpID_identity_barcode_info <- identity_barcode_info[identity_barcode_info$AmpID == AmpID, ]
+
+    # -- Filter reads according to min_reads threshold --
+
+    invisible(list2env(filter_identity_amplicon_reads(
+      identity_amplicon_reads,
+      min_reads,
+      verbose
+    ), envir = environment()))
+
+    # -- Extract identity barcodes using known flanking sequences --
+
+    extracted_barcodes_table <- extract_identity_barcodes(
+      identity_amplicon_reads_forward,
+      identity_amplicon_reads_reverse,
+      AmpID_identity_barcode_info,
+      verbose
+    )
+
+    extracted_barcodes_tables[[AmpID]] <- extracted_barcodes_table
+  }
+
+  if (length(identity_AmpID) > 1 & verbose) {
+    cli::cli_h2("Collating Across Identity Amplicons")
+  }
 
   # -- Group identity barcodes --
 
-  cell_to_extracted_BCs <- group_identity_barcodes(extracted_barcodes_table, verbose)
+  cell_to_extracted_BCs <- group_identity_barcodes(extracted_barcodes_tables,
+                                                   identity_barcode_info,
+                                                   verbose)
 
   # -- Optional file saving (only if output_dir is provided) --
   if (!is.null(output_dir)) {
@@ -210,7 +235,7 @@ extract_identity_barcodes <- function(
   extracted_barcodes_wide <- extracted_barcodes |>
     tidyr::pivot_wider(id_cols     = dplyr::all_of("read_name"),
                        names_from  = barcode_ID,
-                       names_glue  = "BC{barcode_ID}",
+                       names_glue  = "{barcode_ID}",
                        values_from = barcode_seq)
 
   # Keep only read pairs where every barcode was found
@@ -236,20 +261,33 @@ extract_identity_barcodes <- function(
 
 #' @keywords internal
 group_identity_barcodes <- function(
-  extracted_barcodes_table,
+  extracted_barcodes_tables,
+  identity_barcode_info,
   verbose
 ) {
   if (verbose) cli::cli_process_start(msg = "Grouping identity barcodes...",
                                       msg_done = "Identity barcodes grouped.")
 
-  # Group by cell_barcode, BC1, BC2, and BC3, then count occurrences
-  cell_to_extracted_BCs <- extracted_barcodes_table |>
+  # Collapse across extracted_barcodes tables
+  collapsed_extracted_barcodes <- purrr::reduce(extracted_barcodes_tables,
+                                                dplyr::full_join,
+                                                by = "cell_barcode")
+
+  # Group by cell_barcode and each unique combination of BCs, then count occurrences
+  cell_to_extracted_BCs <- collapsed_extracted_barcodes |>
     dplyr::group_by_all() |>
     dplyr::count()
 
-  # Filter for only the rows where BC1 is 20 bases, and BC2 and BC3 are 30 bases
-  cell_to_extracted_BCs <- cell_to_extracted_BCs |>
-    dplyr::filter(nchar(BC1) == 20, nchar(BC2) == 30, nchar(BC3) == 30)
+  # Filter for only the rows where each BC is the correct number of bases
+  cells_to_keep <- rep(TRUE, nrow(cell_to_extracted_BCs))
+
+  for (BC_ID in identity_barcode_info[["barcode_ID"]]) {
+    correct_length <- identity_barcode_info[["length"]][identity_barcode_info[["barcode_ID"]] == BC_ID]
+    # Flip to FALSE if extracted barcode for BC_ID is the wrong length
+    cells_to_keep <- cells_to_keep & (nchar(cell_to_extracted_BCs[[BC_ID]]) == correct_length)
+  }
+
+  cell_to_extracted_BCs <- cell_to_extracted_BCs[cells_to_keep, ]
 
   if (verbose) {
     cli::cli_process_done()
