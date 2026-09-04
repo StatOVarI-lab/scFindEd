@@ -10,7 +10,7 @@
 #' These variants are then collapsed per cell barcode, and the cell barcode is
 #' matched to its corresponding identity barcode combination.
 #'
-#' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
+#' @inheritParams global_params source_dir sample_name panel_ID barcoded output_dir verbose
 #'
 #' @return Exports the variant summary file, containing the HGVSc mutation code
 #' that uniquely identifies each variant and its count, for each cell barcode.
@@ -22,6 +22,7 @@ summarise_variants <- function(
   source_dir,
   sample_name,
   panel_ID,
+  barcoded = FALSE,
   output_dir = NULL,
   verbose = TRUE
 ) {
@@ -32,12 +33,14 @@ summarise_variants <- function(
                                                     design_summary_file_name,
                                                     verbose)
 
-  # -- Import Barcode System --
+  # -- Import Barcode System (optional) --
 
-  barcode_system_file_name <- paste0(sample_name, "_barcode_system.csv")
-  barcode_system <- import_barcode_system(source_dir,
-                                          barcode_system_file_name,
-                                          verbose)
+  if (barcoded) {
+    barcode_system_file_name <- paste0(sample_name, "_barcode_system.csv")
+    barcode_system <- import_barcode_system(source_dir,
+                                            barcode_system_file_name,
+                                            verbose)
+  }
 
   # Extract unique amplicon IDs
   amplicon_list <- unique(design_summary_file$AmpID)
@@ -131,30 +134,32 @@ summarise_variants <- function(
       dplyr::group_by(sample_id, cell_barcode, amp_id, merged_HGVSc) |>
       dplyr::summarise(count = sum(n_fragments, na.rm = TRUE), .groups = "drop")
 
-    # -- Assign Identity Barcode Combinations --
+    # -- Assign Identity Barcode Combinations (optional) --
 
-    if (verbose) {
-      cli::cli_process_done()
-      cli::cli_process_start(msg = "Linking cell barcodes to identity barcode combination...",
-                             msg_done = "Cells linked to identity barcode combination.")
-    }
+    if (barcoded) {
+      if (verbose) {
+        cli::cli_process_done()
+        cli::cli_process_start(msg = "Linking cell barcodes to identity barcode combination...",
+                               msg_done = "Cells linked to identity barcode combination.")
+      }
 
-    n_cells_pre_filter <- length(unique(variant_summary$cell_barcode))
+      n_cells_pre_filter <- length(unique(variant_summary$cell_barcode))
 
-    # Filter for only cell barcodes that have an assigned identity barcode combination
-    # then match cell barcodes to attach the identity barcode column to variant_summary
-    variant_summary <- variant_summary |>
-      dplyr::filter(cell_barcode %in% barcode_system$cell_barcode) |>
-      dplyr::left_join(barcode_system |>
-                         dplyr::select(cell_barcode, all_BCs),
-                       by = "cell_barcode") |>
-      dplyr::rename(identity_barcode = all_BCs)
+      # Filter for only cell barcodes that have an assigned identity barcode combination
+      # then match cell barcodes to attach the identity barcode column to variant_summary
+      variant_summary <- variant_summary |>
+        dplyr::filter(cell_barcode %in% barcode_system$cell_barcode) |>
+        dplyr::left_join(barcode_system |>
+                           dplyr::select(cell_barcode, all_BCs),
+                         by = "cell_barcode") |>
+        dplyr::rename(identity_barcode = all_BCs)
 
-    n_cells_post_filter <- length(unique(variant_summary$cell_barcode))
+      n_cells_post_filter <- length(unique(variant_summary$cell_barcode))
 
-    if (verbose) {
-      cli::cli_process_done()
-      cli::cli_alert_info("Number of cells retained after assigning identity barcodes: {n_cells_post_filter} out of {n_cells_pre_filter}.")
+      if (verbose) {
+        cli::cli_process_done()
+        cli::cli_alert_info("Number of cells retained after assigning identity barcodes: {n_cells_post_filter} out of {n_cells_pre_filter}.")
+      }
     }
 
     # -- Optional file saving (only if output_dir is specified) --
