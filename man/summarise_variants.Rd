@@ -8,6 +8,7 @@ summarise_variants(
   source_dir,
   sample_name,
   panel_ID,
+  barcoded = FALSE,
   output_dir = NULL,
   verbose = TRUE
 )
@@ -20,6 +21,9 @@ source data should be imported from.}
 type) for the experiment sample.}
 
 \item{panel_ID}{String containing the ID number for the design summary panel.}
+
+\item{barcoded}{Boolean that tells the function whether the experiment
+utilises an identity barcode system.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}

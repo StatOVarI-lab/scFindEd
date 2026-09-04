@@ -17,6 +17,9 @@ for the amplicon(s) that contains the inserted identity barcode(s).}
 
 \item{min_reads}{Quality control threshold: minimum number of reads.}
 
+\item{barcoded}{Boolean that tells the function whether the experiment
+utilises an identity barcode system.}
+
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 

@@ -6,8 +6,8 @@
 #' of the reads in a cell.
 #'
 #' This function also filters variants for a minimum number of reads per cell
-#' - `min_reads`, and a minimum number of cells per identity barcode combination
-#' - `min_cells`.
+#' - `min_reads`, and optionally for a minimum number of cells per identity
+#' barcode combination - `min_cells`.
 #'
 #' @param min_reads Minimum number of reads for each cell. Cells with fewer than
 #' `min_reads` reads will be filtered out.
@@ -15,9 +15,9 @@
 #' must appear in to be considered a 'true' mutation within it's cell.
 #' @param min_cells Minimum number of cells per identity barcode combination.
 #' Identity barcode combinations with fewer than `min_cells` cells will be
-#' filtered out.
+#' filtered out. Required if `barcoded = TRUE`.
 #'
-#' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
+#' @inheritParams global_params source_dir sample_name panel_ID barcoded output_dir verbose
 #'
 #' @return Exports the true mutations file, containing the stripped HGVSc mutation
 #' codes that uniquely identifies each variant and its count, for each cell barcode.
@@ -29,7 +29,8 @@ identify_true_mutations <- function(
   panel_ID,
   min_reads = 10,
   true_mutation_proportion = 0.1,
-  min_cells = 3,
+  barcoded = FALSE,
+  min_cells = NULL,
   output_dir = NULL,
   verbose = TRUE
 ) {
@@ -90,19 +91,22 @@ identify_true_mutations <- function(
       cli::cli_alert_info("Unique cell barcodes: {length(unique(variant_summary$cell_barcode))}")
     }
 
-    # -- Filter by min_cells --
+    # -- Filter by min_cells (optional) --
 
-    if (verbose) cli::cli_process_start(msg = "Removing identity barcode combinations with fewer than {min_cells} cells...",
-                                        msg_done = "Identity barcode combinations with fewer than {min_cells} removed.")
+    if (barcoded) {
+      if (is.null(min_cells)) cli::cli_abort("In barcoded experiments, you must assign a value to min_cells.")
+      if (verbose) cli::cli_process_start(msg = "Removing identity barcode combinations with fewer than {min_cells} cells...",
+                                          msg_done = "Identity barcode combinations with fewer than {min_cells} removed.")
 
-    variant_summary <- variant_summary |>
-      dplyr::group_by(identity_barcode) |>
-      dplyr::filter(dplyr::n_distinct(cell_barcode) >= min_cells) |>
-      dplyr::ungroup()
+      variant_summary <- variant_summary |>
+        dplyr::group_by(identity_barcode) |>
+        dplyr::filter(dplyr::n_distinct(cell_barcode) >= min_cells) |>
+        dplyr::ungroup()
 
-    if (verbose) {
-      cli::cli_process_done()
-      cli::cli_alert_info("Unique cell barcodes: {length(unique(variant_summary$cell_barcode))}")
+      if (verbose) {
+        cli::cli_process_done()
+        cli::cli_alert_info("Unique cell barcodes: {length(unique(variant_summary$cell_barcode))}")
+      }
     }
 
     # -- Identify 'true' mutations --
@@ -150,9 +154,10 @@ identify_true_mutations <- function(
         )
       ) |>
       dplyr::rename(merged_HGVSc = merged_HGVSc_denoised) |>
-      dplyr::group_by(sample_id, cell_barcode, amp_id, identity_barcode, cell_count, merged_HGVSc) |>
+      dplyr::group_by(dplyr::across(dplyr::any_of(c(
+        "sample_id", "cell_barcode", "amp_id", "identity_barcode", "cell_count", "merged_HGVSc")))) |>
       dplyr::summarise(count = sum(count, na.rm = TRUE), .groups = "drop") |>
-      dplyr::arrange(identity_barcode, cell_barcode, dplyr::desc(count))
+      dplyr::arrange(dplyr::across(dplyr::any_of(c("identity_barcode", "cell_barcode"))), dplyr::desc(count))
 
     if (verbose) cli::cli_process_done()
 

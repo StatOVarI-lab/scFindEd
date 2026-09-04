@@ -10,7 +10,8 @@ identify_true_mutations(
   panel_ID,
   min_reads = 10,
   true_mutation_proportion = 0.1,
-  min_cells = 3,
+  barcoded = FALSE,
+  min_cells = NULL,
   output_dir = NULL,
   verbose = TRUE
 )
@@ -30,9 +31,12 @@ type) for the experiment sample.}
 \item{true_mutation_proportion}{Minimum proportion of reads that a mutation
 must appear in to be considered a 'true' mutation within it's cell.}
 
+\item{barcoded}{Boolean that tells the function whether the experiment
+utilises an identity barcode system.}
+
 \item{min_cells}{Minimum number of cells per identity barcode combination.
 Identity barcode combinations with fewer than \code{min_cells} cells will be
-filtered out.}
+filtered out. Required if \code{barcoded = TRUE}.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
@@ -53,7 +57,7 @@ of the reads in a cell.
 \details{
 This function also filters variants for a minimum number of reads per cell
 \itemize{
-\item \code{min_reads}, and a minimum number of cells per identity barcode combination
-\item \code{min_cells}.
+\item \code{min_reads}, and optionally for a minimum number of cells per identity
+barcode combination - \code{min_cells}.
 }
 }

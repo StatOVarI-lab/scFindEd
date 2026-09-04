@@ -94,6 +94,7 @@ assign_identity_barcodes(source_dir = "data/testing",
 summarise_variants(source_dir = "data/testing",
                    sample_name = "MB_barcoded",
                    panel_ID = "6915",
+                   barcoded = TRUE,
                    output_dir = "data/testing",
                    verbose = TRUE)
 ```
@@ -110,6 +111,7 @@ identify_true_mutations(
   panel_ID = "6915",
   min_reads = 10,
   true_mutation_proportion = 0.1,
+  barcoded = TRUE,
   min_cells = 3,
   output_dir = "data/testing",
   verbose = TRUE

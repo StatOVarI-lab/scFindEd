@@ -67,11 +67,19 @@ plot_variant_summary <- function(
 
     # Check for presence of cell_barcode / identity_barcode
     if (!is.null(barcode)) {
-      if (!barcode %in% true_mutations$cell_barcode &
-          !barcode %in% true_mutations$identity_barcode) {
-        # Skip to next amplicon if not present
-        cli::cli_alert_warning("{barcode} is not present in {AmpID}.")
-        next
+      if (!"identity_barcode" %in% names(true_mutations)) {
+        if (!barcode %in% true_mutations[["cell_barcode"]]) {
+          # Skip to next amplicon if not present
+          cli::cli_alert_warning("{barcode} is not a valid cell barcode in {AmpID}.")
+          next
+        }
+      } else {
+        if (!barcode %in% true_mutations[["cell_barcode"]] &
+            !barcode %in% true_mutations[["identity_barcode"]]) {
+          # Skip to next amplicon if not present
+          cli::cli_alert_warning("{barcode} is not a valid cell/identity barcode in {AmpID}.")
+          next
+        }
       }
     }
 
@@ -152,11 +160,11 @@ plot_variant_summary <- function(
         width = 10,
         height = plot_height,
         dpi = 300)
+
+      cli::cli_alert_success(
+        "Variant summary plot saved to: {normalizePath(output_dir)}.")
     }
   }
-
-  cli::cli_alert_success(
-    "Variant summary plot(s) saved to: {normalizePath(output_dir)}.")
 }
 
 
@@ -170,18 +178,20 @@ select_variants <- function(
   if (verbose) cli::cli_process_start(msg = "Filtering and selecting variants...",
                                       msg_done = "Variants filtered and selected.")
 
-  if (is.null(barcode)) {
-    # Remove wildtypes, only if not filtering by barcode
-    true_mutations <- true_mutations |>
-      dplyr::filter(merged_HGVSc != "WT")
-  }
+  # if (is.null(barcode)) {
+  #   # Remove wildtypes, only if not filtering by barcode
+  #   true_mutations <- true_mutations |>
+  #     dplyr::filter(merged_HGVSc != "WT")
+  # }
 
   # If barcode IS defined, filter for only cell_barcode / identity_barcode == barcode
   if (!is.null(barcode)) {
-    if (barcode %in% true_mutations$cell_barcode) {
+    if (barcode %in% true_mutations[["cell_barcode"]]) {
       true_mutations <- dplyr::filter(true_mutations, cell_barcode == barcode)
-    } else if (barcode %in% true_mutations$identity_barcode) {
-      true_mutations <- dplyr::filter(true_mutations, identity_barcode == barcode)
+    } else if ("identity_barcode" %in% names(true_mutations)) {
+      if (barcode %in% true_mutations[["identity_barcode"]]) {
+        true_mutations <- dplyr::filter(true_mutations, identity_barcode == barcode)
+      }
     }
   }
 
