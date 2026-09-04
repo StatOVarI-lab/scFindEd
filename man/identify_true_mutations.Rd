@@ -45,8 +45,9 @@ the output data should be exported to.}
 printed.}
 }
 \value{
-Exports the true mutations file, containing the stripped HGVSc mutation
-codes that uniquely identifies each variant and its count, for each cell barcode.
+For each amplicon, exports the true mutations file, containing the
+stripped HGVSc mutation codes that uniquely identifies each variant and its
+count, for each cell barcode.
 }
 \description{
 This function is used to trim the 'noisy' mutations from each variant,

@@ -19,8 +19,9 @@
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID barcoded output_dir verbose
 #'
-#' @return Exports the true mutations file, containing the stripped HGVSc mutation
-#' codes that uniquely identifies each variant and its count, for each cell barcode.
+#' @return For each amplicon, exports the true mutations file, containing the
+#' stripped HGVSc mutation codes that uniquely identifies each variant and its
+#' count, for each cell barcode.
 #'
 #' @export
 identify_true_mutations <- function(

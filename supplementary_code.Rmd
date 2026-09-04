@@ -182,6 +182,23 @@ plot_variant_summary(
 )
 ```
 
+# genotype_cells.R
+
+## genotype_cells()
+
+```{r}
+genotype_cells(
+  source_dir = "data/testing",
+  sample_name = "MB_barcoded",
+  panel_ID = "6915",
+  alpha_0 = "empirical",
+  credible_interval = 0.95,
+  output_dir = "data/testing",
+  verbose = TRUE
+)
+```
+
+
 
 
 
