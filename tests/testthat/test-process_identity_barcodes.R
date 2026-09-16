@@ -6,6 +6,7 @@ test_that("filter_identity_amplicon_reads returns a list with the correct names"
     mapq         = c(30, 30),
     pos          = c(40, 145),
     read_name    = c("r1", "r2"),
+    flag         = c(99, 147),
     stringsAsFactors = FALSE
   )
 
@@ -30,6 +31,7 @@ test_that("filter_identity_amplicon_reads returns data frames for forward and re
     mapq         = c(30, 30),
     pos          = c(40, 145),
     read_name    = c("r1", "r2"),
+    flag         = c(99, 147),
     stringsAsFactors = FALSE
   )
 
