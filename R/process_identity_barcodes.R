@@ -107,8 +107,8 @@ filter_identity_amplicon_reads <- function(
                            msg_done = "Identity amplicon reads filtered.")
 
     # Calculate pre-filter cells and reads total
-    pre_filter_cells <- length(unique(identity_amplicon_reads$cell_barcode))
-    pre_filter_reads <- length(unique(identity_amplicon_reads$read_name))
+    pre_filter_cells <- length(unique(identity_amplicon_reads[["cell_barcode"]]))
+    pre_filter_reads <- length(unique(identity_amplicon_reads[["read_name"]]))
   }
 
   # Mark and filter for barcodes that appear more than min_reads times
@@ -117,26 +117,31 @@ filter_identity_amplicon_reads <- function(
     dplyr::filter(dplyr::n() > min_reads) |>
     dplyr::ungroup()
 
-  # Filter out read names where the forward and reverse read positions are the same
-  duplicate_pos <- identity_amplicon_reads$read_name[
-    duplicated(identity_amplicon_reads[, c("read_name", "pos")])]
-  identity_amplicon_reads <- identity_amplicon_reads[
-    !identity_amplicon_reads$read_name %in% duplicate_pos, ]
+  # Filter for minimum MAPQ and acceptable FLAG {97, 99, 145, 147}
+  identity_amplicon_reads <- identity_amplicon_reads |>
+    dplyr::filter(mapq >= 30) |>
+    dplyr::filter(flag %in% c(97, 99, 145, 147))
 
-  # Sort the data frame by read_name, then by pos
+  # Sort the data frame by read_name, then by flag
   # Such that the first occurrence of each read_name is the forward read
-  sorted_reads <- identity_amplicon_reads[
-    order(identity_amplicon_reads$read_name, identity_amplicon_reads$pos), ]
-  is_second_read <- duplicated(sorted_reads$read_name)
+  data.table::setDT(identity_amplicon_reads)
+  data.table::setorder(identity_amplicon_reads, read_name, flag)
+  is_second_read <- duplicated(identity_amplicon_reads, by = "read_name")
+  data.table::setDF(identity_amplicon_reads)
 
   # First occurrence = forward, second occurrence = reverse
-  identity_amplicon_reads_forward <- sorted_reads[!is_second_read, ]
-  identity_amplicon_reads_reverse <- sorted_reads[is_second_read, ]
+  identity_amplicon_reads_forward <- identity_amplicon_reads[!is_second_read, ]
+  identity_amplicon_reads_reverse <- identity_amplicon_reads[is_second_read, ]
+
+  identity_amplicon_reads_forward <- identity_amplicon_reads_forward |>
+    dplyr::filter(flag %in% c(97, 99))
+  identity_amplicon_reads_reverse <- identity_amplicon_reads_reverse |>
+    dplyr::filter(flag %in% c(145, 147))
 
   # Calculate acceptable read pos bounds
-  forward_bounds <- quantile(identity_amplicon_reads_forward$pos,
+  forward_bounds <- quantile(identity_amplicon_reads_forward[["pos"]],
                              probs = c(0.025, 0.975))
-  reverse_bounds <- quantile(identity_amplicon_reads_reverse$pos,
+  reverse_bounds <- quantile(identity_amplicon_reads_reverse[["pos"]],
                              probs = c(0.025, 0.975))
 
   # Subset reads with start positions between acceptable bounds
@@ -158,9 +163,9 @@ filter_identity_amplicon_reads <- function(
 
     # Calculate post-filter cells and reads total
     post_filter_reads <- nrow(identity_amplicon_reads_forward)
-    post_filter_cells <- length(unique(identity_amplicon_reads_forward$cell_barcode))
+    post_filter_cells <- length(unique(identity_amplicon_reads_forward[["cell_barcode"]]))
 
-    cli::cli_alert_info("Total reads retained: {post_filter_reads} / {pre_filter_reads}.")
+    cli::cli_alert_info("Total read pairs retained: {post_filter_reads} / {pre_filter_reads}.")
     cli::cli_alert_info("Cells retained: {post_filter_cells} / {pre_filter_cells}.")
 
     cli::cli_alert_info("Retained forward read start positions: {forward_bounds[1]} - {forward_bounds[2]}.")
@@ -252,7 +257,7 @@ extract_identity_barcodes <- function(
   if (verbose) {
     cli::cli_process_done()
     n_reads <- nrow(extracted_barcodes_wide)
-    cli::cli_alert_info("Complete sets of barcodes extracted for {n_reads} reads.")
+    cli::cli_alert_info("Complete sets of barcodes extracted for {n_reads} read pairs.")
   }
 
   return(extracted_barcodes_wide)

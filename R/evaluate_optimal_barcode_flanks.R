@@ -75,11 +75,11 @@ evaluate_optimal_barcode_flanks <- function(
 
     # -- Filter reads according to min_reads threshold --
 
-    invisible(list2env(filter_identity_amplicon_reads(
-      identity_amplicon_reads,
-      min_reads,
-      verbose = FALSE
-    ), envir = environment()))
+    reads_by_orientation <- filter_identity_amplicon_reads(identity_amplicon_reads,
+                                                           min_reads,
+                                                           verbose = FALSE)
+    names(reads_by_orientation) <- c("forward", "reverse")
+    directions <- c("upstream", "downstream")
 
     # -- Set Up Barcode Analysis --
 
@@ -92,11 +92,6 @@ evaluate_optimal_barcode_flanks <- function(
     }
 
     flank_sizes <- seq(min_flank_size, max_flank_size)
-
-    # Combine filtered forward and reverse reads
-    reads_by_orientation <- list(forward = identity_amplicon_reads_forward,
-                                 reverse = identity_amplicon_reads_reverse)
-    directions <- c("upstream", "downstream")
 
     # Create a grid of every (barcode x orientation x direction) combination
     plan <- tidyr::expand_grid(
@@ -158,14 +153,23 @@ evaluate_optimal_barcode_flanks <- function(
 
     # -- Consensus Suggestions --
 
-    total_reads <- nrow(identity_amplicon_reads_forward)
+    total_reads <- nrow(reads_by_orientation[["forward"]])
 
     # Rule: among flank lengths with 0 multiple hits, select the flank with the
     # most single hits. Break ties by selecting the shorter flank.
+    # AmpID_consensus <- all_stats |>
+    #   dplyr::filter(multiple_hits == 0) |>
+    #   dplyr::group_by(barcode_ID) |>
+    #   dplyr::slice_max(hits, n = 1, with_ties = TRUE) |>
+    #   dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
+    #   dplyr::ungroup()
+
+    # Alternative Rule: select the flank where the difference between hits and
+    # multiple hits is highest i.e. loses the LEAST reads
     AmpID_consensus <- all_stats |>
-      dplyr::filter(multiple_hits == 0) |>
+      dplyr::mutate(retained_reads = hits - multiple_hits) |>
       dplyr::group_by(barcode_ID) |>
-      dplyr::slice_max(hits, n = 1, with_ties = TRUE) |>
+      dplyr::slice_max(retained_reads, n = 1, with_ties = TRUE) |>
       dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
       dplyr::ungroup()
 
@@ -189,7 +193,7 @@ evaluate_optimal_barcode_flanks <- function(
       cli::cli_alert_success(
         "Optimal {rec$barcode_ID} flank: {rec$orientation} reads; {rec$direction}; size = {rec$flank_size}."
       )
-      cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$hits} / {total_reads}.")
+      cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$retained_reads} / {total_reads}.")
     }
   }
 

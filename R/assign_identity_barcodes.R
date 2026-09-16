@@ -141,14 +141,14 @@ correct_identity_barcodes <- function(
     cli::cli_process_done()
 
     # Calculate pre-correction cells and reads total
-    pre_correction_cells <- nrow(cell_to_extracted_BCs)
+    pre_correction_cells <- length(unique(cell_to_extracted_BCs[["cell_barcode"]]))
     pre_correction_reads <- sum(cell_to_extracted_BCs$n)
     # Calculate post-correction cells and reads total
-    post_correction_cells <- nrow(cell_to_corrected_BCs)
+    post_correction_cells <- length(unique(cell_to_corrected_BCs[["cell_barcode"]]))
     post_correction_reads <- sum(cell_to_corrected_BCs$n_corrected)
 
     cli::cli_alert_info("Cells retained: {post_correction_cells} / {pre_correction_cells}.")
-    cli::cli_alert_info("Total reads retained: {post_correction_reads} / {pre_correction_reads}.")
+    cli::cli_alert_info("Total read pairs retained: {post_correction_reads} / {pre_correction_reads}.")
   }
 
   return(cell_to_corrected_BCs)
@@ -199,14 +199,14 @@ filter_assigned_barcodes <- function(
     cli::cli_process_done()
 
     # Calculate pre-filtration cells and reads total
-    pre_filtration_cells <- nrow(cell_to_assigned_BCs)
+    pre_filtration_cells <- length(unique(cell_to_assigned_BCs[["cell_barcode"]]))
     pre_filtration_reads <- sum(cell_to_assigned_BCs$n_corrected)
     # Calculate post-filtration cells and reads total
-    post_filtration_cells <- nrow(cell_to_filtered_BCs)
+    post_filtration_cells <- length(unique(cell_to_filtered_BCs[["cell_barcode"]]))
     post_filtration_reads <- sum(cell_to_filtered_BCs$n_corrected)
 
     cli::cli_alert_info("Cells retained: {post_filtration_cells} / {pre_filtration_cells}.")
-    cli::cli_alert_info("Total reads retained: {post_filtration_reads} / {pre_filtration_reads}.")
+    cli::cli_alert_info("Total read pairs retained: {post_filtration_reads} / {pre_filtration_reads}.")
   }
 
   return(cell_to_filtered_BCs)
