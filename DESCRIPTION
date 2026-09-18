@@ -29,7 +29,9 @@ Imports:
     IRanges,
     purrr,
     tibble,
-    stringi
+    stringi,
+    scales,
+    patchwork
 Depends: 
     R (>= 3.5)
 LazyData: true

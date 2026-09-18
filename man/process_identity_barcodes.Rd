@@ -10,6 +10,7 @@ process_identity_barcodes(
   identity_AmpID,
   min_reads,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose = TRUE
 )
 }
@@ -27,6 +28,9 @@ for the amplicon(s) that contains the inserted identity barcode(s).}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{plots_output_dir}{String containing the relative path to the directory
+that the output quality control plots should be exported to.}
 
 \item{verbose}{Boolean that determines whether detailed outputs should be
 printed.}

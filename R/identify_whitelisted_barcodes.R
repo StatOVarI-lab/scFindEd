@@ -4,14 +4,12 @@
 #' barcodes and the whitelist of barcodes for each of the identity barcodes in
 #' the experiment.
 #'
-#' @inheritParams global_params source_dir sample_name output_dir verbose
+#' @inheritParams global_params source_dir sample_name output_dir plots_output_dir verbose
 #'
 #' @param whitelist_barcode_files A named list pairing each identity barcode ID
 #' with .csv file name from which to draw the whitelisted barcode from.
 #' @param n_threads An integer value that confirms how many threads/cores the
 #' function should utilise in constructing the barcode distance matrices.
-#' @param plots_output_dir String containing the relative path to the directory
-#' that the output quality control plots should be exported to.
 #'
 #' @return A .rds list of the shortest distance whitelist barcodes for each of
 #' the identity barcodes in the experiment. Also produces a Hamming

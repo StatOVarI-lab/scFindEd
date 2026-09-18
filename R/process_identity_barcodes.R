@@ -5,7 +5,7 @@
 #' info generated in `evaluate_optimal_barcode_flanks()`, before grouping cells
 #' by cell_barcode and counting reads.
 #'
-#' @inheritParams global_params source_dir sample_name identity_AmpID min_reads output_dir verbose
+#' @inheritParams global_params source_dir sample_name identity_AmpID min_reads output_dir plots_output_dir verbose
 #'
 #' @return A table linking cells to extracted barcodes.
 #'
@@ -16,6 +16,7 @@ process_identity_barcodes <- function(
   identity_AmpID,
   min_reads,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose = TRUE
 ) {
   # -- Import Identity Barcode Info --
@@ -92,6 +93,21 @@ process_identity_barcodes <- function(
 
     cli::cli_alert_success(
       "Identity barcodes grouped and exported to: {normalizePath(output_dir)}")
+  }
+
+  # -- Cell--Barcode Combinations Visualisations (only if plots_output_dir is specified) --
+  if (!is.null(plots_output_dir)) {
+    barcode_combination_plots <- cell_barcode_combination_plots(cell_to_extracted_BCs)
+
+    barcode_combination_plots_file_name <- paste0(sample_name, "_barcode_combination_plots.png")
+
+    # Optional file saving (only if plots_output_dir is provided)
+    if (!dir.exists(plots_output_dir)) dir.create(plots_output_dir, recursive = TRUE)
+    ggplot2::ggsave(file.path(plots_output_dir, barcode_combination_plots_file_name),
+                    plot = barcode_combination_plots,
+                    width = 8, height = 8, dpi = 300)
+
+    cli::cli_alert_success("Explorative identity barcode combination plots exported to: {normalizePath(plots_output_dir)}")
   }
 }
 
@@ -303,5 +319,39 @@ group_identity_barcodes <- function(
   return(cell_to_extracted_BCs)
 }
 
+#' @keywords internal
+cell_barcode_combination_plots <- function(cell_to_extracted_BCs) {
+  # Summarise reads per cell barcode
+  cells_counts <- cell_to_extracted_BCs |>
+    dplyr::group_by(cell_barcode) |>
+    dplyr::summarise(extracted_reads_count = sum(n), .groups = "drop")
 
+  plot_colour <- scales::brewer_pal(palette = "Set2")(1)
+
+  # Log scaled cell barcode frequency histogram
+  hist_plot <- ggplot2::ggplot(cells_counts, ggplot2::aes(x = extracted_reads_count)) +
+    ggplot2::geom_histogram(bins = 50, fill = plot_colour, colour = "black") +
+    ggplot2::scale_x_log10() +
+    ggplot2::labs(
+      title = "Frequency Distribution of Extracted Barcode Combinations",
+      x = "Number of Extracted Barcode Combinations",
+      y = "Number of Cell Barcodes"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+
+  ecdf_plot <- ggplot2::ggplot(cells_counts, ggplot2::aes(x = extracted_reads_count)) +
+    ggplot2::stat_ecdf(geom = "step", colour = plot_colour, linewidth = 1) +
+    ggplot2::scale_x_log10() +
+    ggplot2::scale_y_continuous(labels = scales::percent) +
+    ggplot2::labs(
+      title = "Cumulative Distribution of Extracted Barcode Combinations",
+      x = "Number of Extracted Barcode Combinations",
+      y = "Cumulative % of Cell Barcodes"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+
+  patchwork::wrap_plots(hist_plot, ecdf_plot, ncol = 1)
+}
 

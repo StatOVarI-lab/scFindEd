@@ -16,6 +16,7 @@ extract_identity_barcode_info(source_dir = "data/testing",
                               sample_name = "MB_barcoded",
                               identity_AmpID = "AMPL902654",
                               output_dir = "data/testing",
+                              plots_output_dir = "plots",
                               verbose = TRUE)
 ```
 
@@ -46,6 +47,7 @@ process_identity_barcodes(source_dir = "data/testing",
                           identity_AmpID = "AMPL902654",
                           min_reads = 2,
                           output_dir = "data/testing",
+                          plots_output_dir = "plots",
                           verbose = TRUE) 
 ```
 
