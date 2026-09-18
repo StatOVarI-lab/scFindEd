@@ -12,6 +12,8 @@
 #' utilises an identity barcode system.
 #' @param output_dir String containing the relative path to the directory that
 #' the output data should be exported to.
+#' @param plots_output_dir String containing the relative path to the directory
+#' that the output quality control plots should be exported to.
 #' @param verbose Boolean that determines whether detailed outputs should be
 #' printed.
 #'

@@ -4,7 +4,7 @@
 #' and extracts Identity barcode information from the sequence for the provided
 #' `identity_AmpID`.
 #'
-#' @inheritParams global_params source_dir sample_name identity_AmpID output_dir verbose
+#' @inheritParams global_params source_dir sample_name identity_AmpID output_dir plots_output_dir verbose
 #'
 #' @return A table describing the start position, length and end position of each
 #' barcode in the identity barcode amplicon.
@@ -15,6 +15,7 @@ extract_identity_barcode_info <- function(
   sample_name,
   identity_AmpID,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose
 ) {
   # -- Import Reference Amplicons --
@@ -82,6 +83,84 @@ extract_identity_barcode_info <- function(
 
     cli::cli_alert_success("Identity barcode information saved to: {normalizePath(output_dir)}.")
   }
+
+  # -- Identity Barcode Visualisation (only if plots_output_dir is specified) --
+  if (!is.null(plots_output_dir)) {
+    visualisation_plot <- identity_barcode_visualisation(identity_barcode_info)
+
+    visualisation_plot_file_name <- paste0(sample_name, "_identity_barcode_visualisation.png")
+
+    # Optional file saving (only if plots_output_dir is provided)
+    if (!dir.exists(plots_output_dir)) dir.create(plots_output_dir, recursive = TRUE)
+    ggplot2::ggsave(file.path(plots_output_dir, visualisation_plot_file_name),
+                    plot = visualisation_plot,
+                    width = 8, height = 1.5 * length(identity_AmpID) + 0.5, dpi = 300)
+
+    cli::cli_alert_success("Identity barcode visualisation exported to: {normalizePath(plots_output_dir)}")
+  }
+}
+
+
+#' Produces a visualisation of the identity barcodes on the identity amplicons
+#' @keywords internal
+identity_barcode_visualisation <- function(identity_barcode_info) {
+  # Add amplicon length, plus additional bar size details
+  identity_barcode_info <- identity_barcode_info |>
+    dplyr::mutate(amplicon_length = nchar(amplicon_seq),
+                  ymin = -0.7, ymax = 0.7, mid = (start + end) / 2)
+
+  # Lock amplicons in a stable, predictable order
+  identity_AmpIDs <- unique(identity_barcode_info[["AmpID"]])
+  identity_barcode_info[["AmpID"]] <- factor(identity_barcode_info[["AmpID"]],
+                                             levels = identity_AmpIDs)
+
+  # Extract a secondary table with unique rows for each amplicon
+  amp_lengths <- identity_barcode_info |>
+    dplyr::distinct(AmpID, amplicon_seq, amplicon_length)
+
+  plot <- ggplot2::ggplot() +
+    # backbone: full-length amplicon shaded grey; barcode boxes are drawn
+    # on top of this, so only the non-barcode remainder shows as grey
+    ggplot2::geom_rect(
+      data = amp_lengths,
+      ggplot2::aes(xmin = 1, xmax = amplicon_length, ymin = -0.7, ymax = 0.7),
+      fill = "grey85", colour = "grey60", linewidth = 0.3
+    ) +
+    # barcode regions as coloured boxes
+    ggplot2::geom_rect(
+      data = identity_barcode_info,
+      ggplot2::aes(xmin = start, xmax = end, ymin = ymin, ymax = ymax, fill = barcode_ID),
+      colour = "black", alpha = 0.85
+    ) +
+    # barcode labels, sitting above each box
+    ggplot2::geom_text(
+      data = identity_barcode_info,
+      ggplot2::aes(x = mid, y = ymax + 0.3, label = barcode_ID),
+      size = 3.5, fontface = "bold"
+    ) +
+    # position labels, sitting below each box
+    ggplot2::geom_text(
+      data = identity_barcode_info,
+      ggplot2::aes(x = mid, y = ymin - 0.3, label = paste0(start, "-", end)),
+      size = 3, colour = "grey20"
+    ) +
+    ggplot2::facet_wrap(~AmpID, ncol = 1, scales = "fixed") +
+    ggplot2::scale_x_continuous(name = "Amplicon Position (bp)") +
+    ggplot2::scale_y_continuous(limits = c(-1.2, 1.2), breaks = NULL, name = NULL) +
+    ggplot2::scale_fill_brewer(palette = "Set2", name = "Barcode") +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme(
+      aspect.ratio       = 0.1,
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor   = ggplot2::element_blank(),
+      panel.spacing.y    = ggplot2::unit(1.2, "lines"),
+      strip.text         = ggplot2::element_text(face = "bold"),
+      plot.title         = ggplot2::element_text(hjust = 0.5, face = "bold"),
+      legend.position    = "none"
+    ) +
+    ggplot2::labs(title = "Identity Barcode Visualisation")
+
+  return(plot)
 }
 
 
