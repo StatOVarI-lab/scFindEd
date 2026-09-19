@@ -69,7 +69,9 @@ summarise_variants <- function(
 
     fragment_mutations <- fragment_mutations |>
       dplyr::filter(r1_cigar != "", !is.na(r1_cigar),
-                    r2_cigar != "", !is.na(r2_cigar))
+                    r2_cigar != "", !is.na(r2_cigar),
+                    r1_pos   != "", !is.na(r1_pos),
+                    r2_pos   != "", !is.na(r2_pos))
 
     # -- Calculate individual HGVSc codes for R1 reads --
 
