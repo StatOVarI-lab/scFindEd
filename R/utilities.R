@@ -18,7 +18,7 @@ correct_BC <- function(distances, threshold){
 #' data.table to vectorise cleanly
 #' @keywords internal
 vectorised_cumsum <- function(ref_step, row_ID) {
-  cs <- cumsum(ref_step)
+  cs <- cumsum(as.numeric(ref_step))
   row_ID_start <- c(TRUE, row_ID[-1] != row_ID[-length(row_ID)])
   row_ID_sizes <- rle(row_ID)$lengths
   offset <- rep(cs[row_ID_start] - ref_step[row_ID_start], row_ID_sizes)
