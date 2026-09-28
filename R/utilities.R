@@ -208,3 +208,214 @@ get_border_colours <- function() {
            "substitution" = "#0D47A1"))
 }
 
+
+# -- Synthetic Experiment Generation --
+
+# Transition matrix modeling human genomic sequential nucleotide frequencies
+# (CpG depleted)
+#' @keywords internal
+markov_DNA_generation <- function(sequence_length = 250) {
+  # Rows: From (A, C, G, T), Cols: To (A, C, G, T)
+  P <- matrix(c(
+    0.30, 0.20, 0.20, 0.30,  # A -> A, C, G, T
+    0.32, 0.28, 0.08, 0.32,  # C -> A, C, G, T (CpG depleted)
+    0.26, 0.22, 0.26, 0.26,  # G -> A, C, G, T
+    0.22, 0.18, 0.28, 0.32   # T -> A, C, G, T
+  ), nrow = 4, byrow = TRUE, dimnames = list(BASES, BASES))
+
+  amplicon_seq <- character(sequence_length)
+  amplicon_seq[1] <- sample(BASES, 1)
+
+  for (i in seq_len(sequence_length)[-1]) {
+    previous_base <- amplicon_seq[i-1]
+    amplicon_seq[i] <- sample(BASES, 1, prob = P[previous_base, ])
+  }
+
+  return(paste0(amplicon_seq, collapse = ""))
+}
+
+
+#' Used to insert mutations into a vector of sequences at a rate of 1 in 1000 bases (by default)
+#' mutation_rate = per-base
+#' p_sub = substitution proportion; p_ins = insertion proportion; p_del = deletion proportion
+#' @keywords internal
+mutate_seqs <- function(
+  seqs,
+  mutation_rate = 0.001,
+  p_sub = 0.8,
+  p_ins = 0.1,
+  p_del = 0.1,
+  indel_p = 0.5 # indel length ~ 1 + Geometric(indel_p); mean 1/indel_p, 1 = always single-base
+) {
+  # Convert to biostrings DNA set
+  DNA_seqs     <- if (is.character(seqs)) Biostrings::DNAStringSet(seqs) else seqs
+  n_seqs       <- length(DNA_seqs)
+  seq_lengths  <- as.numeric(IRanges::width(DNA_seqs))
+  total_length <- sum(seq_lengths)
+
+  # Generate the total number of mutations based on total bases and mutation rate
+  total_mutations <- rbinom(1L, total_length, mutation_rate)
+  if (total_mutations == 0L) return(seqs)
+
+  # Sample positions to mutate at, and determine the offsets
+  pos     <- sort(sample.int(total_length, size = total_mutations))
+  offsets <- c(0, cumsum(seq_lengths)[-n_seqs])
+  seq_ID  <- findInterval(pos - 1, offsets)
+  local   <- as.integer(pos - offsets[seq_ID])
+
+  # Sample mutation type based on respective probabilities
+  type  <- sample(c("sub", "ins", "del"), total_mutations, replace = TRUE,
+                  prob = c(p_sub, p_ins, p_del))
+
+  # -- Substitutions --
+
+  # Substitutions must differ from the original base
+  # Uses integer conversions and matching for efficiency
+  orig <- as.character(Biostrings::subseq(DNA_seqs[seq_ID], start = local, width = 1L))
+  idx  <- match(orig, BASES); idx[is.na(idx)] <- 0L
+  alt  <- BASES[(idx - 1L + sample.int(3L, total_mutations, replace = TRUE)) %% 4L + 1L]
+
+  # -- Indel Lengths --
+
+  indel_len <- 1L + rgeom(total_mutations, indel_p)
+  is_ins <- type == "ins"
+  is_del <- type == "del"
+
+  # Set base replacement values for substitutions (alt) and deletions (nothing)
+  value <- alt
+  value[is_del] <- ""
+
+  # -- Insertions --
+
+  # For insertions, draw a string of the sampled length (vectorised)
+  if (any(is_ins)) {
+    value[is_ins] <- vapply(indel_len[is_ins], markov_DNA_generation, character(1))
+  }
+
+  # -- Indel Range Widths --
+
+  # ins = 0, sub = 1, del = sampled length (clamped so it can't run off the end)
+  mutation_widths <- rep.int(1L, total_mutations)
+  mutation_widths[is_ins] <- 0L
+  mutation_widths[is_del] <- as.integer(pmin(indel_len[is_del],
+                                             seq_lengths[seq_ID[is_del]] - local[is_del] + 1))
+
+  # -- Drop mutations that fall inside an earlier mutation's span --
+
+  # Sets a global end coordinates (clamping keeps mutation within its sequence)
+  global_end_coord <- pos + mutation_widths - 1
+  # Determines if a mutation event overlaps with another
+  keep <- pos > c(-Inf, cummax(global_end_coord)[-total_mutations])
+  # Applies the above filter
+  seq_ID          <- seq_ID[keep]
+  local           <- local[keep]
+  value           <- value[keep]
+  mutation_widths <- mutation_widths[keep]
+
+  # Ensures a sequence whose only mutations were dropped are removed
+  hit           <- unique(seq_ID)
+  seq_ID_factor <- factor(seq_ID, levels = hit)
+
+  # Generate IRanges for removed strings and their replacement string
+  at  <- unname(S4Vectors::splitAsList(IRanges::IRanges(start = local, width = mutation_widths), seq_ID_factor))
+  val <- unname(S4Vectors::splitAsList(value, seq_ID_factor))
+
+  # Combines all of the above to insert every replacement string while removing correct bases
+  # i.e. inserts all mutations
+  DNA_seqs[hit] <- Biostrings::replaceAt(DNA_seqs[hit], at, val)
+
+  return(as.character(DNA_seqs))
+}
+
+
+# Simulates a per-base sequencing error rate of 0.03% (by default)
+#' @keywords internal
+insert_sequencing_errors <- function(
+  seqs,
+  error_rate = 0.0003
+) {
+  # Convert to Biostrings DNA set
+  DNA_seqs     <- if (is.character(seqs)) Biostrings::DNAStringSet(seqs) else seqs
+  n_seqs       <- length(DNA_seqs)
+  seq_lengths  <- as.numeric(IRanges::width(DNA_seqs))
+  total_length <- sum(seq_lengths)
+
+  # Generate the total number of errors based on total bases and error rate
+  total_errors <- rbinom(1L, total_length, error_rate)
+  if (total_errors == 0L) return(seqs)
+
+  # Sample positions to mutate at, and determine the offsets
+  pos     <- sort(sample.int(total_length, size = total_errors))
+  offsets <- c(0, cumsum(seq_lengths)[-n_seqs])
+  seq_ID  <- findInterval(pos - 1, offsets)
+  local   <- as.integer(pos - offsets[seq_ID])
+
+  # Errors must differ from the original base
+  # Uses integer conversions and matching for efficiency
+  orig <- as.character(Biostrings::subseq(DNA_seqs[seq_ID], start = local, width = 1L))
+  idx  <- match(orig, BASES); idx[is.na(idx)] <- 0L
+  alt  <- BASES[(idx - 1L + sample.int(3L, total_errors, replace = TRUE)) %% 4L + 1L]
+
+  # Generate IRanges for the single base being replaced, and its replacement
+  hit           <- unique(seq_ID)
+  seq_ID_factor <- factor(seq_ID, levels = hit)
+  at  <- unname(S4Vectors::splitAsList(IRanges::IRanges(start = local, width = 1L), seq_ID_factor))
+  val <- unname(S4Vectors::splitAsList(alt, seq_ID_factor))
+
+  # Combines all of the above to insert every replacement base while removing ref bases
+  # i.e. inserts all substitutions
+  DNA_seqs[hit] <- Biostrings::replaceAt(DNA_seqs[hit], at, val)
+
+  return(as.character(DNA_seqs))
+}
+
+
+# Inserts identity barcodes into a template identity amplicon
+#' @keywords internal
+insert_identity_barcodes <- function(
+  amplicon_seq,
+  barcodes
+) {
+  empty_barcodes <- gregexpr("N+", amplicon_seq)[[1]]
+  empty_barcode_starts <- as.integer(empty_barcodes)
+  empty_barcode_ends   <- empty_barcode_starts + attr(empty_barcodes, "match.length") - 1L
+  n_identity_barcodes  <- length(empty_barcode_starts)
+
+  # Extract the sections around the empty barcodes
+  seq_sections <- stringr::str_sub(amplicon_seq,
+                                   c(1L, empty_barcode_ends + 1L),
+                                   c(empty_barcode_starts - 1L, nchar(amplicon_seq)))
+
+  inserted_barcodes <- seq_sections[1]
+  for (i in 1:n_identity_barcodes) {
+    inserted_barcodes <- paste0(inserted_barcodes, barcodes[[paste0("BC", i)]], inserted_barcodes[i + 1])
+  }
+
+  return(inserted_barcodes)
+}
+
+
+# Generates a vetor of read lengths using a truncated mixture model
+# Has a tight peak around paired_read_length, with broad low-probability tails
+#' @keywords internal
+mixture_model_read_lengths <- function(
+  total_reads,
+  amplicon_length = 250,
+  paired_read_length = 200,
+  peak_prob = 0.99
+) {
+  # Draw from binomial to decide how many reads will have length drawn from tight peak/broad tail
+  n_tight_peak <- rbinom(n = 1, size = total_reads, prob = peak_prob)
+  n_broad_tail <- total_reads - n_tight_peak
+
+  # Sample read lengths from (A) tight peak or (B) broad tail
+  tight_peak <- truncnorm::rtruncnorm(n = n_tight_peak, a = 120, b = amplicon_length,
+                                      mean = paired_read_length, sd = 0.5)
+  broad_tail <- truncnorm::rtruncnorm(n = n_broad_tail, a = 120, b = amplicon_length,
+                                      mean = paired_read_length, sd = 10)
+
+  # Combine, round, shuffle
+  read_lengths <- sample(as.integer(round(c(tight_peak, broad_tail))))
+
+  return(read_lengths)
+}

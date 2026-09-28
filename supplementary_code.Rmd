@@ -7,6 +7,16 @@ output:
     toc: yes  
 ---
 
+# generate_synthetic_experiment.R
+
+## generate_synthetic_experiment()
+
+```{r}
+generate_synthetic_experiment(output_dir = "synthetic",
+                             verbose = TRUE)
+```
+
+
 # extract_identity_barcode_info.R
 
 ## extract_identity_barcode_info()
