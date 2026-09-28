@@ -31,7 +31,9 @@ Imports:
     tibble,
     stringi,
     scales,
-    patchwork
+    patchwork,
+    truncnorm,
+    rlang
 Depends: 
     R (>= 3.5)
 LazyData: true
