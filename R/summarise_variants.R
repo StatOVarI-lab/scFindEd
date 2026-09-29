@@ -294,10 +294,13 @@ calculate_HGVSc_codes <- function(
   # -- Calculate HGVSc codes for *mismatches* --
 
   # Filter out "M" (match) chunks and find which mismatches exist within these chunks
-  M_chunks <- cigar_long[op == "M"]
-  mismatch_mutations <- merge(dt_mismatches, M_chunks, by = "row_ID")
-  mismatch_mutations <- mismatch_mutations[target_ref_pos >= ref_chunk_start &
-                                             target_ref_pos <= ref_chunk_end]
+  M_chunks <- cigar_long[op == "M",
+                         .(row_ID, read_chunk_start,
+                           ref_chunk_start, ref_chunk_end,
+                           lo = ref_chunk_start, hi = ref_chunk_end)]
+  mismatch_mutations <- M_chunks[dt_mismatches,
+                                 on = .(row_ID, lo <= target_ref_pos, hi >= target_ref_pos),
+                                 nomatch = NULL]
 
   # Calculate target_read_pos relative to the chunk
   mismatch_mutations[dt_mutations, on = "row_ID", read_seq := i.read_seq]
