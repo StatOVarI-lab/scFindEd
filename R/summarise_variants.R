@@ -301,6 +301,8 @@ calculate_HGVSc_codes <- function(
   mismatch_mutations <- M_chunks[dt_mismatches,
                                  on = .(row_ID, lo <= target_ref_pos, hi >= target_ref_pos),
                                  nomatch = NULL]
+  mismatch_mutations[, target_ref_pos := lo]
+  mismatch_mutations[, c("lo", "hi") := NULL] # Clear intermediary columns
 
   # Calculate target_read_pos relative to the chunk
   mismatch_mutations[dt_mutations, on = "row_ID", read_seq := i.read_seq]
