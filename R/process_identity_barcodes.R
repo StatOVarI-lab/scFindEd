@@ -333,8 +333,8 @@ cell_barcode_combination_plots <- function(cell_to_extracted_BCs) {
     ggplot2::geom_histogram(bins = 50, fill = plot_colour, colour = "black") +
     ggplot2::scale_x_log10() +
     ggplot2::labs(
-      title = "Frequency Distribution of Extracted Barcode Combinations",
-      x = "Number of Extracted Barcode Combinations",
+      title = "Distribution of Identity Amplicon Reads per Cell Barcode",
+      x = "Number of Reads on Identity Amplicon",
       y = "Number of Cell Barcodes"
     ) +
     ggplot2::theme_minimal() +
@@ -345,8 +345,8 @@ cell_barcode_combination_plots <- function(cell_to_extracted_BCs) {
     ggplot2::scale_x_log10() +
     ggplot2::scale_y_continuous(labels = scales::percent) +
     ggplot2::labs(
-      title = "Cumulative Distribution of Extracted Barcode Combinations",
-      x = "Number of Extracted Barcode Combinations",
+      title = "Cumulative Distribution of Identity Amplicon Reads per Cell Barcode",
+      x = "Number of Reads on Identity Amplicon",
       y = "Cumulative % of Cell Barcodes"
     ) +
     ggplot2::theme_minimal() +
