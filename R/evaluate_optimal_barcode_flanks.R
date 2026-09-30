@@ -164,13 +164,47 @@ evaluate_optimal_barcode_flanks <- function(
     #   dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
     #   dplyr::ungroup()
 
-    # Alternative Rule: select the flank where the difference between hits and
-    # multiple hits is highest i.e. loses the LEAST reads
+    # Simple Alternative Rule: select the flank where the difference between hits
+    # and multiple hits is highest i.e. loses the LEAST reads
+    # AmpID_consensus <- all_stats |>
+    #   dplyr::mutate(retained_reads = hits - multiple_hits) |>
+    #   dplyr::group_by(barcode_ID) |>
+    #   dplyr::slice_max(retained_reads, n = 1, with_ties = TRUE) |>
+    #   dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
+    #   dplyr::ungroup()
+
+    # Complex Rule: for each barcode_ID, look at the max_flank_size for all
+    # direction/orientation combinations. If multiple hits <= 0.01 * hits, follow
+    # Simple Alternative Rule. If multiple hits > 0.1 * hits, then instead take
+    # the highest value for retained_reads from each direction/orientation combo,
+    # and pick the *lowest* value from this subset of highest values.
     AmpID_consensus <- all_stats |>
       dplyr::mutate(retained_reads = hits - multiple_hits) |>
       dplyr::group_by(barcode_ID) |>
-      dplyr::slice_max(retained_reads, n = 1, with_ties = TRUE) |>
-      dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
+      dplyr::group_modify(function(df, key) {
+        # Check if any orientation/direction combo exceeds 1% multiple hits on the longest flank
+        longest_check <- df |> dplyr::filter(flank_size == max(flank_size))
+        alt_method <- any(longest_check[["multiple_hits"]] > 0.01 * longest_check[["hits"]])
+
+        if (alt_method) {
+          # Get highest retained_reads for each orientation/direction combination
+          combination_best <- df |>
+            dplyr::group_by(orientation, direction) |>
+            dplyr::slice_max(retained_reads, n = 1, with_ties = TRUE) |>
+            dplyr::slice_min(flank_size, n = 1, with_ties = FALSE) |>
+            dplyr::ungroup()
+
+          # Of those 4 highest_retained reads values, select the *lowest*
+          combination_best |>
+            dplyr::slice_min(retained_reads, n = 1, with_ties = FALSE)
+
+        } else {
+          # Use Simple Alternative Rule
+          df |>
+            dplyr::slice_max(retained_reads, n = 1, with_ties = TRUE) |>
+            dplyr::slice_min(flank_size, n = 1, with_ties = FALSE)
+        }
+      }) |>
       dplyr::ungroup()
 
     # Assess if any barcodes have no flank lengths that prevent multiple hits
