@@ -18,8 +18,13 @@
 #' pseudocounts in the Dirichlet multinomial model. Defaults to estimating alpha_0
 #' through Empirical Bayes optimisation (also `alpha_0 = "empirical"`), but also
 #' accepts a numeric value that will then be applied to all amplicons.
+#' @param ploidy Character string that defines whether genotyping shoud be
+#' consider as haploid or diploid. Note that only haploidy is fully implemented
+#' currently.
 #' @param credible_interval Float that sets the threshold at which lower and
 #' upper credible intervals are calculated. Must be in the range `[0, 1]`.
+#' @param lower_CI_assignment_threshold Float that sets the minimum lower credible
+#' interval bound for assigning a confident haploid genotype.
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
 #'
@@ -33,7 +38,9 @@ genotype_cells <- function(
   sample_name,
   panel_ID,
   alpha_0,
+  ploidy = "haploid",
   credible_interval = 0.95,
+  lower_CI_assignment_threshold = 0.7,
   output_dir = NULL,
   verbose = TRUE
 ) {
@@ -51,7 +58,14 @@ genotype_cells <- function(
   if (!(credible_interval > 0 & credible_interval < 1)) {
     cli::cli_abort("credible_interval must be a numeric value in the range [0, 1].")
   }
-  CI_tail <- (1 - credible_interval) / 2
+
+  if (ploidy == "haploid") {
+    CI_tail <- (1 - credible_interval) / 2
+  } else if (ploidy == "diploid") {
+    CI_tail <- 1 - credible_interval
+  }
+
+  assigned_genotypes <- list()
 
   for (i in 1:n_amplicons) {
     AmpID <- amplicon_list[i]
@@ -82,12 +96,12 @@ genotype_cells <- function(
       cli::cli_abort('alpha_0 must be either "empirical" or numeric.')
     }
 
-    # -- Haploidy --
+    # -- Assign Cells Genotypes --
 
     if (verbose) cli::cli_process_start(msg = "Calculating most probable haploid genotypes...",
                                         msg_done = "Most probable haploid genotypes calculated.")
 
-    haploid_genotypes <- variant_counts |>
+    genotypes <- variant_counts |>
       # Join the global prior values
       dplyr::inner_join(global_prior, by = "variant") |>
       dplyr::group_by(dplyr::across(dplyr::any_of(c("cell_barcode",
@@ -106,8 +120,8 @@ genotype_cells <- function(
 
         # Credible interval bounds derived from Beta quantile function
         CI_lower = qbeta(CI_tail, shape1 = alpha_posterior, shape2 = beta_posterior),
-        CI_upper = qbeta(1 - CI_tail, shape1 = alpha_posterior, shape2 = beta_posterior),
-        CI_confidence = 1 - (CI_upper - CI_lower)
+        CI_upper = if (ploidy == "diploid") qbeta(1 - CI_tail, shape1 = alpha_posterior, shape2 = beta_posterior) else NULL,
+        CI_confidence = if (ploidy == "diploid") 1 - (CI_upper - CI_lower) else (1 - CI_lower)
       ) |>
 
       # Select only the maximum probability variant for the final genotype call
@@ -124,20 +138,44 @@ genotype_cells <- function(
 
     if (verbose) cli::cli_process_done()
 
+    assigned_genotypes[[AmpID]] <- genotypes
+
     # -- Optional file saving (only if output_dir is specified) --
 
     if (!is.null(output_dir)) {
-      haploid_genotypes_file_name <- paste0(sample_name, "_", AmpID,
-                                            "_haploid_genotypes.tsv")
+      genotypes_file_name <- paste0(sample_name, "_", AmpID,
+                                    "_genotypes.tsv")
 
       if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-      readr::write_tsv(haploid_genotypes, file = file.path(
-        output_dir, haploid_genotypes_file_name))
+      readr::write_tsv(genotypes, file = file.path(
+        output_dir, genotypes_file_name))
 
       cli::cli_alert_success(
         "{AmpID} haploid genotypes saved to: {normalizePath(output_dir)}.")
     }
   }
+
+  # -- Haploid Genotype Summary --
+
+  haploid_summary <- haploid_genotype_assignment(design_summary_file,
+                                                 assigned_genotypes,
+                                                 lower_CI_assignment_threshold,
+                                                 verbose)
+
+  # -- Optional file saving (only if output_dir is specified) --
+
+  if (!is.null(output_dir)) {
+    haploid_summary_file_name <- paste0(sample_name, "_haploid_genotypes_summary.csv")
+
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+    readr::write_csv(haploid_summary, file = file.path(
+      output_dir, haploid_summary_file_name))
+
+    cli::cli_alert_success(
+      "Haploid genotypes summary saved to: {normalizePath(output_dir)}.")
+  }
+
+  return(haploid_summary)
 }
 
 
@@ -184,3 +222,119 @@ empirical_bayes_alpha_0 <- function(
 
   return(estimated_alpha_0)
 }
+
+
+#' @keywords internal
+haploid_genotype_assignment <- function(
+  design_summary_file,
+  assigned_genotypes,
+  lower_CI_assignment_threshold,
+  verbose
+) {
+  if (verbose) cli::cli_process_start(msg = "Collating genotypes across amplicons...",
+                                      msg_done = "Genotypes collated across amplicons.")
+
+  # Extract a list of edit genotypes
+  genotype_list <- design_summary_to_genotypes(design_summary_file)
+
+  # Assemble a data frame of all cell_barcodes and their identity_barcode
+  per_cell_genotypes <- dplyr::bind_rows(assigned_genotypes) |>
+    dplyr::distinct(cell_barcode, identity_barcode)
+  if (anyDuplicated(per_cell_genotypes[["cell_barcode"]]) > 0) {
+    cli::cli_alert_warning("Some cell_barcodes have multiple identity_barcode assignments.")
+  }
+
+  # -- Pull across edit genotype assignments on every amplicon --
+
+  WT_calls   <- NULL
+  edit_calls <- NULL
+
+  for (ampID in names(assigned_genotypes)) {
+    amp_edit_calls <- assigned_genotypes[[ampID]] |>
+      # If variant_genotype is one of the edits in amplicon, and the lower
+      # credible interval is >= the acceptable assignment threshold
+      dplyr::mutate(
+        called = variant_genotype %in% genotype_list[[ampID]] & CI_lower >= lower_CI_assignment_threshold
+      ) |>
+      dplyr::transmute(
+        cell_barcode,
+        identity_barcode,
+        genotype = dplyr::if_else(called, paste0(ampID, ":", variant_genotype), NA),
+        CI_lower = dplyr::if_else(called, CI_lower, NA)
+      )
+    colnames(amp_edit_calls)[3:4] <- paste0(ampID, c("_genotype", "_CI_lower"))
+
+    edit_calls <- if(is.null(edit_calls)) {
+      amp_edit_calls
+    } else {
+      dplyr::full_join(edit_calls, amp_edit_calls, by = c("cell_barcode", "identity_barcode"))
+    }
+
+    # Checks if the cell is confidently wildtype on this amplicon
+    amp_WT_calls <- assigned_genotypes[[ampID]] |>
+      dplyr::transmute(
+        cell_barcode,
+        WT = variant_genotype == "WT" & CI_lower >= lower_CI_assignment_threshold
+      )
+    colnames(amp_WT_calls)[2] <- ampID
+
+    WT_calls <- if (is.null(WT_calls)) {
+      amp_WT_calls
+    } else {
+      dplyr::full_join(WT_calls, amp_WT_calls, by = "cell_barcode")
+    }
+  }
+
+  # -- Summarise confident WTs across amplicons --
+
+  WT_matrix <- as.matrix(WT_calls[-1])
+  # Calls a confident WT if the call on at least 50% of  amplicons is confident
+  # WT or not present
+  all_WT_amplicons <- rowSums(!WT_matrix, na.rm = TRUE) == 0
+  enough_WT_amplicons <- rowSums(WT_matrix, na.rm = TRUE) / ncol(WT_matrix) >= 0.5
+  WT_calls[["confident_WT"]] <- all_WT_amplicons & enough_WT_amplicons
+  edit_calls <- dplyr::left_join(edit_calls,
+                                 WT_calls[c("cell_barcode", "confident_WT")],
+                                 by = "cell_barcode")
+
+  # -- Summarise confident edits across amplicons --
+
+  genotype_cols <- grep("_genotype$", colnames(edit_calls), value = TRUE)
+  CI_cols       <-  sub("_genotype$", "_CI_lower", genotype_cols)
+
+  genotype_matrix <- as.matrix(edit_calls[genotype_cols])
+  CI_matrix       <- as.matrix(edit_calls[CI_cols])
+
+  # Count edits per cell (SHOULD ONLY BE ONE PER CELL, but things happen)
+  edit_calls[["n_edits"]]   <- rowSums(!is.na(genotype_matrix))
+  edit_calls[["all_edits"]] <- apply(genotype_matrix, 1, function(x) paste(x[!is.na(x)], collapse = " | "))
+  edit_calls[["all_edits"]][edit_calls[["n_edits"]] == 0] <- NA
+
+  # (especially if multiple edits), assign the call with the highest CI_lower
+  top_call <- apply(CI_matrix, 1, function(x) if (all(is.na(x))) NA else which.max(x))
+  top_calls_idx <- cbind(seq_len(nrow(edit_calls)), top_call)
+  edit_calls[["most_probable_edit"]] <- genotype_matrix[top_calls_idx]
+  edit_calls[["most_probable_CI_lower"]] <- CI_matrix[top_calls_idx]
+
+  # -- Re-arrange columns --
+
+  each_amp_cols <- as.vector(rbind(genotype_cols, CI_cols))
+  edit_calls <- edit_calls |>
+    dplyr::relocate(dplyr::all_of(each_amp_cols), .after = dplyr::last_col())
+
+  if (verbose) {
+    cli::cli_process_done()
+
+    total_cells       <- nrow(edit_calls)
+    zero_edit_cells   <- sum(edit_calls[["n_edits"]] == 0)
+    single_edit_cells <- sum(edit_calls[["n_edits"]] == 1)
+    multi_edit_cells  <- sum(edit_calls[["n_edits"]] > 1)
+    cli::cli_alert_info("Cells with Zero edits: {zero_edit_cells} / {total_cells}")
+    cli::cli_alert_info("Cells with One edit: {single_edit_cells} / {total_cells}")
+    cli::cli_alert_info("Cells with Multiple edits: {multi_edit_cells} / {total_cells}")
+  }
+
+  return(edit_calls)
+}
+
+

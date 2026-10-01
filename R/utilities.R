@@ -189,6 +189,7 @@ mutation_code_alignment_tracking <- function(
   ))
 }
 
+
 #' Used to grab pre-defined colours for each base in producing plots.
 #' @keywords internal
 get_base_colours <- function() {
@@ -199,6 +200,7 @@ get_base_colours <- function() {
             "-" = "#f6f6f6"))
 }
 
+
 #' Used to grab pre-defined colours for each mutation type when constructing
 #' borders in producing variant summary plots.
 #' @keywords internal
@@ -206,6 +208,45 @@ get_border_colours <- function() {
   return(c("insertion"    = "#1B5E20",
            "deletion"     = "#B71C1C",
            "substitution" = "#0D47A1"))
+}
+
+
+#' Used to convert design summary table to a list of all edits' HGVSc-style
+#' mutation codes
+#' @keywords internal
+design_summary_to_genotypes <- function(design_summary) {
+  AmpIDs <- unique(design_summary[["AmpID"]])
+
+  genotype_list <- list()
+
+  for (ampID in AmpIDs) {
+    AmpID_edits <- design_summary |>
+      dplyr::select(AmpID, SNP, block_index, start, length, ref, change) |>
+      dplyr::filter(AmpID == ampID) |>
+      dplyr::arrange(length, start)  # controls the order genotypes appear in
+
+    genotypes <- character()
+
+    for (edit in unique(AmpID_edits$SNP)) {
+      blocks <- AmpID_edits[AmpID_edits$SNP == edit, ]
+      blocks <- blocks[order(blocks$block_index), ]
+
+      edit_string <- character()
+      for (i in seq_len(nrow(blocks))) {
+        ref_bases <- strsplit(blocks$ref[i], "")[[1]]
+        alt_bases <- strsplit(blocks$change[i], "")[[1]]
+        pos       <- blocks$start[i] + seq_along(ref_bases) - 1
+
+        edit_string <- c(edit_string, paste0("c.", pos, ref_bases, ">", alt_bases))
+      }
+
+      genotypes <- c(genotypes, paste(edit_string, collapse = ";"))
+    }
+
+    genotype_list[[ampID]] <- genotypes
+  }
+
+  return(genotype_list)
 }
 
 
