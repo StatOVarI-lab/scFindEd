@@ -98,8 +98,8 @@ genotype_cells <- function(
 
     # -- Assign Cells Genotypes --
 
-    if (verbose) cli::cli_process_start(msg = "Calculating most probable haploid genotypes...",
-                                        msg_done = "Most probable haploid genotypes calculated.")
+    if (verbose) cli::cli_process_start(msg = "Calculating most probable {ploidy} genotypes...",
+                                        msg_done = "Most probable {ploidy} genotypes calculated.")
 
     genotypes <- variant_counts |>
       # Join the global prior values
@@ -121,7 +121,7 @@ genotype_cells <- function(
         # Credible interval bounds derived from Beta quantile function
         CI_lower = qbeta(CI_tail, shape1 = alpha_posterior, shape2 = beta_posterior),
         CI_upper = if (ploidy == "diploid") qbeta(1 - CI_tail, shape1 = alpha_posterior, shape2 = beta_posterior) else NULL,
-        CI_confidence = if (ploidy == "diploid") 1 - (CI_upper - CI_lower) else (1 - CI_lower)
+        CI_confidence = if (ploidy == "diploid") 1 - (CI_upper - CI_lower) else 1 - (1 - CI_lower)
       ) |>
 
       # Select only the maximum probability variant for the final genotype call
@@ -143,7 +143,7 @@ genotype_cells <- function(
     # -- Optional file saving (only if output_dir is specified) --
 
     if (!is.null(output_dir)) {
-      genotypes_file_name <- paste0(sample_name, "_", AmpID,
+      genotypes_file_name <- paste0(sample_name, "_", AmpID, "_", ploidy,
                                     "_genotypes.tsv")
 
       if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
@@ -151,7 +151,7 @@ genotype_cells <- function(
         output_dir, genotypes_file_name))
 
       cli::cli_alert_success(
-        "{AmpID} haploid genotypes saved to: {normalizePath(output_dir)}.")
+        "{AmpID} {ploidy} genotypes saved to: {normalizePath(output_dir)}.")
     }
   }
 
@@ -165,17 +165,15 @@ genotype_cells <- function(
   # -- Optional file saving (only if output_dir is specified) --
 
   if (!is.null(output_dir)) {
-    haploid_summary_file_name <- paste0(sample_name, "_haploid_genotypes_summary.csv")
+    haploid_summary_file_name <- paste0(sample_name, "_", ploidy, "_genotypes_summary.csv")
 
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
     readr::write_csv(haploid_summary, file = file.path(
       output_dir, haploid_summary_file_name))
 
     cli::cli_alert_success(
-      "Haploid genotypes summary saved to: {normalizePath(output_dir)}.")
+      "{stringr::str_to_title(ploidy)} genotypes summary saved to: {normalizePath(output_dir)}.")
   }
-
-  return(haploid_summary)
 }
 
 
