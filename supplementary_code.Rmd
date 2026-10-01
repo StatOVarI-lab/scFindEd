@@ -197,6 +197,7 @@ genotype_cells(source_dir = "data/testing",
                credible_interval = 0.95,
                lower_CI_assignment_threshold = 0.7,
                output_dir = "data/testing",
+               plots_output_dir = "plots",
                verbose = TRUE)
 ```
 
