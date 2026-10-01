@@ -325,13 +325,15 @@ haploid_genotype_assignment <- function(
   if (verbose) {
     cli::cli_process_done()
 
-    total_cells       <- nrow(edit_calls)
-    zero_edit_cells   <- sum(edit_calls[["n_edits"]] == 0)
-    single_edit_cells <- sum(edit_calls[["n_edits"]] == 1)
-    multi_edit_cells  <- sum(edit_calls[["n_edits"]] > 1)
+    total_cells        <- nrow(edit_calls)
+    zero_edit_cells    <- sum(edit_calls[["n_edits"]] == 0)
+    single_edit_cells  <- sum(edit_calls[["n_edits"]] == 1)
+    multi_edit_cells   <- sum(edit_calls[["n_edits"]] > 1)
+    confident_WT_cells <- sum(edit_calls[["confident_WT"]])
     cli::cli_alert_info("Cells with Zero edits: {zero_edit_cells} / {total_cells}")
     cli::cli_alert_info("Cells with One edit: {single_edit_cells} / {total_cells}")
     cli::cli_alert_info("Cells with Multiple edits: {multi_edit_cells} / {total_cells}")
+    cli::cli_alert_info("Confident Wildtype Cells: {confident_WT_cells} / {total_cells}")
   }
 
   return(edit_calls)
