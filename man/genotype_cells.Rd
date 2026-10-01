@@ -13,6 +13,7 @@ genotype_cells(
   credible_interval = 0.95,
   lower_CI_assignment_threshold = 0.7,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose = TRUE
 )
 }
@@ -42,6 +43,9 @@ interval bound for assigning a confident haploid genotype.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
+
+\item{plots_output_dir}{String containing the relative path to the directory
+that the output quality control plots should be exported to.}
 
 \item{verbose}{Boolean that determines whether detailed outputs should be
 printed.}

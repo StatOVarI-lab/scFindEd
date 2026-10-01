@@ -26,7 +26,7 @@
 #' @param lower_CI_assignment_threshold Float that sets the minimum lower credible
 #' interval bound for assigning a confident haploid genotype.
 #'
-#' @inheritParams global_params source_dir sample_name panel_ID output_dir verbose
+#' @inheritParams global_params source_dir sample_name panel_ID output_dir plots_output_dir verbose
 #'
 #' @return For each amplicon, exports the haploid genotypes file, containing the
 #' most probable variant as the haploid genotype in each cell barcode, along with
@@ -42,6 +42,7 @@ genotype_cells <- function(
   credible_interval = 0.95,
   lower_CI_assignment_threshold = 0.7,
   output_dir = NULL,
+  plots_output_dir = NULL,
   verbose = TRUE
 ) {
   # Import SNP summary
@@ -153,6 +154,23 @@ genotype_cells <- function(
       cli::cli_alert_success(
         "{AmpID} {ploidy} genotypes saved to: {normalizePath(output_dir)}.")
     }
+
+    # -- Per Amplicon Posterior Mean Distribution (only if plots_output_dir is specified) --
+    if (!is.null(plots_output_dir)) {
+      AmpID_posterior_mean_plot <- posterior_mean_distribution_plot(AmpID,
+                                                                    genotypes)
+
+      AmpID_posterior_mean_plot_file_name <- paste0(sample_name, "_", AmpID,
+                                                    "_posterior_mean_distribution.png")
+
+      # Optional file saving (only if plots_output_dir is provided)
+      if (!dir.exists(plots_output_dir)) dir.create(plots_output_dir, recursive = TRUE)
+      ggplot2::ggsave(file.path(plots_output_dir, AmpID_posterior_mean_plot_file_name),
+                      plot = AmpID_posterior_mean_plot,
+                      width = 8, height = 5, dpi = 300)
+
+      cli::cli_alert_success("{AmpID} posterior mean distribution plot exported to: {normalizePath(plots_output_dir)}")
+    }
   }
 
   # -- Haploid Genotype Summary --
@@ -173,6 +191,21 @@ genotype_cells <- function(
 
     cli::cli_alert_success(
       "{stringr::str_to_title(ploidy)} genotypes summary saved to: {normalizePath(output_dir)}.")
+  }
+
+  # -- Distribution of Cell Counts per Identity Barcode (only if plots_output_dir is specified) --
+  if (!is.null(plots_output_dir)) {
+    cell_distribution_plot <- cells_per_identity_barcode_plot(haploid_summary)
+
+    cell_distribution_plot_file_name <- paste0(sample_name, "_cells_per_identity_barcode.png")
+
+    # Optional file saving (only if plots_output_dir is provided)
+    if (!dir.exists(plots_output_dir)) dir.create(plots_output_dir, recursive = TRUE)
+    ggplot2::ggsave(file.path(plots_output_dir, cell_distribution_plot_file_name),
+                    plot = cell_distribution_plot,
+                    width = 8, height = 5, dpi = 300)
+
+    cli::cli_alert_success("{AmpID} posterior mean distribution plot exported to: {normalizePath(plots_output_dir)}")
   }
 }
 
@@ -338,3 +371,50 @@ haploid_genotype_assignment <- function(
 }
 
 
+#' @keywords internal
+posterior_mean_distribution_plot <- function(
+  AmpID,
+  genotypes
+) {
+  plot_colour <- scales::brewer_pal(palette = "Set2")(1)
+
+  # Plot the distribution of the posterior mean across AmpID cell_barcodes
+  plot <- ggplot2::ggplot(genotypes, ggplot2::aes(x = posterior_mean)) +
+    ggplot2::geom_histogram(binwidth = 0.025, boundary = 1,
+                            fill = plot_colour, colour = "black") +
+    ggplot2::labs(
+      title = paste0(AmpID, ": Posterior Mean Distribution"),
+      x = "Posterior Mean",
+      y = "Frequency (Number of Cell Barcodes)"
+    ) +
+    ggplot2::scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+
+  return(plot)
+}
+
+
+#' @keywords internal
+cells_per_identity_barcode_plot <- function(summary) {
+  # Count the number of unique cell_barcodes per identity_barcode
+  identity_barcode_cells <- summary |>
+    dplyr::group_by(identity_barcode) |>
+    dplyr::summarise(cells = length(unique(cell_barcode)))
+
+  plot_colour <- scales::brewer_pal(palette = "Set2")(1)
+
+  # Plot the distribution of the number of cell_barcodes per identity_barcode
+  plot <- ggplot2::ggplot(identity_barcode_cells, ggplot2::aes(x = cells)) +
+    ggplot2::geom_histogram(binwidth = 1, boundary = 0,
+                            fill = plot_colour, colour = "black") +
+    ggplot2::labs(
+      title = "Number of Cells per Identity Barcode",
+      x = "Number of Unique Cell Barcodes",
+      y = "Frequency (Number of Identity Barcode Combinatios)"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+
+  return(plot)
+}
