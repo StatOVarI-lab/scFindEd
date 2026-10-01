@@ -9,7 +9,9 @@ genotype_cells(
   sample_name,
   panel_ID,
   alpha_0,
+  ploidy = "haploid",
   credible_interval = 0.95,
+  lower_CI_assignment_threshold = 0.7,
   output_dir = NULL,
   verbose = TRUE
 )
@@ -28,8 +30,15 @@ pseudocounts in the Dirichlet multinomial model. Defaults to estimating alpha_0
 through Empirical Bayes optimisation (also \code{alpha_0 = "empirical"}), but also
 accepts a numeric value that will then be applied to all amplicons.}
 
+\item{ploidy}{Character string that defines whether genotyping shoud be
+consider as haploid or diploid. Note that only haploidy is fully implemented
+currently.}
+
 \item{credible_interval}{Float that sets the threshold at which lower and
 upper credible intervals are calculated. Must be in the range \verb{[0, 1]}.}
+
+\item{lower_CI_assignment_threshold}{Float that sets the minimum lower credible
+interval bound for assigning a confident haploid genotype.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}

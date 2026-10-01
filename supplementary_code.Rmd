@@ -117,17 +117,15 @@ summarise_variants(source_dir = "data/testing",
 ## identify_true_mutations()
 
 ```{r}
-identify_true_mutations(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  min_reads = 10,
-  true_mutation_proportion = 0.1,
-  barcoded = TRUE,
-  min_cells = 3,
-  output_dir = "data/testing",
-  verbose = TRUE
-)
+identify_true_mutations(source_dir = "data/testing",
+                        sample_name = "MB_barcoded",
+                        panel_ID = "6915",
+                        min_reads = 10,
+                        true_mutation_proportion = 0.1,
+                        barcoded = TRUE,
+                        min_cells = 3,
+                        output_dir = "data/testing",
+                        verbose = TRUE)
 ```
 
 ```{r}
@@ -151,47 +149,39 @@ AMPL902653 <- readr::read_tsv("data/testing/MB_barcoded_AMPL902653_true_mutation
 ## plot_variant_summary()
 
 ```{r}
-plot_variant_summary(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  output_dir = "plots",
-  verbose = TRUE
-)
+plot_variant_summary(source_dir = "data/testing",
+                     sample_name = "MB_barcoded",
+                     panel_ID = "6915",
+                     output_dir = "plots",
+                     verbose = TRUE)
 ```
 
 ```{r}
-plot_variant_summary(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  amplicon = "AMPL902649",
-  output_dir = "plots",
-  verbose = TRUE
-)
+plot_variant_summary(source_dir = "data/testing",
+                     sample_name = "MB_barcoded",
+                     panel_ID = "6915",
+                     amplicon = "AMPL902649",
+                     output_dir = "plots",
+                     verbose = TRUE)
 ```
 
 ```{r}
-plot_variant_summary(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  barcode = "GCGTCGTCTCCGTCAGGT-1",
-  output_dir = "plots",
-  verbose = TRUE
-)
+plot_variant_summary(source_dir = "data/testing",
+                     sample_name = "MB_barcoded",
+                     panel_ID = "6915",
+                     barcode = "GCGTCGTCTCCGTCAGGT-1",
+                     output_dir = "plots",
+                     verbose = TRUE)
 ```
 
 ```{r}
-plot_variant_summary(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  amplicon = "AMPL902649",
-  barcode = "GCGTCGTCTCCGTCAGGT-1",
-  output_dir = "plots",
-  verbose = TRUE
-)
+plot_variant_summary(source_dir = "data/testing",
+                     sample_name = "MB_barcoded",
+                     panel_ID = "6915",
+                     amplicon = "AMPL902649",
+                     barcode = "GCGTCGTCTCCGTCAGGT-1",
+                     output_dir = "plots",
+                     verbose = TRUE)
 ```
 
 # genotype_cells.R
@@ -199,15 +189,15 @@ plot_variant_summary(
 ## genotype_cells()
 
 ```{r}
-genotype_cells(
-  source_dir = "data/testing",
-  sample_name = "MB_barcoded",
-  panel_ID = "6915",
-  alpha_0 = "empirical",
-  credible_interval = 0.95,
-  output_dir = "data/testing",
-  verbose = TRUE
-)
+genotype_cells(source_dir = "data/testing",
+               sample_name = "MB_barcoded",
+               panel_ID = "6915",
+               alpha_0 = "empirical",
+               ploidy = "haploid",
+               credible_interval = 0.95,
+               lower_CI_assignment_threshold = 0.7,
+               output_dir = "data/testing",
+               verbose = TRUE)
 ```
 
 
