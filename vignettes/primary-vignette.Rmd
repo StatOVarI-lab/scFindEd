@@ -17,7 +17,7 @@ Below is an overview of how your output data from the Nextflow package (as well 
 **Note**: There *may* at times be disagreement between the output file names from `scFindEd-nf` and the below expected file names. We will strive to ensure this is not the case. If any file names do differ, please rename the files to match the below file name structures.
 
 ```{r, eval=FALSE}
-data/ 
+your_data/ 
   ├── fragment_mutations/ 
   │     ├── {sample_name}_{AmpID}_fragment_mutations.tsv.gz
   │     ├── {sample_name}_{AmpID}_fragment_mutations.tsv.gz
