@@ -1,4 +1,6 @@
-[![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd) 
+[![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd)
+[![Dev Version - v0.1.0](https://img.shields.io/badge/dev_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/tree/dev)
+
 [![Documentation](https://img.shields.io/badge/documentation-white?logo=googledocs)](https://github.com/StatOVarI-lab/scFindEd/blob/main/vignettes/primary-vignette.Rmd)
 
 ## Overview 
