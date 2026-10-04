@@ -1,9 +1,11 @@
 Package: scFindEd
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: A Toolkit for Identity Barcode Extraction and Genotyping of Single-Cell-based Base Editing Experiments.
+Version: 0.1.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Miles", "Rowbottom", , "mr905@exeter.ac.uk", role = c("aut", "cre"))
+    person("Ruxandra", "Neatu", , "r.neatu@exeter.ac.uk", role = c("aut", "cre"))
+    person("Magdalena", "Strauss", , "m.strauss@exeter.ac.uk", role = c("aut", "cre"))
+Description: scFindEd provides a suite of functions that form a pipeline for barcoding and genotyping paired-end amplicon sequencing data. It is the complementary R package for scFindEd-nf - the upstream processing pipeline that aligns the raw sequencing reads and transforms the data ready for scFindEd analysis. There are three primary purposes that scFindEd serves, each forming a dedicated branch of the package. (1) Barcode Extraction - based upon experiment summary data and pre-processed identity amplicon sequencing reads, each reads identity barcodes are extracted and used to assign each droplet barcode its identity barcode as a 'barcode system'. (2) Genotyping - again based upon experiment summary data and all remaining pre-processed sequencing reads, each read is analysed for consistent variations from the reference. and ultimately each droplet barcode is assigned a genotype for each possible amplicon. Genotyping has been made agnostic to Barcode Extraction, meaning scFindEd can be used to genotype single-cell paired-end sequencing experiments that do not use a lineage tracing barcode system. (3) Synthetic Experiment Generation - in order to validate the performance of scFindEd, a synthetic data generation pipeline has been implemented. The synthetic experiment generated is tailor-made to be run through scFindEd-nf pre-processing, and generates a complete ground-truth table for validating both identity barcode assignment and genotyping.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
