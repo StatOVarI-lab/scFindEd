@@ -1,4 +1,4 @@
-[![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd)
+[![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)]([https://github.com/StatOVarI-lab/scFindEd](https://github.com/StatOVarI-lab/scFindEd/releases/tag/v.0.1.0))
 [![Dev Version - v0.1.0](https://img.shields.io/badge/dev_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/tree/dev)
 [![scFindEd-nf](https://img.shields.io/badge/scFindEd--nf-v.0.1.0-purple?logo=github)](https://github.com/StatOVarI-lab/scFindEd-nf)
 
