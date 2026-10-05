@@ -136,7 +136,8 @@ When adding new code:
 Please feel free to suggest changes or point out bugs using GitHub's [Issues](https://github.com/StatOVarI-lab/scFindEd/issues) system, and we will aim to address them where possible.
 
 ## References
-[^1] Cooper SE, Coelho MA, Strauss ME, Gontarczyk AM, Wu Q, Garnett MJ, Marioni JC, Bassett AR. scSNV-seq: high-throughput phenotyping of single nucleotide variants by coupled single-cell genotyping and transcriptomics. Genome Biol. 2024 Jan 15;25(1):20. doi: 10.1186/s13059-024-03169-y.
-[^2] Strauss ME, Waters AJ, Robertson H, Brendler-Spaeth T, Gontarczyk A, Gupta P, Kataria S, Gitterman D, Ntereke T, Wells L, Billington J, Bassett A, Cooper SE, Adams DJ. Saturation-seq integrates single-cell saturation genome editing and RNA-seq to quantify _NFE2L2_ (NRF2) variant effects. bioRxiv. 2026 Jul. doi: 10.64898/2026.06.30.735631.
+$^{[1]}$ Cooper SE, Coelho MA, Strauss ME, Gontarczyk AM, Wu Q, Garnett MJ, Marioni JC, Bassett AR. scSNV-seq: high-throughput phenotyping of single nucleotide variants by coupled single-cell genotyping and transcriptomics. Genome Biol. 2024 Jan 15;25(1):20. doi: 10.1186/s13059-024-03169-y.
+
+$^{[2]}$ Strauss ME, Waters AJ, Robertson H, Brendler-Spaeth T, Gontarczyk A, Gupta P, Kataria S, Gitterman D, Ntereke T, Wells L, Billington J, Bassett A, Cooper SE, Adams DJ. Saturation-seq integrates single-cell saturation genome editing and RNA-seq to quantify _NFE2L2_ (NRF2) variant effects. bioRxiv. 2026 Jul. doi: 10.64898/2026.06.30.735631.
 
 
