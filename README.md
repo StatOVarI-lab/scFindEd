@@ -1,5 +1,6 @@
 [![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd)
 [![Dev Version - v0.1.0](https://img.shields.io/badge/dev_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/tree/dev)
+[![scFindEd-nf](https://img.shields.io/badge/scFindEd--nf-v.0.1.0-purple?logo=github)](https://github.com/StatOVarI-lab/scFindEd-nf)
 
 [![Documentation](https://img.shields.io/badge/documentation-white?logo=googledocs)](https://github.com/StatOVarI-lab/scFindEd/blob/main/vignettes/primary-vignette.Rmd)
 
@@ -72,7 +73,7 @@ scFindEd
 ├── identify_whitelisted_barocdes()     └── genotype_cells()
 └── assign_identity_barcodes()
 
-2. Synthetic Data Generation
+3. Synthetic Data Generation
 └── generate_synthetic_experiment()
 ```
 
