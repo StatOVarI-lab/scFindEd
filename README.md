@@ -20,8 +20,14 @@ Key experimental methodologies that `scFindEd` has been developed as an accompan
 
 ## Installation 
 
-The package remains in active development and is not yet public. It relies on the `devtools` and `usethis` packages for installation and setup.  
+Please note, `scFindEd` remains in active development and is not yet public.
+
 ### For developers working locally: 
+
+In order to work with this repository locally, click ![Code Dropdown](https://img.shields.io/badge/%3C%3E_code-green) at the top of this page and select `Download ZIP`. 
+
+`scFindEd` then relies on the `devtools` and `usethis` packages for installation and setup.  
+
 ``` 
 install.packages("devtools")
 library(devtools)
@@ -32,6 +38,16 @@ library(scFindEd)
 # To learn more about an exported function
 help("function_name")
 ```
+
+### For developers working on a Compute Farm:
+
+Alternatively, you may choose to clone the repository to your terminal or a compute farm:
+
+```
+git clone https://github.com/StatOVarI-lab/scFindEd.git
+cd scFindEd
+```
+
 ### Dependencies
 Please see below for a complete list of `scFindEd` package dependencies. This information can also be found in `DESCRIPTION`.
 
@@ -77,6 +93,10 @@ scFindEd
 └── generate_synthetic_experiment()
 ```
 
+## Getting Started
+
+A complete walkthrough of `scFindEd` pipeline is detailed in our linked [vignette](https://github.com/StatOVarI-lab/scFindEd/blob/main/vignettes/primary-vignette.Rmd). If you are unsure where to start, we recommend reading through the linked documentation.
+
 ## Data Structure
 
 In order for `scFindEd` to access both input data files as well as the intermediary files that `scFindEd` produces, we advise creating a directory such as the below, and instructing all functions to use this directory with both `source_dir` and `output_dir`.
@@ -102,7 +122,7 @@ data/
   └── ... # etc. for however many barcodes are in your identity barcode system
 ```
 
-All files except for `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be produced by the Nextflow, and therefore should have standardised data structure. `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be `.csv` files with the following structures:
+All files except for `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be produced by [![scFindEd-nf](https://img.shields.io/badge/scFindEd--nf-v.0.1.0-purple?logo=github)](https://github.com/StatOVarI-lab/scFindEd-nf), and therefore should have standardised data structure. `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be `.csv` files with the following structures:
 
 ```
 {BC1_whitelist_file_name} e.g. "75K_barcode.csv"
