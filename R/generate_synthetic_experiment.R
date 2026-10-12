@@ -800,13 +800,6 @@ generate_FASTQ_reads <- function(
                   rev_quality = stringi::stri_dup("N", rev_length)) |>
     dplyr::select(FASTQ_header, fwd_seq, rev_seq, separator, fwd_quality, rev_quality)
 
-  # Add a flag for filtering out 0.001% of both foward and reverse reads
-  # Simulates unpaired reads
-  read_loss_rate <- 0.00001
-  FASTQ_reads <- FASTQ_reads |>
-    dplyr::mutate(fwd_drop = runif(total_reads) < read_loss_rate,
-                  rev_drop = runif(total_reads) < read_loss_rate)
-
   return(FASTQ_reads)
 }
 
