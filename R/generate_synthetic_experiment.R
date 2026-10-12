@@ -129,7 +129,7 @@ generate_synthetic_experiment <- function(
   # -- Generate Identity Barcode Whitelists --
 
   identity_barcode_whitelists <- list()
-  for (i in 1:total_identity_barcodes) {
+  for (i in seq_len(total_identity_barcodes)) {
     if (verbose) cli::cli_process_start(msg = "Generating BC{i} whitelist with {total_whitelist_barcodes} barcodes...",
                                         msg_done = "BC{i} whitelist with {total_whitelist_barcodes} barcodes generated.")
     identity_barcode_whitelist <- generate_identity_barcode_whitelist(total_whitelist_barcodes,
@@ -211,6 +211,15 @@ generate_synthetic_experiment <- function(
     readr::write_csv(SNP_list |> dplyr::select(ID, Gene, SNP, gRNA, HDR_template),
                      file = file.path(output_dir, SNP_list_file_name))
     cli::cli_alert_success("Synthetic SNP list saved to: {normalizePath(output_dir)}.")
+
+    # Export Barcode Whitelists
+    for (i in seq_len(total_identity_barcodes)) {
+      identity_barcode_whitelist_file_name <- paste0("BC", i, "_whitelist_barcodes.csv")
+      readr::write_csv(tibble::tibble(identity_barcode_whitelists[[paste0("BC", i)]]),
+                       file = file.path(output_dir, identity_barcode_whitelist_file_name),
+                       col_names = FALSE)
+      cli::cli_alert_success("BC{i} whitelist barcodes saved to: {normalizePath(output_dir)}.")
+    }
 
     # Export ground truth table
     readr::write_csv(ground_truth_table |> dplyr::select(-readname) |> dplyr::distinct(),
