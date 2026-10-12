@@ -233,15 +233,13 @@ generate_synthetic_experiment <- function(
 
     # Export forward FASTQ reads
     data.table::fwrite(list(as.vector(t(as.matrix(
-      FASTQ_reads |> dplyr::filter(!fwd_drop) |> # Filters out lost forward reads
-        dplyr::select(FASTQ_header, fwd_seq, separator, fwd_quality)
+      FASTQ_reads |> dplyr::select(FASTQ_header, fwd_seq, separator, fwd_quality)
     )))), file = file.path(output_dir, forward_FASTQ_file_name), col.names = FALSE)
     cli::cli_alert_success("Forward FASTQ reads saved to: {normalizePath(output_dir)}.")
 
     # Export reverse FASTQ reads
     data.table::fwrite(list(as.vector(t(as.matrix(
-      FASTQ_reads |> dplyr::filter(!rev_drop) |> # Filters out lost reverse reads
-        dplyr::select(FASTQ_header, rev_seq, separator, rev_quality)
+      FASTQ_reads |> dplyr::select(FASTQ_header, rev_seq, separator, rev_quality)
     )))), file = file.path(output_dir, reverse_FASTQ_file_name), col.names = FALSE)
     cli::cli_alert_success("Reverse FASTQ reads saved to: {normalizePath(output_dir)}.")
   }
