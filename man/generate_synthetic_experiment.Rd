@@ -5,11 +5,16 @@
 \title{Generate Synthetic Experiment}
 \usage{
 generate_synthetic_experiment(
+  edit_efficiency = 0.5,
+  somatic_mutation_rate = 0.001,
+  sequencing_error_rate = 0.0003,
+  readname_cell_barcode_assignment_skew = 0.7,
+  cell_identity_barcode_assignment_skew = 0.4,
+  soup_fraction = 0.2,
   reads_per_amplicon = 1000000,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
-  soup_fraction = 0.2,
   n_amplicons = 5,
   n_edits = 20,
   total_identity_barcodes = 3,
@@ -22,44 +27,63 @@ generate_synthetic_experiment(
 )
 }
 \arguments{
-\item{reads_per_amplicon}{Integer that fixes an approximate number of reads
-on each amplicon.}
+\item{edit_efficiency}{Float that defines the proportion of identity barcodes
+that will contain an edit. Default = 0.5.}
 
-\item{total_cell_barcodes}{Integer that fixes the number of true cells.}
+\item{somatic_mutation_rate}{Float that defines the per-base probability of a
+true somatic mutation in a cell's amplicon sequence. Default = 0.001, or 0.1\%.}
 
-\item{total_whitelist_barcodes}{Integer that fixes the number of unique
-barcodes in each identity barcode whitelist.}
+\item{sequencing_error_rate}{Float that defines the per-base probability of a
+single-base sequencing error on each sequenced read. Default = 0.0003, or 0.03\%.}
 
-\item{total_identity_barcode_combinations}{Integer that fixes the number of
-unique identity barcode combinations that are spread across the true cells.}
+\item{readname_cell_barcode_assignment_skew}{Float that skews the gamma
+distribution-based assignment of readnames to cell barcodes. Default = 0.7.}
+
+\item{cell_identity_barcode_assignment_skew}{Float that skews the gamma
+distribution-based assignment of cell barcodes to identity barcodes. Default
+= 0.4.}
 
 \item{soup_fraction}{Float that defines a proportion of additional reads that
 are simulate the 'soup' - reads that assign to both real and non-real cell
-barcodes but don't represent the ground truth for that cell.}
+barcodes but don't represent the ground truth for that cell. Default = 0.2.}
+
+\item{reads_per_amplicon}{Integer that fixes an approximate number of reads
+on each amplicon. Default = 1,000,000.}
+
+\item{total_cell_barcodes}{Integer that fixes the number of true cells.
+Default = 10,000.}
+
+\item{total_whitelist_barcodes}{Integer that fixes the number of unique
+barcodes in each identity barcode whitelist. Default = 1000.}
+
+\item{total_identity_barcode_combinations}{Integer that fixes the number of
+unique identity barcode combinations that are spread across the true cells.
+Default = 500.}
 
 \item{n_amplicons}{Integer that fixes the number of amplicons that are
 generated in the synthetic design summary. Does not include the identity
-amplicon.}
+amplicon. Default = 5.}
 
 \item{n_edits}{Integer that fixes the number of edits that are generated in
-thge synthetic SNP list. All edits are single nulceotide variants (SNVs).}
+thge synthetic SNP list. All edits are single nulceotide variants (SNVs).
+Default = 20.}
 
 \item{total_identity_barcodes}{Integer that fixes the number of identity
-barcodes inserted into the identity amplicon.}
+barcodes inserted into the identity amplicon. Default = 3.}
 
 \item{amplicon_length}{Integer that fixes the length (in bases) of each
 amplicon sequence. Note that for simplicity, all amplicons will have the
-same length.}
+same length. Default = 250.}
 
 \item{paired_read_length}{Integer that fixes the average length (in bases) of
 each of the forward and reverse reads in the simulated paired-end reads.
 Lengths are drawn from a mixture model around mean \code{paired_read_length}. Note
 that for simplicity, both the forward and reverse reads will draw from the
-same average.}
+same average. Default = 200.}
 
 \item{identity_barcode_length}{Integer that fixes the length (in bases) of
 each of the inserted identity barcodes. Note that for simplicity, each
-inserted barcode will have the same length.}
+inserted barcode will have the same length. Default = 25.}
 
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}

@@ -8,35 +8,49 @@
 #' *Complete description of intricacies needed.
 #'
 #' @inheritParams global_params output_dir verbose
-#'
-#' @param reads_per_amplicon Integer that fixes an approximate number of reads
-#' on each amplicon.
-#' @param total_cell_barcodes Integer that fixes the number of true cells.
-#' @param total_whitelist_barcodes Integer that fixes the number of unique
-#' barcodes in each identity barcode whitelist.
-#' @param total_identity_barcode_combinations Integer that fixes the number of
-#' unique identity barcode combinations that are spread across the true cells.
+
+#' @param edit_efficiency Float that defines the proportion of identity barcodes
+#' that will contain an edit. Default = 0.5.
+#' @param somatic_mutation_rate Float that defines the per-base probability of a
+#' true somatic mutation in a cell's amplicon sequence. Default = 0.001, or 0.1%.
+#' @param sequencing_error_rate Float that defines the per-base probability of a
+#' single-base sequencing error on each sequenced read. Default = 0.0003, or 0.03%.
+#' @param readname_cell_barcode_assignment_skew Float that skews the gamma
+#' distribution-based assignment of readnames to cell barcodes. Default = 0.7.
+#' @param cell_identity_barcode_assignment_skew Float that skews the gamma
+#' distribution-based assignment of cell barcodes to identity barcodes. Default
+#' = 0.4.
 #' @param soup_fraction Float that defines a proportion of additional reads that
 #' are simulate the 'soup' - reads that assign to both real and non-real cell
-#' barcodes but don't represent the ground truth for that cell.
+#' barcodes but don't represent the ground truth for that cell. Default = 0.2.
+#' @param reads_per_amplicon Integer that fixes an approximate number of reads
+#' on each amplicon. Default = 1,000,000.
+#' @param total_cell_barcodes Integer that fixes the number of true cells.
+#' Default = 10,000.
+#' @param total_whitelist_barcodes Integer that fixes the number of unique
+#' barcodes in each identity barcode whitelist. Default = 1000.
+#' @param total_identity_barcode_combinations Integer that fixes the number of
+#' unique identity barcode combinations that are spread across the true cells.
+#' Default = 500.
 #' @param n_amplicons Integer that fixes the number of amplicons that are
 #' generated in the synthetic design summary. Does not include the identity
-#' amplicon.
+#' amplicon. Default = 5.
 #' @param n_edits Integer that fixes the number of edits that are generated in
 #' thge synthetic SNP list. All edits are single nulceotide variants (SNVs).
+#' Default = 20.
 #' @param total_identity_barcodes Integer that fixes the number of identity
-#' barcodes inserted into the identity amplicon.
+#' barcodes inserted into the identity amplicon. Default = 3.
 #' @param amplicon_length Integer that fixes the length (in bases) of each
 #' amplicon sequence. Note that for simplicity, all amplicons will have the
-#' same length.
+#' same length. Default = 250.
 #' @param paired_read_length Integer that fixes the average length (in bases) of
 #' each of the forward and reverse reads in the simulated paired-end reads.
 #' Lengths are drawn from a mixture model around mean `paired_read_length`. Note
 #' that for simplicity, both the forward and reverse reads will draw from the
-#' same average.
+#' same average. Default = 200.
 #' @param identity_barcode_length Integer that fixes the length (in bases) of
 #' each of the inserted identity barcodes. Note that for simplicity, each
-#' inserted barcode will have the same length.
+#' inserted barcode will have the same length. Default = 25.
 #' @param random_seed Integer value used to set a consistent random seed.
 #'
 #' @return Six exported files: a synthetic design summary .csv, a synthetic SNP
@@ -46,11 +60,16 @@
 #'
 #' @export
 generate_synthetic_experiment <- function(
+  edit_efficiency = 0.5,
+  somatic_mutation_rate = 0.001,
+  sequencing_error_rate = 0.0003,
+  readname_cell_barcode_assignment_skew = 0.7,
+  cell_identity_barcode_assignment_skew = 0.4,
+  soup_fraction = 0.2,
   reads_per_amplicon = 1000000,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
-  soup_fraction = 0.2,
   n_amplicons = 5,
   n_edits = 20,
   total_identity_barcodes = 3,
@@ -148,6 +167,9 @@ generate_synthetic_experiment <- function(
                                                     design_summary,
                                                     SNP_list,
                                                     identity_barcode_whitelists,
+                                                    edit_efficiency,
+                                                    readname_cell_barcode_assignment_skew,
+                                                    cell_identity_barcode_assignment_skew,
                                                     reads_per_amplicon,
                                                     total_whitelist_barcodes,
                                                     total_identity_barcode_combinations,
@@ -160,7 +182,8 @@ generate_synthetic_experiment <- function(
                                       msg_done = "Ground truth amplicon sequences for each identity barcode generated.")
   baseline_amplicon_sequences <- generate_baseline_amplicon_sequences(design_summary,
                                                                       SNP_list,
-                                                                      ground_truth_table)
+                                                                      ground_truth_table,
+                                                                      somatic_mutation_rate)
   if (verbose) cli::cli_process_done()
 
   # -- Generate Soup reads --
@@ -175,6 +198,7 @@ generate_synthetic_experiment <- function(
                                     design_summary,
                                     SNP_list,
                                     identity_barcode_whitelists,
+                                    somatic_mutation_rate,
                                     total_identity_barcodes,
                                     soup_edit_rate = 0.05)
   if (verbose) cli::cli_process_done()
@@ -186,6 +210,7 @@ generate_synthetic_experiment <- function(
   FASTQ_reads <- generate_FASTQ_reads(ground_truth_table,
                                       baseline_amplicon_sequences,
                                       soup_reads,
+                                      sequencing_error_rate,
                                       amplicon_length,
                                       paired_read_length)
   if (verbose) cli::cli_process_done()
@@ -441,6 +466,9 @@ generate_ground_truth_table <- function(
   design_summary,
   SNP_list,
   identity_barcode_whitelists,
+  edit_efficiency = 0.5,
+  readname_cell_barcode_assignment_skew = 0.7,
+  cell_identity_barcode_assignment_skew = 0.4,
   reads_per_amplicon = 100000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
@@ -459,21 +487,22 @@ generate_ground_truth_table <- function(
 
   identity_barcode_edit_assignment <- generate_identity_barcode_edit_assignment(
     identity_barcode_combinations[["all_BCs"]],
-    SNP_list
+    SNP_list,
+    edit_efficiency
   )
 
   # -- Generate lookup table between cell_barcode and identity_barcode (all_BCs) --
   cell_identity_barcode_assignment <- skewed_cell_identity_barcode_assignment(
     cell_barcodes,
     identity_barcode_combinations[["all_BCs"]],
-    skewness = 0.4
+    skewness = cell_identity_barcode_assignment_skew
   )
 
   # -- Generate lookup table between readnames and cell_barcode --
   readname_cell_barcode_assignment <- skewed_readname_cell_barcode_assignment(
     readnames,
     cell_barcodes,
-    skewness = 0.7
+    skewness = readname_cell_barcode_assignment_skew
   ) |>
     dplyr::mutate(AmpID = rep(design_summary[["AmpID"]], each = reads_per_amplicon))
 
@@ -527,11 +556,12 @@ generate_identity_barcode_combinations <- function(
 #' @keywords internal
 generate_identity_barcode_edit_assignment <- function(
   identity_barcodes,
-  SNP_list
+  SNP_list,
+  edit_efficiency = 0.5
 ) {
   n_identity_barcodes <- length(identity_barcodes)
-  n_wildtype          <- floor(n_identity_barcodes / 2)
-  n_edited            <- n_identity_barcodes - n_wildtype
+  n_edited            <- floor(n_identity_barcodes * edit_efficiency)
+  n_wildtype          <- n_identity_barcodes - n_edited
   SNP_IDs <- sample(SNP_list[["ID"]])
 
   # Randomised list of SNP ID genotypes, with half as wildtype
@@ -622,7 +652,8 @@ skewed_readname_cell_barcode_assignment <- function(
 generate_baseline_amplicon_sequences <- function(
   design_summary,
   SNP_list,
-  ground_truth_table
+  ground_truth_table,
+  somatic_mutation_rate = 0.001
 ) {
   n_identity_barcodes = length(unique(ground_truth_table[["all_BCs"]]))
 
@@ -661,7 +692,8 @@ generate_baseline_amplicon_sequences <- function(
     }
 
     # Insert TRUE mutations into baseline sequences at per-base mutation_rate
-    amplicon_sequences <- mutate_seqs(amplicon_sequences, mutation_rate = 0.001)
+    amplicon_sequences <- mutate_seqs(amplicon_sequences,
+                                      mutation_rate = somatic_mutation_rate)
 
     baseline_amplicon_sequences[[ampID]] <- amplicon_sequences
   }
@@ -677,6 +709,7 @@ generate_soup_reads <- function(
   design_summary,
   SNP_list,
   identity_barcode_whitelists,
+  somatic_mutation_rate = 0.001,
   total_identity_barcodes = 3,
   soup_edit_rate = 0.05
 ) {
@@ -739,7 +772,7 @@ generate_soup_reads <- function(
   }
 
   # Insert mutations at the same background rate as baseline sequences
-  soup_sequences <- mutate_seqs(soup_sequences, mutation_rate = 0.001)
+  soup_sequences <- mutate_seqs(soup_sequences, mutation_rate = somatic_mutation_rate)
 
   soup_reads <- dplyr::tibble(readname     = readnames,
                               cell_barcode = soup_cell_barcodes,
@@ -754,6 +787,7 @@ generate_FASTQ_reads <- function(
   ground_truth_table,
   baseline_amplicon_sequences,
   soup_reads = NULL,
+  sequencing_error_rate = 0.0003,
   amplicon_length = 250,
   paired_read_length = 200
 ) {
@@ -795,9 +829,9 @@ generate_FASTQ_reads <- function(
 
   # Simulates a per-base sequencing error rate of 0.03%
   FASTQ_reads[["fwd_seq"]] <- insert_sequencing_errors(FASTQ_reads[["fwd_seq"]],
-                                                       error_rate = 0.0003)
+                                                       error_rate = sequencing_error_rate)
   FASTQ_reads[["rev_seq"]] <- insert_sequencing_errors(FASTQ_reads[["rev_seq"]],
-                                                       error_rate = 0.0003)
+                                                       error_rate = sequencing_error_rate)
 
   # Modify columns for FASTQ output purposes
   FASTQ_reads <- FASTQ_reads |>
