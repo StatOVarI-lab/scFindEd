@@ -428,8 +428,8 @@ insert_identity_barcodes <- function(
                                    c(empty_barcode_starts - 1L, nchar(amplicon_seq)))
 
   inserted_barcodes <- seq_sections[1]
-  for (i in 1:n_identity_barcodes) {
-    inserted_barcodes <- paste0(inserted_barcodes, barcodes[[paste0("BC", i)]], inserted_barcodes[i + 1])
+  for (i in seq_len(n_identity_barcodes)) {
+    inserted_barcodes <- paste0(inserted_barcodes, barcodes[[paste0("BC", i)]], seq_sections[i + 1])
   }
 
   return(inserted_barcodes)
