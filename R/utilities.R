@@ -276,6 +276,25 @@ markov_DNA_generation <- function(sequence_length = 250) {
 }
 
 
+#' Used to reverse complement a vector of sequences
+#' @keywords internal
+reverse_conversion <- function(seqs) {
+  # Ensure conversion to character
+  seqs <- as.character(seqs)
+
+  # Set hashes for base complements
+  old <- "ACGTacgt"
+  new <- "TGCAtgca"
+
+  # Due to high number of duplicate seqs, only perform conversion on unique sequences
+  unique_seqs <- unique(seqs)
+  unique_rev_comp <- stringi::stri_reverse(chartr(old, new, unique_seqs))
+  reverse_complement_seqs <- unique_rev_comp[match(seqs, unique_seqs)]
+
+  return(reverse_complement_seqs)
+}
+
+
 #' Used to insert mutations into a vector of sequences at a rate of 1 in 1000 bases (by default)
 #' mutation_rate = per-base
 #' p_sub = substitution proportion; p_ins = insertion proportion; p_del = deletion proportion
@@ -428,8 +447,8 @@ insert_identity_barcodes <- function(
                                    c(empty_barcode_starts - 1L, nchar(amplicon_seq)))
 
   inserted_barcodes <- seq_sections[1]
-  for (i in 1:n_identity_barcodes) {
-    inserted_barcodes <- paste0(inserted_barcodes, barcodes[[paste0("BC", i)]], inserted_barcodes[i + 1])
+  for (i in seq_len(n_identity_barcodes)) {
+    inserted_barcodes <- paste0(inserted_barcodes, barcodes[[paste0("BC", i)]], seq_sections[i + 1])
   }
 
   return(inserted_barcodes)

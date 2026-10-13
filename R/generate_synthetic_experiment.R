@@ -824,7 +824,8 @@ generate_FASTQ_reads <- function(
     dplyr::mutate(fwd_length = forward_read_lengths,
                   rev_length = reverse_read_lengths) |>
     dplyr::mutate(fwd_seq = stringi::stri_sub(seq, from = 1, to = fwd_length),
-                  rev_seq = stringi::stri_sub(seq, from = -rev_length, to = -1)) |>
+                  rev_seq = reverse_conversion(
+                    stringi::stri_sub(seq, from = -rev_length, to = -1))) |>
     dplyr::select(-seq)
 
   # Simulates a per-base sequencing error rate of 0.03%
