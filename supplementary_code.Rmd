@@ -144,6 +144,20 @@ AMPL902653 <- readr::read_tsv("data/testing/MB_barcoded_AMPL902653_true_mutation
 ```
 
 
+# strip_mutations.R
+
+## strip_mutations()
+
+```{r}
+strip_mutations(source_dir = "data/testing",
+                sample_name = "MB_barcoded",
+                AmpID = "AMPL902649",
+                c("c.119A>T", "c.109_110insT"),
+                output_dir = "data/testing",
+                verbose = TRUE)
+```
+
+
 # plot_variant_summary.R
 
 ## plot_variant_summary()
