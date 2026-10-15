@@ -85,9 +85,9 @@ scFindEd
 1. Barcode Extraction                   2. Genotyping  
 ├── extract_identity_barcode_info()     ├── summarise_variants()
 ├── evaluate_optimal_barcode_flanks()   ├── identify_true_mutations()
-├── process_identity_barcodes()         ├── plot_variant_summary()
-├── identify_whitelisted_barocdes()     └── genotype_cells()
-└── assign_identity_barcodes()
+├── process_identity_barcodes()         ├── strip_mutations()
+├── identify_whitelisted_barocdes()     ├── plot_variant_summary()
+└── assign_identity_barcodes()          └── genotype_cells()
 
 3. Synthetic Data Generation
 └── generate_synthetic_experiment()
