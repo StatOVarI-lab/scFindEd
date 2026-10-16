@@ -26,10 +26,12 @@ type) for the experiment sample.}
 \item{panel_ID}{String containing the ID number for the design summary panel.}
 
 \item{min_reads}{Minimum number of reads for each cell. Cells with fewer than
-\code{min_reads} reads will be filtered out.}
+\code{min_reads} reads will be filtered out. Minimum value = 3.}
 
 \item{true_mutation_proportion}{Minimum proportion of reads that a mutation
-must appear in to be considered a 'true' mutation within it's cell.}
+must appear in to be considered a 'true' mutation within it's cell. If
+\code{min_reads < 10}, then instead a mutation must strictly appear in more than
+one read.}
 
 \item{barcoded}{Boolean that tells the function whether the experiment
 utilises an identity barcode system.}
