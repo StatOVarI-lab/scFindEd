@@ -76,6 +76,33 @@ assert_string <- function(
 # -- Per-Function Argument Validation --
 
 #' @keywords internal
+validate_identify_true_mutations_args <- function(
+  source_dir,
+  sample_name,
+  panel_ID,
+  min_reads = 10,
+  true_mutation_proportion = 0.1,
+  barcoded = FALSE,
+  min_cells = NULL,
+  output_dir = NULL,
+  verbose = TRUE
+) {
+  # -- Individual argument checks --
+  assert_string(source_dir, "source_dir")
+  assert_string(sample_name, "sample_name")
+  assert_string(panel_ID, "panel_ID")
+  assert_integer(min_reads, "min_reads", min = 3)
+  assert_float(true_mutation_proportion, "true_mutation_proportion", inclusive_max = FALSE)
+  assert_boolean(barcoded, "barcoded")
+  if (!is.null(output_dir)) assert_integer(min_cells, "min_cells")
+  if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
+  assert_boolean(verbose, "verbose")
+
+  invisible(TRUE)
+}
+
+
+#' @keywords internal
 validate_generate_synthetic_experiment_args <- function(
   total_reads,
   reads_per_amplicon = 100000,
