@@ -217,15 +217,13 @@ get_border_colours <- function() {
 design_summary_to_genotypes <- function(design_summary) {
   AmpIDs <- unique(design_summary[["AmpID"]])
 
-  genotype_list <- list()
+  genotypes <- character()
 
   for (ampID in AmpIDs) {
     AmpID_edits <- design_summary |>
       dplyr::select(AmpID, SNP, block_index, start, length, ref, change) |>
       dplyr::filter(AmpID == ampID) |>
       dplyr::arrange(length, start)  # controls the order genotypes appear in
-
-    genotypes <- character()
 
     for (edit in unique(AmpID_edits$SNP)) {
       blocks <- AmpID_edits[AmpID_edits$SNP == edit, ]
@@ -240,13 +238,11 @@ design_summary_to_genotypes <- function(design_summary) {
         edit_string <- c(edit_string, paste0("c.", pos, ref_bases, ">", alt_bases))
       }
 
-      genotypes <- c(genotypes, paste(edit_string, collapse = ";"))
+      genotypes <- c(genotypes, paste0(ampID, ":", paste(edit_string, collapse = ";")))
     }
-
-    genotype_list[[ampID]] <- genotypes
   }
 
-  return(genotype_list)
+  return(genotypes)
 }
 
 
