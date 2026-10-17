@@ -11,7 +11,7 @@ genotype_cells(
   alpha_0,
   ploidy = "haploid",
   credible_interval = 0.95,
-  lower_CI_assignment_threshold = 0.7,
+  lower_CI_assignment_threshold = NULL,
   output_dir = NULL,
   plots_output_dir = NULL,
   verbose = TRUE
@@ -70,4 +70,8 @@ most-probable genotype.
 A numeric \code{alpha_0} can be provided directly and used across every amplicon.
 However, if left blank (or \verb{alpha_0 = "empirical}), then a value for \code{alpha_0}
 will be estimated for each amplicon using an Empirical Bayes optimiser.
+
+The per-cell genotypes are then collated across amplicons to determine the
+most probable mutations in each cell, as well as the identifying the presence
+of inserted edits and assigning confident WTs.
 }
