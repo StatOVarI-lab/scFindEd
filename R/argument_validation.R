@@ -122,7 +122,6 @@ validate_genotype_cells_args<- function(
   assert_string(ploidy, "ploidy")
   assert_float(credible_interval, "credible_interval", inclusive_max = FALSE)
   assert_float(lower_CI_assignment_threshold, "lower_CI_assignment_threshold", inclusive_max = FALSE)
-  assert_boolean(barcoded, "barcoded")
   if (!is.null(min_cells)) assert_integer(min_cells, "min_cells")
   if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
   assert_boolean(verbose, "verbose")
