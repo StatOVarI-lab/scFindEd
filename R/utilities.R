@@ -475,3 +475,35 @@ mixture_model_read_lengths <- function(
 
   return(read_lengths)
 }
+
+
+#' Used to determine the length of an insertion/deletion in a single mutation
+#' code, or a vector of single mutation codes.
+#' Currently UNUSED.
+#' @keywords internal
+calculate_indel_size <- function(mutation) {
+  # Insertion - size is the length of the inserted sequence
+  # e.g. c.100_101insGAGCTGT = 7 bases
+  ins_seq <- stringi::stri_match_first_regex(
+    mutation, "^c\\.\\d+_\\d+ins([ACGTN]+)$")[, 2]
+
+  # Deletion - size is the difference between the base positions
+  # e.g. c.146del     = 1 base
+  # e.g. c.180_188del = 9 bases
+  del_match <- stringi::stri_match_first_regex(
+    mutation, "^c\\.(\\d+)(?:_(\\d+))?del[ACGTN]*$")
+  del_start <- as.integer(del_match[, 2])
+  del_end   <- as.integer(del_match[, 3])
+
+  # Determine length
+  indel_size <- dplyr::coalesce(
+    stringi::stri_length(ins_seq),
+    dplyr::case_when(
+      is.na(del_start) ~ NA_integer_,
+      is.na(del_end)   ~ 1L,
+      .default         = del_end - del_start + 1L
+    )
+  )
+
+  return(indel_size)
+}

@@ -3,12 +3,12 @@
 \name{import_AmpID_genotypes_summary}
 \alias{import_AmpID_genotypes_summary}
 \title{Imports data from a file
-Expected file name: "\{sample_name\}_\{AmpID\}_haploid_genotypes.ytsv"}
+Expected file name: "\{sample_name\}\emph{\{AmpID\}}\{ploidy\}_genotypes.tsv"}
 \usage{
 import_AmpID_genotypes_summary(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: "\{sample_name\}_\{AmpID\}_haploid_genotypes.ytsv"
+Expected file name: "\{sample_name\}\emph{\{AmpID\}}\{ploidy\}_genotypes.tsv"
 }
 \keyword{internal}

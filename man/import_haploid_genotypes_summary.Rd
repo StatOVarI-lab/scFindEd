@@ -3,12 +3,12 @@
 \name{import_haploid_genotypes_summary}
 \alias{import_haploid_genotypes_summary}
 \title{Imports data from a file
-Expected file name: "\{sample_name\}_haploid_genotypes_summary.csv"}
+Expected file name: "\{sample_name\}_\{ploidy\}_genotypes_summary.csv"}
 \usage{
 import_haploid_genotypes_summary(source_dir, file_name, verbose)
 }
 \description{
 Imports data from a file
-Expected file name: "\{sample_name\}_haploid_genotypes_summary.csv"
+Expected file name: "\{sample_name\}_\{ploidy\}_genotypes_summary.csv"
 }
 \keyword{internal}
