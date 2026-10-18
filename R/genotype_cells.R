@@ -22,15 +22,10 @@
 #' pseudocounts in the Dirichlet multinomial model. Defaults to estimating alpha_0
 #' through Empirical Bayes optimisation (also `alpha_0 = "empirical"`), but also
 #' accepts a numeric value that will then be applied to all amplicons.
-#' @param ploidy Character string that defines whether genotyping shoud be
-#' consider as haploid or diploid. Note that only haploidy is fully implemented
-#' currently.
 #' @param credible_interval Float that sets the threshold at which lower and
 #' upper credible intervals are calculated. Must be in the range `[0, 1]`.
-#' @param lower_CI_assignment_threshold Float that sets the minimum lower credible
-#' interval bound for assigning a confident haploid genotype.
 #'
-#' @inheritParams global_params source_dir sample_name panel_ID output_dir plots_output_dir verbose
+#' @inheritParams global_params source_dir sample_name panel_ID ploidy lower_CI_assignment_threshold output_dir plots_output_dir verbose
 #'
 #' @return For each amplicon, exports the haploid genotypes file, containing the
 #' most probable variant as the haploid genotype in each cell barcode, along with
@@ -49,6 +44,19 @@ genotype_cells <- function(
   plots_output_dir = NULL,
   verbose = TRUE
 ) {
+  # -- Ensure all provided arguments are valid --
+
+  validate_genotype_cells_args(source_dir,
+                               sample_name,
+                               panel_ID,
+                               alpha_0,
+                               ploidy,
+                               credible_interval,
+                               lower_CI_assignment_threshold,
+                               output_dir,
+                               plots_output_dir,
+                               verbose)
+
   # Import SNP summary
   design_summary_file_name <- paste0(panel_ID, "_design_summary_joined.csv")
   design_summary_file <- import_design_summary_info(source_dir,
@@ -205,8 +213,6 @@ genotype_cells <- function(
 
     cli::cli_alert_success("{AmpID} posterior mean distribution plot exported to: {normalizePath(plots_output_dir)}")
   }
-
-  return(haploid_summary)
 }
 
 
@@ -400,11 +406,6 @@ haploid_genotype_assignment <- function(
 
 
 
-
-
-
-
-
 #' @keywords internal
 posterior_mean_distribution_plot <- function(
   AmpID,
@@ -452,3 +453,5 @@ cells_per_identity_barcode_plot <- function(summary) {
 
   return(plot)
 }
+
+

@@ -94,7 +94,61 @@ validate_identify_true_mutations_args <- function(
   assert_integer(min_reads, "min_reads", min = 3)
   assert_float(true_mutation_proportion, "true_mutation_proportion", inclusive_max = FALSE)
   assert_boolean(barcoded, "barcoded")
-  if (!is.null(output_dir)) assert_integer(min_cells, "min_cells")
+  if (!is.null(min_cells)) assert_integer(min_cells, "min_cells")
+  if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
+  assert_boolean(verbose, "verbose")
+
+  invisible(TRUE)
+}
+
+
+#' @keywords internal
+validate_genotype_cells_args<- function(
+  source_dir,
+  sample_name,
+  panel_ID,
+  alpha_0,
+  ploidy = "haploid",
+  credible_interval = 0.95,
+  lower_CI_assignment_threshold = NULL,
+  output_dir = NULL,
+  plots_output_dir = NULL,
+  verbose = TRUE
+) {
+  # -- Individual argument checks --
+  assert_string(source_dir, "source_dir")
+  assert_string(sample_name, "sample_name")
+  assert_string(panel_ID, "panel_ID")
+  assert_string(ploidy, "ploidy")
+  assert_float(credible_interval, "credible_interval", inclusive_max = FALSE)
+  assert_float(lower_CI_assignment_threshold, "lower_CI_assignment_threshold", inclusive_max = FALSE)
+  assert_boolean(barcoded, "barcoded")
+  if (!is.null(min_cells)) assert_integer(min_cells, "min_cells")
+  if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
+  assert_boolean(verbose, "verbose")
+
+  invisible(TRUE)
+}
+
+
+#' @keywords internal
+validate_call_identity_barcodes_args <- function(
+  source_dir,
+  sample_name,
+  panel_ID,
+  ploidy = "haploid",
+  lower_CI_assignment_threshold = 0.7,
+  consistency_threshold = 0.5,
+  output_dir = NULL,
+  verbose = TRUE
+) {
+  # -- Individual argument checks --
+  assert_string(source_dir, "source_dir")
+  assert_string(sample_name, "sample_name")
+  assert_string(panel_ID, "panel_ID")
+  assert_string(ploidy, "ploidy")
+  assert_float(lower_CI_assignment_threshold, "lower_CI_assignment_threshold", inclusive_max = FALSE)
+  assert_float(consistency_threshold, "consistency_threshold", inclusive_max = FALSE)
   if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
   assert_boolean(verbose, "verbose")
 
