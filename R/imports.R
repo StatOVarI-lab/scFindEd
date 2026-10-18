@@ -342,18 +342,17 @@ import_true_mutations <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "\{sample_name\}_haploid_genotypes_summary.csv"
+#' Expected file name: "\{sample_name\}_\{ploidy\}_genotypes_summary.csv"
 #' @keywords internal
 import_haploid_genotypes_summary <- function(
-    source_dir,
-    file_name,
-    verbose
+  source_dir,
+  file_name,
+  verbose
 ) {
   file_path <- file.path(source_dir, file_name)
   if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
                                       msg_done = "Successfully imported {file_name}.")
 
-  # Load experiment design summary file
   tryCatch(
     if (verbose) {
       data <- readr::read_csv(file_path, show_col_types = FALSE)
@@ -372,18 +371,17 @@ import_haploid_genotypes_summary <- function(
 
 
 #' Imports data from a file
-#' Expected file name: "\{sample_name\}_\{AmpID\}_haploid_genotypes.ytsv"
+#' Expected file name: "\{sample_name\}_\{AmpID\}_\{ploidy\}_genotypes.tsv"
 #' @keywords internal
 import_AmpID_genotypes_summary <- function(
-    source_dir,
-    file_name,
-    verbose
+  source_dir,
+  file_name,
+  verbose
 ) {
   file_path <- file.path(source_dir, file_name)
   if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
                                       msg_done = "Successfully imported {file_name}.")
 
-  # Load experiment design summary file
   tryCatch(
     if (verbose) {
       data <- readr::read_tsv(file_path, show_col_types = FALSE)
@@ -400,3 +398,31 @@ import_AmpID_genotypes_summary <- function(
   return(data)
 }
 
+
+#' Imports data from a file
+#' Expected file name: "\{sample_name\}_\{ploidy\}_identity_barcode_genotypes.csv"
+#' @keywords internal
+import_identity_barcode_genotypes <- function(
+  source_dir,
+  file_name,
+  verbose
+) {
+  file_path <- file.path(source_dir, file_name)
+  if (verbose) cli::cli_process_start(msg = "Importing {file_path}...",
+                                      msg_done = "Successfully imported {file_name}.")
+
+  tryCatch(
+    if (verbose) {
+      data <- readr::read_csv(file_path, show_col_types = FALSE)
+    } else {
+      data <- suppressMessages(readr::read_csv(file_path, show_col_types = FALSE))
+    },
+    error = function(e) {
+      cli::cli_abort("Failed to import {file_name} from {source_dir}.")
+    }
+  )
+
+  if (verbose) cli::cli_process_done()
+
+  return(data)
+}

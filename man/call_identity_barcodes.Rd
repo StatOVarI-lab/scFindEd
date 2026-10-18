@@ -24,6 +24,10 @@ type) for the experiment sample.}
 
 \item{panel_ID}{String containing the ID number for the design summary panel.}
 
+\item{ploidy}{Character string that defines whether genotyping shoud be
+consider as haploid or diploid. Note that only haploidy is fully implemented
+currently.}
+
 \item{lower_CI_assignment_threshold}{Float that sets the minimum lower credible
 interval bound for assigning a confident haploid genotype.}
 

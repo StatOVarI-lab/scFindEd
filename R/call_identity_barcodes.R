@@ -6,7 +6,7 @@
 #' number of cells in an identity barcode that must agree for a mutation to be
 #' accepted. Must be in the range `[0, 1]`.
 #'
-#' @inheritParams global_params source_dir sample_name panel_ID lower_CI_assignment_threshold output_dir verbose
+#' @inheritParams global_params source_dir sample_name panel_ID ploidy lower_CI_assignment_threshold output_dir verbose
 #'
 #' @return For each amplicon, exports the haploid genotypes file, containing the
 #' most probable variant as the haploid genotype in each cell barcode, along with
