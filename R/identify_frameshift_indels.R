@@ -29,8 +29,6 @@ identify_frameshift_indels <- function(
     verbose
   )
 
-  print(head(identity_barcode_genotypes))
-
   if (verbose) cli::cli_process_start(msg = "Identifying and categorising indel mutations...",
                                       msg_done = "Indel mutations identified and categorised.")
 

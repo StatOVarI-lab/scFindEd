@@ -136,7 +136,8 @@ plot_variant_summary <- function(
     # -- Optional file saving (only if output_dir is specified) --
 
     if (!is.null(output_dir)) {
-      variant_summary_plot_file_name <- paste0(AmpID, "_variant_summary.png")
+      variant_summary_plot_file_name <- paste0(sample_name, "_", AmpID,
+                                               "_variant_summary.png")
 
       # Create sub-directory only if barcode is defined
       if (!is.null(barcode)) {
