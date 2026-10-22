@@ -92,11 +92,11 @@ identify_whitelisted_barcodes <- function(
 
       # Optional file saving (only if plots_output_dir is provided)
       if (!dir.exists(plots_output_dir)) dir.create(plots_output_dir, recursive = TRUE)
-      ggplot2::ggsave(file.path(output_dir, BC_ID_hamming_plot_file_name),
+      ggplot2::ggsave(file.path(plots_output_dir, BC_ID_hamming_plot_file_name),
                       plot = BC_ID_hamming_plot,
                       width = 8, height = 5, dpi = 300)
 
-      cli::cli_alert_success("QC plot for {extracted_BC_ID} exported to: {normalizePath(output_dir)}")
+      cli::cli_alert_success("QC plot for {extracted_BC_ID} exported to: {normalizePath(plots_output_dir)}")
     }
   }
 }
