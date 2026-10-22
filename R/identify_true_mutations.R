@@ -134,12 +134,12 @@ identify_true_mutations <- function(
       tidyr::unnest(individual_mutation) |>
       dplyr::group_by(cell_barcode, cell_count, individual_mutation) |>
       dplyr::summarise(mutation_count = sum(count, na.rm = TRUE), .groups = "drop") |>
-      dplyr::filter(mutation_count / cell_count > true_mutation_proportion) |>
       dplyr::filter(
         # If 10 or more reads, default to standard behaviour
-        (min_reads >= 10 & mutation_count / cell_count > true_mutation_proportion) |
-        # If less than 10 reads, filter out mutations that occur in only 1 read
-        (min_reads <  10 & mutation_count > 1)
+        (cell_count >= 10 & mutation_count / cell_count > true_mutation_proportion) |
+        # If less than 10 reads (possible where min_reads was set to < 10),
+        # filter out mutations that occur in only 1 read
+        (cell_count <  10 & mutation_count > 1)
       ) |>
       dplyr::arrange(cell_barcode, dplyr::desc(mutation_count))
 
