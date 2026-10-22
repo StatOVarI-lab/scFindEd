@@ -4,7 +4,7 @@
 \alias{construct_cigar_chunks_dt}
 \title{Chunk CIGAR strings and flatten them into a single, long data table}
 \usage{
-construct_cigar_chunks_dt(cigars, row_IDs, batch_size = 1000000)
+construct_cigar_chunks_dt(cigars, row_IDs, batch_size = 1e+06)
 }
 \description{
 Chunk CIGAR strings and flatten them into a single, long data table

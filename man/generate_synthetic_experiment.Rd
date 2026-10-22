@@ -7,11 +7,11 @@
 generate_synthetic_experiment(
   edit_efficiency = 0.5,
   somatic_mutation_rate = 0.001,
-  sequencing_error_rate = 0.0003,
+  sequencing_error_rate = 3e-04,
   readname_cell_barcode_assignment_skew = 0.7,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
-  reads_per_amplicon = 1000000,
+  reads_per_amplicon = 1e+06,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
