@@ -153,7 +153,8 @@ evaluate_optimal_barcode_flanks <- function(
 
     # -- Consensus Suggestions --
 
-    total_reads <- nrow(reads_by_orientation[["forward"]])
+    total_forward_reads <- nrow(reads_by_orientation[["forward"]])
+    total_reverse_reads <- nrow(reads_by_orientation[["reverse"]])
 
     # Rule: among flank lengths with 0 multiple hits, select the flank with the
     # most single hits. Break ties by selecting the shorter flank.
@@ -227,7 +228,11 @@ evaluate_optimal_barcode_flanks <- function(
       cli::cli_alert_success(
         "Optimal {rec$barcode_ID} flank: {rec$orientation} reads; {rec$direction}; size = {rec$flank_size}."
       )
-      cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$retained_reads} / {total_reads}.")
+      if (rec$orientation == "forward") {
+        cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$retained_reads} / {total_forward_reads}.")
+      } else if (rec$orientation == "reverse") {
+        cli::cli_alert_info("Proportion of retained reads with single flank hit: {rec$retained_reads} / {total_reverse_reads}.")
+      }
     }
   }
 

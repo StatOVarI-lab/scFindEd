@@ -84,11 +84,16 @@ generate_synthetic_experiment <- function(
 
   # -- Ensure all provided arguments are valid --
   validate_generate_synthetic_experiment_args(total_reads,
+                                              edit_efficiency,
+                                              somatic_mutation_rate,
+                                              sequencing_error_rate,
+                                              readname_cell_barcode_assignment_skew,
+                                              cell_identity_barcode_assignment_skew,
+                                              soup_fraction,
                                               reads_per_amplicon,
                                               total_cell_barcodes,
                                               total_whitelist_barcodes,
                                               total_identity_barcode_combinations,
-                                              soup_fraction,
                                               n_amplicons,
                                               n_edits,
                                               total_identity_barcodes,
