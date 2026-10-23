@@ -38,5 +38,12 @@ is genotyped on multiple amplicons, the output frameshift column will be
 pipe-separated in the same order as the genotype column.
 }
 \description{
-\emph{NEEDS DOCUMENTING}
+This function is an optional extension to \code{call_identity_barcodes()}.
+}
+\details{
+This function takes the output file from \code{call_identity_barcodes()} - the
+identity barcode genotypes file - and appends an additional column that
+states whether there is a frameshift indel or in-frame indel contained in the
+consensus genotype. It can be used to identify identity barcodes that could
+be used as labelled knockouts in downstream scRNA analysis.
 }

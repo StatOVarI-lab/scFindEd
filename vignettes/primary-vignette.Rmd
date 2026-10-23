@@ -319,7 +319,7 @@ The function also calculates credible intervals for the derived posterior means,
 
 `alpha_0` controls the parameter vector of the Dirichlet multinomial. A numeric value can be provided directly and used across every amplicon. However, if left blank (or `alpha_0 = "empirical`), then a value for `alpha_0` will be estimated for each amplicon using an Empirical Bayes optimiser.
 
-**Output**: If `output_dir` is defined, For each amplicon, this function exports a file `{sample_name}_{AmpID}_{ploidy}_genotypes.tsv`, containing the most probable variant as the genotype in each cell barcode, along with reported posterior means and credible intervals. These tables are also collated into a single summary file named `{sample_name}_{ploidy}_genotypes_summary.csv`, which pulls together instances of cells with edits as their genotype, and clarifies (1) each cell's assigned genotype and (2) which cells are 'confident wildtypes'. If `plots_output_dir` is also defined, two types of quality control plots are produced. One is per amplicon, which demonstrates the range of posterior means among most probable genotypes (`{sample_name}_{AmpID}_posterior_mean_distribution.png`). Most amplicons will be heavily right-skewed, as most cells will be very-likely wildtypes. A peak at approximately 0.5 suggests an over-representation of heterozygotes in the data, which should be explored further. The second QC plot displays the distribution of the number of cell barcodes per identity barcode (`{sample_name}_cells_per_identity_barcode.png`); it is ideal to see as many identity barcodes with a greater number of cell barcodes as possible.
+**Output**: If `output_dir` is defined, for each amplicon, this function exports a file `{sample_name}_{AmpID}_{ploidy}_genotypes.tsv`, containing the most probable variant as the genotype in each cell barcode, along with reported posterior means and credible intervals. These tables are also collated into a single summary file named `{sample_name}_{ploidy}_genotypes_summary.csv`, which pulls together instances of cells with edits as their genotype, and clarifies (1) each cell's assigned genotype and (2) which cells are 'confident wildtypes'. If `plots_output_dir` is also defined, two types of quality control plots are produced. One is per amplicon, which demonstrates the range of posterior means among most probable genotypes (`{sample_name}_{AmpID}_posterior_mean_distribution.png`). Most amplicons will be heavily right-skewed, as most cells will be very-likely wildtypes. A peak at approximately 0.5 suggests an over-representation of heterozygotes in the data, which should be explored further. The second QC plot displays the distribution of the number of cell barcodes per identity barcode (`{sample_name}_cells_per_identity_barcode.png`); it is ideal to see as many identity barcodes with a greater number of cell barcodes as possible.
 
 **Note**: An extension to assigning cells as probable heterozygotes is in the pipeline, and should be implemented shortly.
 
@@ -340,5 +340,54 @@ genotype_cells(source_dir = "data",
 ![](../plots/MB_barcoded_AMPL902649_posterior_mean_distribution.png)
 
 ![](../plots/MB_barcoded_cells_per_identity_barcode.png)
+
+
+### call_identity_barcodes()
+
+This function is used to collate the information on the most probable haploid genotype across cells that share the same identity barcode, and provide a consensus call for each identity barcode's overall genotype. Each mutation that exists within all of the constituent cells' most probable genotypes are considered independently for whether they meet the threshold for being assigned as part of the overall genotype.
+
+The `consistency_threshold` argument determines how many cells need to contain a mutation in its most probable genotype for the mutation to be included in the identity barcode's genotype. For example, at the default value of `0.5`, explicitly more than 50% of cells must contain the mutation.
+
+Currently, the `lower_CI_assignment_threshold` parameter is used exclusively for identity barcodes with only one cell. These barcodes require more confidence to be called, and as such the cell itself must have a lower credible interval bound greater than or equal to `lower_CI_assignment_threshold`.
+
+An identity barcode is a "Confident WT" if every cell is itself labelled a confident wildtype. An identity barcode is a "Non-Xonfident WT" if instead more than 50% of cells are a confident wildtype. If less than 50% of cells are confident wildtype, and no other mutation is called confidently, the identity barcode will be assigned as "Non-Confident Mutant".
+
+Lastly, an additional check is performed against the experiment's design summary file. All assigned genotypes are checked against the intended edits laid out in the design summary; if a genotype matches an edit on the respective amplicon, then the column `contains_edit` is marked `TRUE`.
+
+**Output**: If `output_dir` is defined, this function exports a file `{sample_name}_{ploidy}_identity_barcode_genotypes.csv`, which contains a row for each unique identity barcode, and describes the number of cells assigned to the barcode, the barcode's consensus genotype, and whether the genotype matches one of the experiment's intended edits.
+
+**Note**: Identity barcodes that contain a mutation on multiple amplicons as a part of their consensus genotype will have each amplicons genotype pipe-separated in the `$genotype` column.
+
+```{r, eval=FALSE}
+# Example function call
+call_identity_barcodes(source_dir = "data",
+                       sample_name = "scSNV_example",
+                       panel_ID = "9876",
+                       ploidy = "haploid",
+                       lower_CI_assignment_threshold = 0.7,
+                       consistency_threshold = 0.5,
+                       output_dir = "data",
+                       verbose = TRUE)
+```
+
+
+### identify_frameshift_indels()
+
+This function is an optional extension to `call_identity_barcodes()`.
+
+This function takes the output file from `call_identity_barcodes()` - `{sample_name}_{ploidy}_identity_barcode_genotypes.csv` - and appends an additional column that states whether there is a frameshift indel or in-frame indel contained in the consensus genotype. It can be used to identify identity barcodes that could be used as labelled knockouts in downstream scRNA analysis.
+
+**Output**: Appends an additional column to `{sample_name}_{ploidy}_identity_barcode_genotypes.csv` that details whether the genotype contains an `"In-Frame"` or `"Frameshift indel"`. If the identity barcode's genotype contains no indel, returns `NA`. 
+
+**Note**: Identity barcodes that contain a mutation on multiple amplicons as a part of their consensus genotype will have each amplicons genotype pipe-separated in the `$frameshift` column in the exact same structure as it is in the `$genotype` column.
+
+```{r, eval=FALSE}
+# Example function call
+identify_frameshift_indels(source_dir = "data",
+                           sample_name = "scSNV_example",
+                           ploidy = "haploid",
+                           output_dir = "data",
+                           verbose = TRUE)
+```
 
 *End*

@@ -1,6 +1,34 @@
 #' Calling Each Identity Barcode's Genotype
 #'
-#' *NEEDS DOCUMENTING*
+#' This function is used to collate the information on the most probable haploid
+#' genotype across cells that share the same identity barcode, and provide a
+#' consensus call for each identity barcode's overall genotype.
+#'
+#' Each mutation that exists within all of the constituent cells' most probable
+#' genotypes are considered independently for whether they meet the threshold
+#' for being assigned as part of the overall genotype.
+#'
+#' The `consistency_threshold` argument determines how many cells need to contain
+#' a mutation in its most probable genotype for the mutation to be included in
+#' the identity barcode's genotype. For example, at the default value of `0.5`,
+#' explicitly more than 50% of cells must contain the mutation.
+#'
+#' Currently, the `lower_CI_assignment_threshold` parameter is used exclusively
+#' for identity barcodes with only one cell. These barcodes require more
+#' confidence to be called, and as such the cell itself must have a lower
+#' credible interval bound greater than or equal to
+#' `lower_CI_assignment_threshold`.
+#'
+#' An identity barcode is a "Confident WT" if every cell is itself a confident
+#' wildtype. An identity barcode is a "Non-Confident WT" if instead more than
+#' 50% of cells are a confident wildtype. If less than 50% of cells are confident
+#' wildtype, and no other mutation is called confidently, the identity barcode
+#' will be assigned as "Non-Confident Mutant".
+#'
+#' Lastly, an additional check is performed against the experiment's design
+#' summary file. All assigned genotypes are checked against the intended edits
+#' laid out in the design summary; if a genotype matches an edit on the
+#' respective amplicon, then the column `contains_edit` is marked `TRUE`.
 #'
 #' @param consistency_threshold Float that sets the threshold for the minimum
 #' number of cells in an identity barcode that must agree for a mutation to be
@@ -8,9 +36,10 @@
 #'
 #' @inheritParams global_params source_dir sample_name panel_ID ploidy lower_CI_assignment_threshold output_dir verbose
 #'
-#' @return For each amplicon, exports the haploid genotypes file, containing the
-#' most probable variant as the haploid genotype in each cell barcode, along with
-#' reported posterior means and credible intervals.
+#' @return Exports an identity barcode genotypes file, which contains a row for
+#' each unique identity barcode, and describes the number of cells assigned to
+#' the barcode, the barcode's consensus genotype, and whether the genotype
+#' matches one of the experiment's intended edits.
 #'
 #' @export
 call_identity_barcodes <- function(
