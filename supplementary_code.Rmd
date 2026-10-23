@@ -198,6 +198,7 @@ plot_variant_summary(source_dir = "data/testing",
                      verbose = TRUE)
 ```
 
+
 # genotype_cells.R
 
 ## genotype_cells()
@@ -215,6 +216,34 @@ genotype_cells(source_dir = "data/testing",
                verbose = TRUE)
 ```
 
+
+# call_identity_barcodes.R
+
+## call_identity_barcodes()
+
+```{r}
+call_identity_barcodes(source_dir = "data/testing",
+                       sample_name = "MB_barcoded",
+                       panel_ID = "6915",
+                       ploidy = "haploid",
+                       lower_CI_assignment_threshold = 0.7,
+                       consistency_threshold = 0.5,
+                       output_dir = "data/testing",
+                       verbose = TRUE)
+```
+
+
+# identify_frameshift_indels.R
+
+## identify_frameshift_indels()
+
+```{r}
+identify_frameshift_indels(source_dir = "data/testing",
+                           sample_name = "MB_barcoded",
+                           ploidy = "haploid",
+                           output_dir = "data/testing",
+                           verbose = TRUE)
+```
 
 
 
