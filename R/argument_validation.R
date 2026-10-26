@@ -76,13 +76,45 @@ assert_string <- function(
 # -- Per-Function Argument Validation --
 
 #' @keywords internal
+validate_identify_true_mutations_args <- function(
+  source_dir,
+  sample_name,
+  panel_ID,
+  min_reads = 10,
+  true_mutation_proportion = 0.1,
+  barcoded = FALSE,
+  min_cells = NULL,
+  output_dir = NULL,
+  verbose = TRUE
+) {
+  # -- Individual argument checks --
+  assert_string(source_dir, "source_dir")
+  assert_string(sample_name, "sample_name")
+  assert_string(panel_ID, "panel_ID")
+  assert_integer(min_reads, "min_reads", min = 3)
+  assert_float(true_mutation_proportion, "true_mutation_proportion", inclusive_max = FALSE)
+  assert_boolean(barcoded, "barcoded")
+  if (!is.null(min_cells)) assert_integer(min_cells, "min_cells")
+  if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
+  assert_boolean(verbose, "verbose")
+
+  invisible(TRUE)
+}
+
+
+#' @keywords internal
 validate_generate_synthetic_experiment_args <- function(
   total_reads,
-  reads_per_amplicon = 100000,
+  edit_efficiency = 0.5,
+  somatic_mutation_rate = 0.001,
+  sequencing_error_rate = 0.0003,
+  readname_cell_barcode_assignment_skew = 0.7,
+  cell_identity_barcode_assignment_skew = 0.4,
+  soup_fraction = 0.2,
+  reads_per_amplicon = 1000000,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
-  soup_fraction = 0.2,
   n_amplicons = 5,
   n_edits = 20,
   total_identity_barcodes = 3,
@@ -95,11 +127,16 @@ validate_generate_synthetic_experiment_args <- function(
 ) {
   # -- Individual argument checks --
 
+  assert_float(edit_efficiency, "edit_efficiency", min = 0.1, max = 0.9)
+  assert_float(somatic_mutation_rate, "somatic_mutation_rate", max = 0.1)
+  assert_float(sequencing_error_rate, "sequencing_error_rate", max = 0.1)
+  assert_float(readname_cell_barcode_assignment_skew, "readname_cell_barcode_assignment_skew", inclusive_max = FALSE)
+  assert_float(cell_identity_barcode_assignment_skew, "cell_identity_barcode_assignment_skew", inclusive_max = FALSE)
+  assert_float(soup_fraction, "soup_fraction", inclusive_max = FALSE)
   assert_integer(reads_per_amplicon, "reads_per_amplicon", min = 10000)
   assert_integer(total_cell_barcodes, "total_cell_barcodes", min = 1000)
   assert_integer(total_whitelist_barcodes, "total_whitelist_barcodes")
   assert_integer(total_identity_barcode_combinations, "total_identity_barcode_combinations", min = 100)
-  assert_float(soup_fraction, "soup_fraction", inclusive_max = FALSE)
   assert_integer(n_amplicons, "n_amplicons", max = 50)
   assert_integer(n_edits, "n_edits", max = 100)
   assert_integer(total_identity_barcodes, "total_identity_barcodes", max = 5)

@@ -217,6 +217,8 @@ This function also filters variants for a minimum number of reads per cell `min_
 
 **Note**: The design summary file is expected to have the following name structure: `{panel_ID}_design_summary_joined.csv`. If yours does not, for now edit the file name to match this structure (including `{panel_ID}`) and use that as that value for the argument `panel_ID`.
 
+**Note**: If `min_reads < 10`, then instead of using `true_mutation_proportion`, mutations will only be retained if they appear in strictly more than one read. This is to prevent the system from not operating as intended with small values of `true_mutation_proportion` (such as the default value of `0.1`).
+
 ```{r, eval=FALSE}
 # Example function call
 identify_true_mutations(source_dir = "data",

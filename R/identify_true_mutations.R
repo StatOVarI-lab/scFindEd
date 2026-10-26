@@ -10,9 +10,11 @@
 #' barcode combination - `min_cells`.
 #'
 #' @param min_reads Minimum number of reads for each cell. Cells with fewer than
-#' `min_reads` reads will be filtered out.
+#' `min_reads` reads will be filtered out. Minimum value = 3.
 #' @param true_mutation_proportion Minimum proportion of reads that a mutation
-#' must appear in to be considered a 'true' mutation within it's cell.
+#' must appear in to be considered a 'true' mutation within it's cell. If
+#' `min_reads < 10`, then instead a mutation must strictly appear in more than
+#' one read.
 #' @param min_cells Minimum number of cells per identity barcode combination.
 #' Identity barcode combinations with fewer than `min_cells` cells will be
 #' filtered out. Required if `barcoded = TRUE`.
@@ -35,6 +37,18 @@ identify_true_mutations <- function(
   output_dir = NULL,
   verbose = TRUE
 ) {
+  # -- Ensure all provided arguments are valid --
+
+  validate_identify_true_mutations_args(source_dir,
+                                        sample_name,
+                                        panel_ID,
+                                        min_reads,
+                                        true_mutation_proportion,
+                                        barcoded,
+                                        min_cells,
+                                        output_dir,
+                                        verbose)
+
   # -- Import SNP Summary --
 
   design_summary_file_name <- paste0(panel_ID, "_design_summary_joined.csv")
@@ -81,7 +95,7 @@ identify_true_mutations <- function(
     # -- Filter by min_reads --
 
     if (verbose) cli::cli_process_start(msg = "Removing cells with fewer than {min_reads} reads...",
-                                        msg_done = "Cells with fewer than {min_reads} removed.")
+                                        msg_done = "Cells with fewer than {min_reads} reads removed.")
 
     variant_summary <- variant_summary |>
       dplyr::filter(cell_count >= min_reads) |>
@@ -97,7 +111,7 @@ identify_true_mutations <- function(
     if (barcoded) {
       if (is.null(min_cells)) cli::cli_abort("In barcoded experiments, you must assign a value to min_cells.")
       if (verbose) cli::cli_process_start(msg = "Removing identity barcode combinations with fewer than {min_cells} cells...",
-                                          msg_done = "Identity barcode combinations with fewer than {min_cells} removed.")
+                                          msg_done = "Identity barcode combinations with fewer than {min_cells} cells removed.")
 
       variant_summary <- variant_summary |>
         dplyr::group_by(identity_barcode) |>
@@ -120,7 +134,13 @@ identify_true_mutations <- function(
       tidyr::unnest(individual_mutation) |>
       dplyr::group_by(cell_barcode, cell_count, individual_mutation) |>
       dplyr::summarise(mutation_count = sum(count, na.rm = TRUE), .groups = "drop") |>
-      dplyr::filter(mutation_count / cell_count > true_mutation_proportion) |>
+      dplyr::filter(
+        # If 10 or more reads, default to standard behaviour
+        (cell_count >= 10 & mutation_count / cell_count > true_mutation_proportion) |
+        # If less than 10 reads (possible where min_reads was set to < 10),
+        # filter out mutations that occur in only 1 read
+        (cell_count <  10 & mutation_count > 1)
+      ) |>
       dplyr::arrange(cell_barcode, dplyr::desc(mutation_count))
 
     if (verbose) cli::cli_process_done()

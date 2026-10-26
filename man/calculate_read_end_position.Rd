@@ -4,7 +4,7 @@
 \alias{calculate_read_end_position}
 \title{Calculate a read's end position from the start position and the read's CIGAR string}
 \usage{
-calculate_read_end_position(pos, cigars, batch_size = 1000000)
+calculate_read_end_position(pos, cigars, batch_size = 1e+06)
 }
 \description{
 Calculate a read's end position from the start position and the read's CIGAR string

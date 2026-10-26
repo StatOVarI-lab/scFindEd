@@ -1,5 +1,5 @@
-[![Stable Version - v0.1.0](https://img.shields.io/badge/stable_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/releases/tag/v.0.1.0)
-[![Dev Version - v0.1.0](https://img.shields.io/badge/dev_version-v.0.1.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/tree/dev)
+[![Stable Version - v0.1.1](https://img.shields.io/badge/stable_version-v.0.1.1-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/releases/tag/v.0.1.1)
+[![Dev Version - v0.2.0](https://img.shields.io/badge/dev_version-v.0.2.0-blue?logo=github)](https://github.com/StatOVarI-lab/scFindEd/tree/dev)
 [![scFindEd-nf](https://img.shields.io/badge/scFindEd--nf-v.0.1.0-purple?logo=github)](https://github.com/StatOVarI-lab/scFindEd-nf)
 
 [![Documentation](https://img.shields.io/badge/documentation-white?logo=googledocs)](https://github.com/StatOVarI-lab/scFindEd/blob/main/vignettes/primary-vignette.Rmd)
@@ -122,7 +122,7 @@ data/
   └── ... # etc. for however many barcodes are in your identity barcode system
 ```
 
-All files except for `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be produced by [scFindEd-nf](https://github.com/StatOVarI-lab/scFindEd-nf), and therefore should have standardised data structure. `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be `.csv` files with the following structures:
+All files except for `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be produced by [![scFindEd-nf](https://img.shields.io/badge/scFindEd--nf-v.0.1.0-purple?logo=github)](https://github.com/StatOVarI-lab/scFindEd-nf), and therefore should have standardised data structure. `BC1_whitelist_file_name`, `BC2_whitelist_file_name` etc. should be `.csv` files with the following structures:
 
 ```
 {BC1_whitelist_file_name} e.g. "75K_barcode.csv"
