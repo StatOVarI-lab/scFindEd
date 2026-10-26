@@ -94,7 +94,7 @@ validate_identify_true_mutations_args <- function(
   assert_integer(min_reads, "min_reads", min = 3)
   assert_float(true_mutation_proportion, "true_mutation_proportion", inclusive_max = FALSE)
   assert_boolean(barcoded, "barcoded")
-  if (!is.null(output_dir)) assert_integer(min_cells, "min_cells")
+  if (!is.null(min_cells)) assert_integer(min_cells, "min_cells")
   if (!is.null(output_dir)) assert_string(output_dir, "output_dir")
   assert_boolean(verbose, "verbose")
 
