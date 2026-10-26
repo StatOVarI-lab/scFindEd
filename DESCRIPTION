@@ -1,6 +1,6 @@
 Package: scFindEd
 Title: A Toolkit for Identity Barcode Extraction and Genotyping of Single-Cell-based Base Editing Experiments.
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Miles", "Rowbottom", , "mr905@exeter.ac.uk", role = c("aut", "cre"))
     person("Ruxandra", "Neatu", , "r.neatu@exeter.ac.uk", role = c("aut", "cre"))
