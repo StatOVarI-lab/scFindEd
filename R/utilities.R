@@ -298,9 +298,9 @@ reverse_conversion <- function(seqs) {
 mutate_seqs <- function(
   seqs,
   mutation_rate = 0.001,
-  p_sub = 0.8,
-  p_ins = 0.1,
-  p_del = 0.1,
+  p_sub = 0.5,
+  p_ins = 0.2,
+  p_del = 0.3,
   indel_p = 0.5 # indel length ~ 1 + Geometric(indel_p); mean 1/indel_p, 1 = always single-base
 ) {
   # Convert to biostrings DNA set
