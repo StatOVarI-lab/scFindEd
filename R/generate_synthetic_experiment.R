@@ -721,13 +721,14 @@ generate_soup_reads <- function(
   n_soup_reads <- length(readnames)
   AmpIDs       <- design_summary[["AmpID"]]
 
-  # -- Sample cell_barcodes: quarter from true pool, three quarter generated --
+  # -- Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
 
-  n_real_cells <- n_soup_reads %/% 4
-  n_soup_cells <- n_soup_reads - n_real_cells
+  n_from_real_cells <- round(n_soup_reads / 5)
+  n_from_soup_cells <- n_soup_reads - n_from_real_cells
+
   soup_cell_barcodes <- sample(c(
-    sample(cell_barcodes, n_real_cells, replace = TRUE),
-    generate_cell_barcodes(n_soup_cells, cell_barcode_length = 18)
+    sample(cell_barcodes, n_from_real_cells, replace = TRUE),
+    skewed_soup_cell_barcodes(n_from_soup_cells)
   ))
 
   # Assign each soup read to an amplicon at random
@@ -784,6 +785,35 @@ generate_soup_reads <- function(
                               seq          = soup_sequences)
 
   return(soup_reads)
+}
+
+
+#' @keywords internal
+skewed_soup_cell_barcodes <- function(
+  n_reads,
+  skewness = 0.2
+) {
+  n_cell_barcodes <- round(n_reads / 20)
+
+  cell_barcodes <- generate_cell_barcodes(n_cell_barcodes, cell_barcode_length = 18)
+
+  guaranteed_assignments <- cell_barcodes
+  n_remaining <- n_reads - n_cell_barcodes
+
+  # Generate skewed probabilities using a Gamma distribution
+  raw_weights <- rgamma(n_cell_barcodes, shape = skewness, rate = 1)
+  probs       <- raw_weights / sum(raw_weights)
+
+  # Sample identity barcodes for all remaining cell barcodes
+  remaining_assignments <- sample(cell_barcodes,
+                                  size    = n_remaining,
+                                  replace = TRUE,
+                                  prob    = probs)
+
+  # Combine guaranteed and remaining assignments
+  assignments <- c(guaranteed_assignments, remaining_assignments)
+
+  return(assignments)
 }
 
 
