@@ -656,39 +656,45 @@ skewed_readname_cell_barcode_assignment <- function(
 nbinom_readname_cell_barcode_assignment <- function(
   readnames,
   cell_barcodes,
-  size = 1.5   # negative-binomial dispersion parameter
+  low_peak_fraction = 0.25,  # proportion of cells in the low-depth peak
+  high_low_ratio    = 50,    # high-peak mean / low-peak mean
+  high_peak_size    = 1.5,   # NB dispersion for each peak; larger = tighter
+  low_peak_size     = 5,
+  min_reads         = 1L     # guaranteed reads per cell
 ) {
   n_readnames     <- length(readnames)
   n_cell_barcodes <- length(cell_barcodes)
 
-  # Set the average readnames per barcode;
-  # Each cell has at least one guaranteed read; adjust mean accordingly
+  # Global mean reads per cell
   mean_reads <- n_readnames / n_cell_barcodes
-  mu_extra   <- mean_reads - 1
 
-  # Draw per-barcode counts: 1 guaranteed read + NB extras (minimum count is 1)
-  counts <- 1L + rnbinom(n_cell_barcodes, size = size, mu = mu_extra)
+  # Solve for the peak means so the overall mean is preserved:
+  # mean_reads = mean_high * ((1 - f) + f / high_low_ratio)
+  mean_high <- mean_reads / ((1 - low_peak_fraction) + low_peak_fraction / high_low_ratio)
+  mean_low <- mean_high / high_low_ratio
 
-  # sum(counts) may not equal n_readnames
+  # Assign each cell to a peak, then draw its count from that peak's NB
+  is_low   <- runif(n_cell_barcodes) < low_peak_fraction
+  mu_extra <- ifelse(is_low, mean_low, mean_high) - min_reads
+  sizes    <- ifelse(is_low, low_peak_size, high_peak_size)
+  counts   <- min_reads + rnbinom(n_cell_barcodes, size = sizes, mu = mu_extra)
+
+  # Reconcile the random total with the number of readnames
   diff <- n_readnames - sum(counts)
   if (diff > 0) {
-    # Add surplus reads, favouring barcodes that already have more reads
     add_idx <- sample.int(n_cell_barcodes, size = diff, replace = TRUE, prob = counts)
     counts  <- counts + tabulate(add_idx, nbins = n_cell_barcodes)
   } else if (diff < 0) {
-    # Remove excess reads, only from reads beyond each barcode's guaranteed one
-    extra_slots <- rep(seq_len(n_cell_barcodes), times = counts - 1L)
+    extra_slots <- rep(seq_len(n_cell_barcodes), times = counts - min_reads)
     drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
     counts      <- counts - tabulate(drop_idx, nbins = n_cell_barcodes)
   }
 
-  # Pair shuffled readnames with barcodes according to the counts
-  readname_cell_barcode_assignment <- dplyr::tibble(
-    readname     = sample(readnames),
+  # Shuffle barcodes so each cell's reads scatter across all amplicon blocks
+  dplyr::tibble(
+    readname     = readnames,
     cell_barcode = sample(rep(cell_barcodes, times = counts))
   )
-
-  return(readname_cell_barcode_assignment)
 }
 
 
