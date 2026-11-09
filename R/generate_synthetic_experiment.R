@@ -504,10 +504,9 @@ generate_ground_truth_table <- function(
   )
 
   # -- Generate lookup table between readnames and cell_barcode --
-  readname_cell_barcode_assignment <- skewed_readname_cell_barcode_assignment(
+  readname_cell_barcode_assignment <- nbinom_readname_cell_barcode_assignment(
     readnames,
-    cell_barcodes,
-    skewness = readname_cell_barcode_assignment_skew
+    cell_barcodes
   ) |>
     dplyr::mutate(AmpID = rep(design_summary[["AmpID"]], each = reads_per_amplicon))
 
@@ -647,6 +646,46 @@ skewed_readname_cell_barcode_assignment <- function(
   readname_cell_barcode_assignment <- dplyr::tibble(
     readname     = c(shuffled_readnames[1:n_cell_barcodes], remaining_readnames),
     cell_barcode = c(guaranteed_assignments, remaining_assignments)
+  )
+
+  return(readname_cell_barcode_assignment)
+}
+
+
+#' @keywords internal
+nbinom_readname_cell_barcode_assignment <- function(
+  readnames,
+  cell_barcodes,
+  size = 1.5   # negative-binomial dispersion parameter
+) {
+  n_readnames     <- length(readnames)
+  n_cell_barcodes <- length(cell_barcodes)
+
+  # Set the average readnames per barcode;
+  # Each cell has at least one guaranteed read; adjust mean accordingly
+  mean_reads <- n_readnames / n_cell_barcodes
+  mu_extra   <- mean_reads - 1
+
+  # Draw per-barcode counts: 1 guaranteed read + NB extras (minimum count is 1)
+  counts <- 1L + rnbinom(n_cell_barcodes, size = size, mu = mu_extra)
+
+  # sum(counts) may not equal n_readnames
+  diff <- n_readnames - sum(counts)
+  if (diff > 0) {
+    # Add surplus reads, favouring barcodes that already have more reads
+    add_idx <- sample.int(n_cell_barcodes, size = diff, replace = TRUE, prob = counts)
+    counts  <- counts + tabulate(add_idx, nbins = n_cell_barcodes)
+  } else if (diff < 0) {
+    # Remove excess reads, only from reads beyond each barcode's guaranteed one
+    extra_slots <- rep(seq_len(n_cell_barcodes), times = counts - 1L)
+    drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
+    counts      <- counts - tabulate(drop_idx, nbins = n_cell_barcodes)
+  }
+
+  # Pair shuffled readnames with barcodes according to the counts
+  readname_cell_barcode_assignment <- dplyr::tibble(
+    readname     = sample(readnames),
+    cell_barcode = rep(cell_barcodes, times = counts)
   )
 
   return(readname_cell_barcode_assignment)
