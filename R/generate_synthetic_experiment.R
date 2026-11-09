@@ -685,7 +685,7 @@ nbinom_readname_cell_barcode_assignment <- function(
   # Pair shuffled readnames with barcodes according to the counts
   readname_cell_barcode_assignment <- dplyr::tibble(
     readname     = sample(readnames),
-    cell_barcode = rep(cell_barcodes, times = counts)
+    cell_barcode = sample(rep(cell_barcodes, times = counts))
   )
 
   return(readname_cell_barcode_assignment)
