@@ -411,10 +411,16 @@ posterior_mean_distribution_plot <- function(
   AmpID,
   genotypes
 ) {
+  # Filter for only the most probable variant in each cell
+  MPV_genotypes <- genotypes |>
+    dplyr::group_by(cell_barcode) |>
+    dplyr::slice_max(order_by = posterior_mean, n = 1, with_ties = FALSE) |>
+    dplyr::ungroup()
+
   plot_colour <- scales::brewer_pal(palette = "Set2")(1)
 
   # Plot the distribution of the posterior mean across AmpID cell_barcodes
-  plot <- ggplot2::ggplot(genotypes, ggplot2::aes(x = posterior_mean)) +
+  plot <- ggplot2::ggplot(MPV_genotypes, ggplot2::aes(x = posterior_mean)) +
     ggplot2::geom_histogram(binwidth = 0.025, boundary = 1,
                             fill = plot_colour, colour = "black") +
     ggplot2::labs(
