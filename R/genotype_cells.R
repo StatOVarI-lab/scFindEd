@@ -213,6 +213,8 @@ genotype_cells <- function(
 
     cli::cli_alert_success("{AmpID} posterior mean distribution plot exported to: {normalizePath(plots_output_dir)}")
   }
+
+  return(haploid_summary)
 }
 
 
