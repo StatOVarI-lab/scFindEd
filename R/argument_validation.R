@@ -161,7 +161,6 @@ validate_generate_synthetic_experiment_args <- function(
   edit_efficiency = 0.5,
   somatic_mutation_rate = 0.001,
   sequencing_error_rate = 0.0003,
-  readname_cell_barcode_assignment_skew = 0.7,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
   reads_per_amplicon = 1000000,
@@ -183,7 +182,6 @@ validate_generate_synthetic_experiment_args <- function(
   assert_float(edit_efficiency, "edit_efficiency", min = 0.1, max = 0.9)
   assert_float(somatic_mutation_rate, "somatic_mutation_rate", max = 0.1)
   assert_float(sequencing_error_rate, "sequencing_error_rate", max = 0.1)
-  assert_float(readname_cell_barcode_assignment_skew, "readname_cell_barcode_assignment_skew", inclusive_max = FALSE)
   assert_float(cell_identity_barcode_assignment_skew, "cell_identity_barcode_assignment_skew", inclusive_max = FALSE)
   assert_float(soup_fraction, "soup_fraction", inclusive_max = FALSE)
   assert_integer(reads_per_amplicon, "reads_per_amplicon", min = 10000)
