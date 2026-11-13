@@ -20,6 +20,13 @@ for the amplicon(s) that contains the inserted identity barcode(s).}
 \item{barcoded}{Boolean that tells the function whether the experiment
 utilises an identity barcode system.}
 
+\item{ploidy}{Character string that defines whether genotyping shoud be
+consider as haploid or diploid. Note that only haploidy is fully implemented
+currently.}
+
+\item{lower_CI_assignment_threshold}{Float that sets the minimum lower credible
+interval bound for assigning a confident haploid genotype.}
+
 \item{output_dir}{String containing the relative path to the directory that
 the output data should be exported to.}
 
