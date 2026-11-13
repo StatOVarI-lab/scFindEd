@@ -7,11 +7,10 @@
 generate_synthetic_experiment(
   edit_efficiency = 0.5,
   somatic_mutation_rate = 0.001,
-  sequencing_error_rate = 3e-04,
-  readname_cell_barcode_assignment_skew = 0.7,
+  sequencing_error_rate = 0.0003,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
-  reads_per_amplicon = 1e+06,
+  reads_per_amplicon = 1000000,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
@@ -35,9 +34,6 @@ true somatic mutation in a cell's amplicon sequence. Default = 0.001, or 0.1\%.}
 
 \item{sequencing_error_rate}{Float that defines the per-base probability of a
 single-base sequencing error on each sequenced read. Default = 0.0003, or 0.03\%.}
-
-\item{readname_cell_barcode_assignment_skew}{Float that skews the gamma
-distribution-based assignment of readnames to cell barcodes. Default = 0.7.}
 
 \item{cell_identity_barcode_assignment_skew}{Float that skews the gamma
 distribution-based assignment of cell barcodes to identity barcodes. Default

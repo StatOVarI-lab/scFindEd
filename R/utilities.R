@@ -217,15 +217,13 @@ get_border_colours <- function() {
 design_summary_to_genotypes <- function(design_summary) {
   AmpIDs <- unique(design_summary[["AmpID"]])
 
-  genotype_list <- list()
+  genotypes <- character()
 
   for (ampID in AmpIDs) {
     AmpID_edits <- design_summary |>
       dplyr::select(AmpID, SNP, block_index, start, length, ref, change) |>
       dplyr::filter(AmpID == ampID) |>
       dplyr::arrange(length, start)  # controls the order genotypes appear in
-
-    genotypes <- character()
 
     for (edit in unique(AmpID_edits$SNP)) {
       blocks <- AmpID_edits[AmpID_edits$SNP == edit, ]
@@ -240,13 +238,11 @@ design_summary_to_genotypes <- function(design_summary) {
         edit_string <- c(edit_string, paste0("c.", pos, ref_bases, ">", alt_bases))
       }
 
-      genotypes <- c(genotypes, paste(edit_string, collapse = ";"))
+      genotypes <- c(genotypes, paste0(ampID, ":", paste(edit_string, collapse = ";")))
     }
-
-    genotype_list[[ampID]] <- genotypes
   }
 
-  return(genotype_list)
+  return(genotypes)
 }
 
 
@@ -302,9 +298,9 @@ reverse_conversion <- function(seqs) {
 mutate_seqs <- function(
   seqs,
   mutation_rate = 0.001,
-  p_sub = 0.8,
-  p_ins = 0.1,
-  p_del = 0.1,
+  p_sub = 0.5,
+  p_ins = 0.2,
+  p_del = 0.3,
   indel_p = 0.5 # indel length ~ 1 + Geometric(indel_p); mean 1/indel_p, 1 = always single-base
 ) {
   # Convert to biostrings DNA set

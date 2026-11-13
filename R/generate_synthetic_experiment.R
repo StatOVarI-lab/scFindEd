@@ -15,8 +15,6 @@
 #' true somatic mutation in a cell's amplicon sequence. Default = 0.001, or 0.1%.
 #' @param sequencing_error_rate Float that defines the per-base probability of a
 #' single-base sequencing error on each sequenced read. Default = 0.0003, or 0.03%.
-#' @param readname_cell_barcode_assignment_skew Float that skews the gamma
-#' distribution-based assignment of readnames to cell barcodes. Default = 0.7.
 #' @param cell_identity_barcode_assignment_skew Float that skews the gamma
 #' distribution-based assignment of cell barcodes to identity barcodes. Default
 #' = 0.4.
@@ -63,7 +61,6 @@ generate_synthetic_experiment <- function(
   edit_efficiency = 0.5,
   somatic_mutation_rate = 0.001,
   sequencing_error_rate = 0.0003,
-  readname_cell_barcode_assignment_skew = 0.7,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
   reads_per_amplicon = 1000000,
@@ -87,7 +84,6 @@ generate_synthetic_experiment <- function(
                                               edit_efficiency,
                                               somatic_mutation_rate,
                                               sequencing_error_rate,
-                                              readname_cell_barcode_assignment_skew,
                                               cell_identity_barcode_assignment_skew,
                                               soup_fraction,
                                               reads_per_amplicon,
@@ -173,7 +169,6 @@ generate_synthetic_experiment <- function(
                                                     SNP_list,
                                                     identity_barcode_whitelists,
                                                     edit_efficiency,
-                                                    readname_cell_barcode_assignment_skew,
                                                     cell_identity_barcode_assignment_skew,
                                                     reads_per_amplicon,
                                                     total_whitelist_barcodes,
@@ -472,7 +467,6 @@ generate_ground_truth_table <- function(
   SNP_list,
   identity_barcode_whitelists,
   edit_efficiency = 0.5,
-  readname_cell_barcode_assignment_skew = 0.7,
   cell_identity_barcode_assignment_skew = 0.4,
   reads_per_amplicon = 100000,
   total_whitelist_barcodes = 1000,
@@ -504,10 +498,9 @@ generate_ground_truth_table <- function(
   )
 
   # -- Generate lookup table between readnames and cell_barcode --
-  readname_cell_barcode_assignment <- skewed_readname_cell_barcode_assignment(
+  readname_cell_barcode_assignment <- nbinom_readname_cell_barcode_assignment(
     readnames,
-    cell_barcodes,
-    skewness = readname_cell_barcode_assignment_skew
+    cell_barcodes
   ) |>
     dplyr::mutate(AmpID = rep(design_summary[["AmpID"]], each = reads_per_amplicon))
 
@@ -618,38 +611,48 @@ skewed_cell_identity_barcode_assignment <- function(
 
 
 #' @keywords internal
-skewed_readname_cell_barcode_assignment <- function(
+nbinom_readname_cell_barcode_assignment <- function(
   readnames,
   cell_barcodes,
-  skewness = 0.7
+  low_peak_fraction = 0.25,  # proportion of cells in the low-depth peak
+  high_low_ratio    = 50,    # high-peak mean / low-peak mean
+  high_peak_size    = 1.5,   # NB dispersion for each peak; larger = tighter
+  low_peak_size     = 5,
+  min_reads         = 1L     # guaranteed reads per cell
 ) {
   n_readnames     <- length(readnames)
   n_cell_barcodes <- length(cell_barcodes)
 
-  # Shuffle readnames to ensure randomness
-  shuffled_readnames <- sample(readnames)
+  # Global mean reads per cell
+  mean_reads <- n_readnames / n_cell_barcodes
 
-  guaranteed_assignments <- cell_barcodes
-  remaining_readnames <- shuffled_readnames[(n_cell_barcodes + 1):n_readnames]
+  # Solve for the peak means so the overall mean is preserved:
+  # mean_reads = mean_high * ((1 - f) + f / high_low_ratio)
+  mean_high <- mean_reads / ((1 - low_peak_fraction) + low_peak_fraction / high_low_ratio)
+  mean_low <- mean_high / high_low_ratio
 
-  # Generate skewed probabilities using a Gamma distribution
-  raw_weights <- rgamma(n_cell_barcodes, shape = skewness, rate = 1)
-  probs       <- raw_weights / sum(raw_weights)
+  # Assign each cell to a peak, then draw its count from that peak's NB
+  is_low   <- runif(n_cell_barcodes) < low_peak_fraction
+  mu_extra <- ifelse(is_low, mean_low, mean_high) - min_reads
+  sizes    <- ifelse(is_low, low_peak_size, high_peak_size)
+  counts   <- min_reads + rnbinom(n_cell_barcodes, size = sizes, mu = mu_extra)
 
-  # Sample identity barcodes for all remaining cell barcodes
-  remaining_assignments <- sample(cell_barcodes,
-                                  size    = length(remaining_readnames),
-                                  replace = TRUE,
-                                  prob    = probs
+  # Reconcile the random total with the number of readnames
+  diff <- n_readnames - sum(counts)
+  if (diff > 0) {
+    add_idx <- sample.int(n_cell_barcodes, size = diff, replace = TRUE, prob = counts)
+    counts  <- counts + tabulate(add_idx, nbins = n_cell_barcodes)
+  } else if (diff < 0) {
+    extra_slots <- rep(seq_len(n_cell_barcodes), times = counts - min_reads)
+    drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
+    counts      <- counts - tabulate(drop_idx, nbins = n_cell_barcodes)
+  }
+
+  # Shuffle barcodes so each cell's reads scatter across all amplicon blocks
+  dplyr::tibble(
+    readname     = readnames,
+    cell_barcode = sample(rep(cell_barcodes, times = counts))
   )
-
-  # Combine guaranteed and remaining assignments into single lookup table
-  readname_cell_barcode_assignment <- dplyr::tibble(
-    readname     = c(shuffled_readnames[1:n_cell_barcodes], remaining_readnames),
-    cell_barcode = c(guaranteed_assignments, remaining_assignments)
-  )
-
-  return(readname_cell_barcode_assignment)
 }
 
 
@@ -721,13 +724,14 @@ generate_soup_reads <- function(
   n_soup_reads <- length(readnames)
   AmpIDs       <- design_summary[["AmpID"]]
 
-  # -- Sample cell_barcodes: quarter from true pool, three quarter generated --
+  # -- Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
 
-  n_real_cells <- n_soup_reads %/% 4
-  n_soup_cells <- n_soup_reads - n_real_cells
+  n_from_real_cells <- round(n_soup_reads / 5)
+  n_from_soup_cells <- n_soup_reads - n_from_real_cells
+
   soup_cell_barcodes <- sample(c(
-    sample(cell_barcodes, n_real_cells, replace = TRUE),
-    generate_cell_barcodes(n_soup_cells, cell_barcode_length = 18)
+    sample(cell_barcodes, n_from_real_cells, replace = TRUE),
+    skewed_soup_cell_barcodes(n_from_soup_cells)
   ))
 
   # Assign each soup read to an amplicon at random
@@ -784,6 +788,35 @@ generate_soup_reads <- function(
                               seq          = soup_sequences)
 
   return(soup_reads)
+}
+
+
+#' @keywords internal
+skewed_soup_cell_barcodes <- function(
+  n_reads,
+  skewness = 0.2
+) {
+  n_cell_barcodes <- round(n_reads / 20)
+
+  cell_barcodes <- generate_cell_barcodes(n_cell_barcodes, cell_barcode_length = 18)
+
+  guaranteed_assignments <- cell_barcodes
+  n_remaining <- n_reads - n_cell_barcodes
+
+  # Generate skewed probabilities using a Gamma distribution
+  raw_weights <- rgamma(n_cell_barcodes, shape = skewness, rate = 1)
+  probs       <- raw_weights / sum(raw_weights)
+
+  # Sample identity barcodes for all remaining cell barcodes
+  remaining_assignments <- sample(cell_barcodes,
+                                  size    = n_remaining,
+                                  replace = TRUE,
+                                  prob    = probs)
+
+  # Combine guaranteed and remaining assignments
+  assignments <- c(guaranteed_assignments, remaining_assignments)
+
+  return(assignments)
 }
 
 
