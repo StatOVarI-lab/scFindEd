@@ -4,7 +4,12 @@
 \alias{barcode_hamming_plot}
 \title{Produces a histogram of Hamming distances to the nearest whitelist barcode.}
 \usage{
-barcode_hamming_plot(closest_barcodes, title)
+barcode_hamming_plot(
+  closest_barcodes,
+  cell_to_extracted_BCs,
+  extracted_BC_ID,
+  title
+)
 }
 \description{
 Produces a histogram of Hamming distances to the nearest whitelist barcode.

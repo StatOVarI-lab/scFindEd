@@ -85,7 +85,10 @@ identify_whitelisted_barcodes <- function(
     if (!is.null(plots_output_dir)) {
       BC_ID_hamming_plot <- barcode_hamming_plot(
         BC_ID_closest_barcodes,
-        paste0(extracted_BC_ID, ": Hamming Distance Comparison"))
+        cell_to_extracted_BCs,
+        extracted_BC_ID,
+        paste0(extracted_BC_ID, ": Hamming Distance Comparison")
+      )
 
       BC_ID_hamming_plot_file_name <- paste0(sample_name, "_", extracted_BC_ID,
                                              "_hamming_plot.png")
@@ -166,18 +169,30 @@ closest_whitelist_barcodes <- function(
 #' @keywords internal
 barcode_hamming_plot <- function(
   closest_barcodes,
+  cell_to_extracted_BCs,
+  extracted_BC_ID,
   title
 ) {
   # Convert list to matrix once
   dist_mat <- do.call(rbind, closest_barcodes)
+  unique_extracted_barcodes <- names(closest_barcodes)
 
-  # Build the long data frame directly
+  # Number of distinct cells carrying each extracted barcode
+  cell_barcode_pairs <- unique(
+    cell_to_extracted_BCs[, c("cell_barcode", extracted_BC_ID)]
+  )
+  cells_per_barcode <- table(cell_barcode_pairs[[extracted_BC_ID]])
+  cells <- as.numeric(cells_per_barcode[unique_extracted_barcodes])
+  cells[is.na(cells)] <- 0
+
+  # Build the long data frame directly, with each distance weighted by its cell count
   hamming_df <- data.frame(
     distance = c(dist_mat[, 1], dist_mat[, 2]),
+    cells = c(cells, cells),
     type = factor(rep(c("Closest", "Second Closest"), each = nrow(dist_mat)))
   )
 
-  plot <- ggplot2::ggplot(hamming_df, ggplot2::aes(x = distance, fill = type)) +
+  plot <- ggplot2::ggplot(hamming_df, ggplot2::aes(x = distance, weight = cells, fill = type)) +
     ggplot2::geom_histogram(position = "dodge", binwidth = 0.5, color = "black", alpha = 0.8) +
     ggplot2::scale_fill_brewer(palette = "Set2") +
     ggplot2::labs(
