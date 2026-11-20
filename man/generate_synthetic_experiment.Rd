@@ -10,7 +10,7 @@ generate_synthetic_experiment(
   sequencing_error_rate = 0.0003,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
-  reads_per_amplicon = 1000000,
+  avg_sequencing_depth = 100,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
@@ -43,8 +43,8 @@ distribution-based assignment of cell barcodes to identity barcodes. Default
 are simulate the 'soup' - reads that assign to both real and non-real cell
 barcodes but don't represent the ground truth for that cell. Default = 0.2.}
 
-\item{reads_per_amplicon}{Integer that fixes an approximate number of reads
-on each amplicon. Default = 1,000,000.}
+\item{avg_sequencing_depth}{Integer that sets the average number of reads per
+amplicon per true cell_barcode. Default = 100.}
 
 \item{total_cell_barcodes}{Integer that fixes the number of true cells.
 Default = 10,000.}

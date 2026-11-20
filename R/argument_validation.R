@@ -163,7 +163,7 @@ validate_generate_synthetic_experiment_args <- function(
   sequencing_error_rate = 0.0003,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
-  reads_per_amplicon = 1000000,
+  avg_sequencing_depth = 100,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
@@ -184,7 +184,7 @@ validate_generate_synthetic_experiment_args <- function(
   assert_float(sequencing_error_rate, "sequencing_error_rate", max = 0.1)
   assert_float(cell_identity_barcode_assignment_skew, "cell_identity_barcode_assignment_skew", inclusive_max = FALSE)
   assert_float(soup_fraction, "soup_fraction", inclusive_max = FALSE)
-  assert_integer(reads_per_amplicon, "reads_per_amplicon", min = 10000)
+  assert_integer(avg_sequencing_depth, "avg_sequencing_depth", min = 2)
   assert_integer(total_cell_barcodes, "total_cell_barcodes", min = 1000)
   assert_integer(total_whitelist_barcodes, "total_whitelist_barcodes")
   assert_integer(total_identity_barcode_combinations, "total_identity_barcode_combinations", min = 100)
@@ -202,9 +202,6 @@ validate_generate_synthetic_experiment_args <- function(
 
   if (total_cell_barcodes <= total_identity_barcode_combinations) {
     cli::cli_abort("total_cell_barcodes must exceed total_identity_barcode_combinations.")
-  }
-  if (total_reads <= total_cell_barcodes) {
-    cli::cli_abort("Total reads: reads_per_amplicon * (n_amplicons + 1), must exceed total_cell_barcodes.")
   }
   if (amplicon_length <= paired_read_length) {
     cli::cli_abort("paired_read_length must exceed amplicon_length.")
