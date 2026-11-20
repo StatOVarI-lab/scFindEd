@@ -497,13 +497,13 @@ generate_ground_truth_table <- function(
     skewness = cell_identity_barcode_assignment_skew
   )
 
-  # -- Generate lookup table between readnames and cell_barcode --
+  # -- Generate lookup table between readnames and AmpID --
 
-  # Determine which AmpID each readname will be sequenced from prior to assignment
-  readnames_AmpIDs <- dplyr::tibble(
-    readname = readnames,
-    AmpID = sample(design_summary[["AmpID"]], length(readnames), replace = TRUE)
-  )
+  readnames_AmpIDs <- dirichlet_readname_AmpID_assignment(readnames,
+                                                          design_summary,
+                                                          concentration = 25)
+
+  # -- Generate lookup table between readnames and cell_barcode --
   readname_cell_barcode_assignment <- nbinom_readname_cell_barcode_assignment(
     readnames_AmpIDs,
     cell_barcodes,
@@ -613,6 +613,37 @@ skewed_cell_identity_barcode_assignment <- function(
   )
 
   return(cell_identity_barcode_assignment)
+}
+
+
+#' @keywords internal
+dirichlet_readname_AmpID_assignment <- function(
+  readnames,
+  design_summary,
+  concentration = 25
+) {
+  n_readnames <- length(readnames)
+  AmpIDs <- design_summary[["AmpID"]]
+  n_AmpIDs <- length(AmpIDs)
+
+  # Dirichlet draw via normalised gammas
+  rdirichlet_draw <- function(alpha) {
+    g <- rgamma(length(alpha), shape = alpha)
+    return(g / sum(g))
+  }
+
+  # Set a consistent concentration across amplicons
+  alpha <- rep(concentration, times = n_AmpIDs)
+  probs <- rdirichlet_draw(alpha)
+  AmpID_counts <- as.vector(rmultinom(1, size = n_readnames, prob = probs))
+
+  # Combine assignments into single data frame, with repeated & shuffled AmpIDs
+  readnames_AmpIDs <- dplyr::tibble(
+    readname = readnames,
+    AmpID = sample(rep(AmpIDs, times = AmpID_counts))
+  )
+
+  return(readnames_AmpIDs)
 }
 
 
