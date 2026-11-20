@@ -21,8 +21,8 @@
 #' @param soup_fraction Float that defines a proportion of additional reads that
 #' are simulate the 'soup' - reads that assign to both real and non-real cell
 #' barcodes but don't represent the ground truth for that cell. Default = 0.2.
-#' @param reads_per_amplicon Integer that fixes an approximate number of reads
-#' on each amplicon. Default = 1,000,000.
+#' @param avg_sequencing_depth Integer that sets the average number of reads per
+#' amplicon per true cell_barcode. Default = 100.
 #' @param total_cell_barcodes Integer that fixes the number of true cells.
 #' Default = 10,000.
 #' @param total_whitelist_barcodes Integer that fixes the number of unique
@@ -63,7 +63,7 @@ generate_synthetic_experiment <- function(
   sequencing_error_rate = 0.0003,
   cell_identity_barcode_assignment_skew = 0.4,
   soup_fraction = 0.2,
-  reads_per_amplicon = 1000000,
+  avg_sequencing_depth = 100,
   total_cell_barcodes = 10000,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
@@ -77,7 +77,7 @@ generate_synthetic_experiment <- function(
   random_seed = 42,
   verbose = TRUE
 ) {
-  total_reads <- reads_per_amplicon * (n_amplicons + 1)
+  total_reads <- avg_sequencing_depth * total_cell_barcodes * (n_amplicons + 1)
 
   # -- Ensure all provided arguments are valid --
   validate_generate_synthetic_experiment_args(total_reads,
@@ -86,7 +86,7 @@ generate_synthetic_experiment <- function(
                                               sequencing_error_rate,
                                               cell_identity_barcode_assignment_skew,
                                               soup_fraction,
-                                              reads_per_amplicon,
+                                              avg_sequencing_depth,
                                               total_cell_barcodes,
                                               total_whitelist_barcodes,
                                               total_identity_barcode_combinations,
@@ -170,7 +170,7 @@ generate_synthetic_experiment <- function(
                                                     identity_barcode_whitelists,
                                                     edit_efficiency,
                                                     cell_identity_barcode_assignment_skew,
-                                                    reads_per_amplicon,
+                                                    avg_sequencing_depth,
                                                     total_whitelist_barcodes,
                                                     total_identity_barcode_combinations,
                                                     total_identity_barcodes)
@@ -468,7 +468,7 @@ generate_ground_truth_table <- function(
   identity_barcode_whitelists,
   edit_efficiency = 0.5,
   cell_identity_barcode_assignment_skew = 0.4,
-  reads_per_amplicon = 100000,
+  avg_sequencing_depth = 100,
   total_whitelist_barcodes = 1000,
   total_identity_barcode_combinations = 500,
   total_identity_barcodes = 3
@@ -498,11 +498,17 @@ generate_ground_truth_table <- function(
   )
 
   # -- Generate lookup table between readnames and cell_barcode --
+
+  # Determine which AmpID each readname will be sequenced from prior to assignment
+  readnames_AmpIDs <- dplyr::tibble(
+    readname = readnames,
+    AmpID = sample(design_summary[["AmpID"]], length(readnames), replace = TRUE)
+  )
   readname_cell_barcode_assignment <- nbinom_readname_cell_barcode_assignment(
-    readnames,
-    cell_barcodes
-  ) |>
-    dplyr::mutate(AmpID = rep(design_summary[["AmpID"]], each = reads_per_amplicon))
+    readnames_AmpIDs,
+    cell_barcodes,
+    design_summary
+  )
 
   # Construct identity barcode side of the ground truth table
   ground_truth_table <- readname_cell_barcode_assignment |>
@@ -612,47 +618,60 @@ skewed_cell_identity_barcode_assignment <- function(
 
 #' @keywords internal
 nbinom_readname_cell_barcode_assignment <- function(
-  readnames,
+  readnames_AmpIDs,
   cell_barcodes,
+  design_summary,
   low_peak_fraction = 0.25,  # proportion of cells in the low-depth peak
   high_low_ratio    = 50,    # high-peak mean / low-peak mean
   high_peak_size    = 1.5,   # NB dispersion for each peak; larger = tighter
-  low_peak_size     = 5,
-  min_reads         = 1L     # guaranteed reads per cell
+  low_peak_size     = 5
 ) {
-  n_readnames     <- length(readnames)
   n_cell_barcodes <- length(cell_barcodes)
 
-  # Global mean reads per cell
-  mean_reads <- n_readnames / n_cell_barcodes
+  readname_cell_barcode_assignment <- dplyr::tibble(readname = c(),
+                                                    cell_barcode = c(),
+                                                    AmpID = c())
 
-  # Solve for the peak means so the overall mean is preserved:
-  # mean_reads = mean_high * ((1 - f) + f / high_low_ratio)
-  mean_high <- mean_reads / ((1 - low_peak_fraction) + low_peak_fraction / high_low_ratio)
-  mean_low <- mean_high / high_low_ratio
+  # Run a separate negative binomial assignment for reads on each amplicon
+  for (amp in design_summary[["AmpID"]]) {
+    filtered_readnames_AmpIDs <- readnames_AmpIDs |>
+      dplyr::filter(AmpID == amp)
 
-  # Assign each cell to a peak, then draw its count from that peak's NB
-  is_low   <- runif(n_cell_barcodes) < low_peak_fraction
-  mu_extra <- ifelse(is_low, mean_low, mean_high) - min_reads
-  sizes    <- ifelse(is_low, low_peak_size, high_peak_size)
-  counts   <- min_reads + rnbinom(n_cell_barcodes, size = sizes, mu = mu_extra)
+    n_readnames <- nrow(filtered_readnames_AmpIDs)
 
-  # Reconcile the random total with the number of readnames
-  diff <- n_readnames - sum(counts)
-  if (diff > 0) {
-    add_idx <- sample.int(n_cell_barcodes, size = diff, replace = TRUE, prob = counts)
-    counts  <- counts + tabulate(add_idx, nbins = n_cell_barcodes)
-  } else if (diff < 0) {
-    extra_slots <- rep(seq_len(n_cell_barcodes), times = counts - min_reads)
-    drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
-    counts      <- counts - tabulate(drop_idx, nbins = n_cell_barcodes)
+    # Global mean reads per cell
+    mean_reads <- n_readnames / n_cell_barcodes
+
+    # Solve for the peak means so the overall mean is preserved:
+    # mean_reads = mean_high * ((1 - f) + f / high_low_ratio)
+    mean_high <- mean_reads / ((1 - low_peak_fraction) + low_peak_fraction / high_low_ratio)
+    mean_low <- mean_high / high_low_ratio
+
+    # Assign each cell to a peak, then draw its count from that peak's NB
+    is_low   <- runif(n_cell_barcodes) < low_peak_fraction
+    mu_reads <- ifelse(is_low, mean_low, mean_high)
+    sizes    <- ifelse(is_low, low_peak_size, high_peak_size)
+    counts   <- rnbinom(n_cell_barcodes, size = sizes, mu = mu_reads)
+
+    # Reconcile the random total with the number of readnames
+    diff <- n_readnames - sum(counts)
+    if (diff > 0) {
+      add_idx <- sample.int(n_cell_barcodes, size = diff, replace = TRUE, prob = counts)
+      counts  <- counts + tabulate(add_idx, nbins = n_cell_barcodes)
+    } else if (diff < 0) {
+      extra_slots <- rep(seq_len(n_cell_barcodes), times = counts)
+      drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
+      counts      <- counts - tabulate(drop_idx, nbins = n_cell_barcodes)
+    }
+
+    filtered_readnames_AmpIDs <- filtered_readnames_AmpIDs |>
+      dplyr::mutate(cell_barcode = sample(rep(cell_barcodes, times = counts)))
+
+    readname_cell_barcode_assignment <- dplyr::bind_rows(readname_cell_barcode_assignment,
+                                                         filtered_readnames_AmpIDs)
   }
 
-  # Shuffle barcodes so each cell's reads scatter across all amplicon blocks
-  dplyr::tibble(
-    readname     = readnames,
-    cell_barcode = sample(rep(cell_barcodes, times = counts))
-  )
+  return(readname_cell_barcode_assignment)
 }
 
 
