@@ -775,7 +775,7 @@ generate_soup_reads <- function(
   AmpIDs       <- design_summary[["AmpID"]]
 
   # Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
-  proportion_real_cells <- 1/5
+  proportion_real_cells <- 1/3
 
   # Generate lookup table between readnames and AmpID
   readnames_AmpIDs <- dirichlet_readname_AmpID_assignment(readnames,
@@ -853,7 +853,7 @@ nbinom_soup_readname_cell_barcode_assignment <- function(
 ) {
   n_soup_reads <- nrow(readnames_AmpIDs)
 
-  # -- Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
+  # -- Sample cell_barcodes: one third from true pool, two thirds generated --
   n_from_real_cells <- round(n_soup_reads * proportion_real_cells)
   n_from_soup_cells <- n_soup_reads - n_from_real_cells
 
