@@ -194,10 +194,10 @@ generate_synthetic_experiment <- function(
   if (verbose) cli::cli_process_start(msg = "Generating {n_soup_reads} additional soup reads...",
                                       msg_done = "{n_soup_reads} additional soup reads generated.")
   soup_reads <- generate_soup_reads(soup_readnames,
-                                    cell_barcodes,
                                     design_summary,
                                     SNP_list,
                                     identity_barcode_whitelists,
+                                    ground_truth_table,
                                     somatic_mutation_rate,
                                     total_identity_barcodes,
                                     soup_edit_rate = 0.05)
@@ -763,10 +763,10 @@ generate_baseline_amplicon_sequences <- function(
 #' @keywords internal
 generate_soup_reads <- function(
   readnames,
-  cell_barcodes,
   design_summary,
   SNP_list,
   identity_barcode_whitelists,
+  ground_truth_table,
   somatic_mutation_rate = 0.001,
   total_identity_barcodes = 3,
   soup_edit_rate = 0.05
@@ -774,22 +774,24 @@ generate_soup_reads <- function(
   n_soup_reads <- length(readnames)
   AmpIDs       <- design_summary[["AmpID"]]
 
-  # -- Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
+  # Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
+  proportion_real_cells <- 1/5
 
-  n_from_real_cells <- round(n_soup_reads / 5)
-  n_from_soup_cells <- n_soup_reads - n_from_real_cells
+  # Generate lookup table between readnames and AmpID
+  readnames_AmpIDs <- dirichlet_readname_AmpID_assignment(readnames,
+                                                          design_summary,
+                                                          concentration = 25)
 
-  soup_cell_barcodes <- sample(c(
-    sample(cell_barcodes, n_from_real_cells, replace = TRUE),
-    skewed_soup_cell_barcodes(n_from_soup_cells)
-  ))
+  # Generate lookup table between readnames and cell_barcode
+  soup_reads <- nbinom_soup_readname_cell_barcode_assignment(readnames_AmpIDs,
+                                                             ground_truth_table,
+                                                             proportion_real_cells)
 
   # Assign each soup read to an amplicon at random
-  soup_AmpID     <- sample(AmpIDs, n_soup_reads, replace = TRUE)
   soup_sequences <- character(n_soup_reads)
 
   for (ampID in AmpIDs) {
-    rows <- which(soup_AmpID == ampID)
+    rows <- which(soup_reads[["AmpID"]] == ampID)
     if (length(rows) == 0) next
 
     # Pull out the wildtype sequence for ampID
@@ -833,40 +835,65 @@ generate_soup_reads <- function(
   # Insert mutations at the same background rate as baseline sequences
   soup_sequences <- mutate_seqs(soup_sequences, mutation_rate = somatic_mutation_rate)
 
-  soup_reads <- dplyr::tibble(readname     = readnames,
-                              cell_barcode = soup_cell_barcodes,
-                              seq          = soup_sequences)
+  soup_reads <- soup_reads |>
+    dplyr::mutate(seq = soup_sequences) |>
+    dplyr::select(readname, cell_barcode, seq)
 
   return(soup_reads)
 }
 
 
 #' @keywords internal
-skewed_soup_cell_barcodes <- function(
-  n_reads,
-  skewness = 0.2
+nbinom_soup_readname_cell_barcode_assignment <- function(
+  readnames_AmpIDs,
+  ground_truth_table,
+  proportion_real_cells,
+  peak = 3,
+  size = 3
 ) {
-  n_cell_barcodes <- round(n_reads / 20)
+  n_soup_reads <- nrow(readnames_AmpIDs)
 
-  cell_barcodes <- generate_cell_barcodes(n_cell_barcodes, cell_barcode_length = 18)
+  # -- Sample cell_barcodes: one fifth from true pool, 4 fifths generated --
+  n_from_real_cells <- round(n_soup_reads * proportion_real_cells)
+  n_from_soup_cells <- n_soup_reads - n_from_real_cells
 
-  guaranteed_assignments <- cell_barcodes
-  n_remaining <- n_reads - n_cell_barcodes
+  # -- Real cell_barcodes --
+  # Extract true cell_barcode data from the ground truth
+  cell_barcode_counts <- ground_truth_table |>
+    dplyr::count(cell_barcode, name = "n_reads")
 
-  # Generate skewed probabilities using a Gamma distribution
-  raw_weights <- rgamma(n_cell_barcodes, shape = skewness, rate = 1)
-  probs       <- raw_weights / sum(raw_weights)
-
-  # Sample identity barcodes for all remaining cell barcodes
-  remaining_assignments <- sample(cell_barcodes,
-                                  size    = n_remaining,
+  sampled_cell_barcodes <- sample(cell_barcode_counts[["cell_barcode"]],
+                                  n_from_real_cells,
                                   replace = TRUE,
-                                  prob    = probs)
+                                  prob = cell_barcode_counts[["n_reads"]])
 
-  # Combine guaranteed and remaining assignments
-  assignments <- c(guaranteed_assignments, remaining_assignments)
+  # -- Soup cell_barcodes --
+  n_soup_cell_barcodes <- round(n_from_soup_cells / peak)
+  soup_cell_barcodes <- generate_cell_barcodes(n_soup_cell_barcodes,
+                                               cell_barcode_length = 18)
 
-  return(assignments)
+  # Assign each cell to a peak, then draw its count from that peak's NB
+  soup_counts <- rnbinom(n_soup_cell_barcodes, size = size, mu = peak)
+
+  # Reconcile the random total with the number of readnames
+  diff <- n_from_soup_cells - sum(soup_counts)
+  if (diff > 0) {
+    add_idx     <- sample.int(n_soup_cell_barcodes, size = diff, replace = TRUE, prob = soup_counts)
+    soup_counts <- soup_counts + tabulate(add_idx, nbins = n_soup_cell_barcodes)
+  } else if (diff < 0) {
+    extra_slots <- rep(seq_len(n_soup_cell_barcodes), times = soup_counts)
+    drop_idx    <- extra_slots[sample.int(length(extra_slots), size = -diff)]
+    soup_counts <- soup_counts - tabulate(drop_idx, nbins = n_soup_cell_barcodes)
+  }
+
+  sampled_soup_cell_barcodes <- sample(rep(soup_cell_barcodes, times = soup_counts))
+
+  # -- Create Assginment --
+  readname_cell_barcode_assignment <- readnames_AmpIDs |>
+    dplyr::mutate(cell_barcode = sample(c(sampled_cell_barcodes,
+                                          sampled_soup_cell_barcodes)))
+
+  return(readname_cell_barcode_assignment)
 }
 
 
